@@ -203,7 +203,7 @@ const ReceptionBilling = () => {
                     style={styles.removeBtn}
                     disabled={items.length === 1}
                   >
-                    ❌
+                  ❌
                   </button>
                 </div>
               ))}
@@ -524,8 +524,8 @@ const styles = {
     backgroundColor: '#f44336',
     color: 'white',
     border: 'none',
-    borderRadius: '50%',
-    width: '35px',
+    borderRadius: '70%',
+    width: '45px',
     height: '35px',
     cursor: 'pointer',
     fontSize: '12px',

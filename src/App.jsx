@@ -17,6 +17,7 @@ function App() {
 
         <Route path="/patient-profile" element={<PatientProfile />} />
         <Route path="/reception/*" element={<Reception/>}></Route>
+        
 
       </Routes>
     </Router>

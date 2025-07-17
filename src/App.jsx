@@ -7,7 +7,8 @@ import Patient from "./components/PatientProfile/Patient"; // now handles sub-ro
 
 
 import Reception from "./components/Reception/Reception";
-
+import Cardio from "./components/Department/Cardio";
+// import Neuro from "./components/Department/Neuro"; 
 
 
 function App() {
@@ -17,7 +18,7 @@ return (
 <Routes>
 {/* Homepage */}
 <Route path="/" element={<Home />} />
-
+ <Route path="/cardiology" element={<Cardio />} />
 
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
     <Route path="/patient/*" element={<Patient />} />
@@ -25,6 +26,7 @@ return (
   </Routes>
 </Router>
 );
+
 
 }
 

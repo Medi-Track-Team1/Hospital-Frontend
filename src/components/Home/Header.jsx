@@ -34,8 +34,11 @@ const MedilabHeader = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (departmentsTimeout) clearTimeout(departmentsTimeout);
+    };
+  }, [departmentsTimeout]);
 
   const handleLoginClick = () => {
     setIsLoggedIn(true);
@@ -95,8 +98,16 @@ const MedilabHeader = () => {
               {/* Departments dropdown */}
               <div
                 className="relative"
-                onMouseEnter={() => setIsDepartmentsOpen(true)}
-                onMouseLeave={() => setIsDepartmentsOpen(false)}
+                onMouseEnter={() => {
+                  if (departmentsTimeout) clearTimeout(departmentsTimeout);
+                  setIsDepartmentsOpen(true);
+                }}
+                onMouseLeave={() => {
+                  const timeout = setTimeout(() => {
+                    setIsDepartmentsOpen(false);
+                  }, 200); // Delay before hiding
+                  setDepartmentsTimeout(timeout);
+                }}
               >
                 <a
                   href="#departments"

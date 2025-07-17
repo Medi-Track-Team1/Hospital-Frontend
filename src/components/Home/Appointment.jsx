@@ -9,7 +9,9 @@ const Appointment = () => {
     date: '',
     department: '',
     doctor: '',
-    message: ''
+    message: '',
+    appointmentType: '',
+    consentGiven: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,33 +23,31 @@ const Appointment = () => {
     'Pediatrics',
     'Orthopedics',
     'Dermatology',
-    'Gastroenterology'
+    'Gastroenterology',
   ];
 
-  const doctors = [
-    'Dr. Smith - Cardiology',
-    'Dr. Johnson - Neurology',
-    'Dr. Williams - Pediatrics',
-    'Dr. Brown - Orthopedics',
-    'Dr. Davis - Dermatology',
-    'Dr. Miller - Gastroenterology'
-  ];
+  const doctorMap = {
+     Cardiology: ['Dr. R. Suresh', 'Dr. V. Meenakshi', 'Dr. K. Rajendran'],
+    Neurology: ['Dr. M. Aravind', 'Dr. R. Latha Narayanan', 'Dr. S. Raghavan'],
+    Pediatrics: ['Dr. V. Priya Balasubramanian', 'Dr. G. Karthik', 'Dr. S. Anitha'],
+    Orthopedics: ['Dr. R. Murugan', 'Dr. K. Deepa', 'Dr. T. Vignesh'],
+    Dermatology: ['Dr. S. Keerthana', 'Dr. A. Manikandan', 'Dr. R. Janani'],
+    Gastroenterology: ['Dr. M. Bhuvaneshwari ', 'Dr. N. Dinesh Kumar', 'Dr. R. Abinaya'],
+  };
+
+  const appointmentTypes = ['New Consultation', 'Follow-up', 'Routine Checkup'];
 
   const filteredDoctors = formData.department
-    ? doctors.filter(doc => doc.includes(formData.department))
-    : doctors;
+    ? doctorMap[formData.department] || []
+    : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     setSubmitted(true);
     setIsSubmitting(false);
 
-    // Reset form after success message
     setTimeout(() => {
       setSubmitted(false);
       setFormData({
@@ -57,17 +57,19 @@ const Appointment = () => {
         date: '',
         department: '',
         doctor: '',
-        message: ''
+        message: '',
+        appointmentType: '',
+        consentGiven: false,
       });
     }, 3000);
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === 'department' && { doctor: '' }) // reset doctor if department changes
+      [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'department' && { doctor: '' }),
     }));
   };
 
@@ -77,7 +79,9 @@ const Appointment = () => {
     !formData.phone ||
     !formData.date ||
     !formData.department ||
-    !formData.doctor;
+    !formData.doctor ||
+    !formData.appointmentType ||
+    !formData.consentGiven;
 
   return (
     <section id="appointment" className="py-20 bg-gradient-to-br from-blue-50 to-blue-100">
@@ -103,133 +107,90 @@ const Appointment = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Info */}
                 <div className="grid md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <User className="inline h-4 w-4 mr-2" />
-                      Full Name
+                      <User className="inline h-4 w-4 mr-2" /> Full Name
                     </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      placeholder="Your full name"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    />
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder="Your full name" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Mail className="inline h-4 w-4 mr-2" />
-                      Email Address
+                      <Mail className="inline h-4 w-4 mr-2" /> Email Address
                     </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      placeholder="your@email.com"
-                      title="Enter a valid email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    />
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="your@email.com" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Phone className="inline h-4 w-4 mr-2" />
-                      Phone Number
+                      <Phone className="inline h-4 w-4 mr-2" /> Phone Number
                     </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      placeholder="10-digit number"
-                      pattern="[0-9]{10}"
-                      title="Enter a 10-digit phone number"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    />
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required placeholder="10-digit number" pattern="[0-9]{10}" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600" />
                   </div>
                 </div>
 
-                {/* Appointment Info */}
                 <div className="grid md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Calendar className="inline h-4 w-4 mr-2" />
-                      Preferred Date & Time
+                      <Calendar className="inline h-4 w-4 mr-2" /> Preferred Date & Time
                     </label>
-                    <input
-                      type="datetime-local"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    />
+                    <input type="datetime-local" name="date" value={formData.date} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Department
-                    </label>
-                    <select
-                      name="department"
-                      value={formData.department}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    >
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                    <select name="department" value={formData.department} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600">
                       <option value="">Select Department</option>
-                      {departments.map(dept => (
+                      {departments.map((dept) => (
                         <option key={dept} value={dept}>{dept}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Doctor
-                    </label>
-                    <select
-                      name="doctor"
-                      value={formData.doctor}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-                    >
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Doctor</label>
+                    <select name="doctor" value={formData.doctor} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600">
                       <option value="">Select Doctor</option>
-                      {filteredDoctors.map(doctor => (
+                      {filteredDoctors.map((doctor) => (
                         <option key={doctor} value={doctor}>{doctor}</option>
                       ))}
                     </select>
                   </div>
                 </div>
 
-                {/* Message */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MessageSquare className="inline h-4 w-4 mr-2" />
-                    Additional Message (Optional)
-                  </label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={4}
-                    placeholder="Any additional information or specific requirements..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 resize-none"
-                  />
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Appointment Type</label>
+                    <select name="appointmentType" value={formData.appointmentType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600">
+                      <option value="">Select Type</option>
+                      {appointmentTypes.map((type) => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Submit */}
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || isFormIncomplete}
-                    className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
-                  >
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <MessageSquare className="inline h-4 w-4 mr-2" /> Additional Message (Optional)
+                  </label>
+                  <textarea name="message" value={formData.message} onChange={handleChange} rows={4} placeholder="Any additional information or specific requirements..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 resize-none" />
+                </div>
+
+                <div className="flex items-start gap-2 pt-2">
+  <input
+    type="checkbox"
+    name="consentGiven"
+    checked={formData.consentGiven}
+    onChange={handleChange}
+    className="h-5 w-5 mt-1 accent-[#2563eb] border-gray-300 rounded"
+    required
+  />
+  <label className="text-sm text-gray-700 font-medium">
+       I agree to be contacted regarding my appointment.
+  </label>
+</div>
+
+
+                <div className="text-center pt-4">
+                  <button type="submit" disabled={isSubmitting || isFormIncomplete} className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105">
                     {isSubmitting ? 'Booking Appointment...' : 'Book Appointment'}
                   </button>
                 </div>
@@ -242,4 +203,4 @@ const Appointment = () => {
   );
 };
 
-export default Appointment;
+export default Appointment;

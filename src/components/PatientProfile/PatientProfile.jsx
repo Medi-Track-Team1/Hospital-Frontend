@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import EditProfileModal from './EditProfileModel';
+import { useNavigate } from "react-router-dom";
 import { 
   User, 
   Calendar, 
@@ -191,8 +192,10 @@ const PatientProfile = ({ onBackToHome }) => {
     return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
   };
 
+  const navigate = useNavigate();
+
   const handleBackToHome = () => {
-    onBackToHome(); // Use the prop passed from parent component
+    navigate("/"); // Use the prop passed from parent component
   };
 
   return (
@@ -215,12 +218,12 @@ const PatientProfile = ({ onBackToHome }) => {
           </div>
           <div className="flex gap-3">
             <button 
-              onClick={() => setShowHistory(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors font-medium shadow-md"
-            >
-              <History className="w-5 h-5" />
-              View Patient History
-            </button>
+      onClick={() => navigate("/patient/history")}
+      className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors font-medium shadow-md"
+    >
+      <History className="w-5 h-5" />
+      View Patient History
+    </button>
             <button 
               onClick={() => setShowEditModal(true)}
               className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition-colors font-medium"

@@ -1,48 +1,64 @@
-import React from 'react';
-import { Heart, Pill, UserCheck, Dna, Armchair as Wheelchair, FileText } from 'lucide-react';
+import React from "react";
+import {
+  Heart,
+  Pill,
+  UserCheck,
+  Dna,
+  Armchair as Wheelchair,
+  FileText,
+} from "lucide-react";
 
 const Services = () => {
   const services = [
     {
-      icon: <Heart className="h-8 w-8 text-blue-600" />,
+      icon: <Heart className="h-8 w-8 text-red-600" />,
       title: "Cardiology",
-      description: "Comprehensive heart care with advanced diagnostic and treatment options for all cardiovascular conditions."
+      description:
+        "Comprehensive heart care with advanced diagnostic and treatment options for all cardiovascular conditions.",
     },
     {
-      icon: <Pill className="h-8 w-8 text-blue-600" />,
+      icon: <Pill className="h-8 w-8 text-green-600" />,
       title: "Pharmacy Services",
-      description: "Full-service pharmacy with medication management and consultation services available 24/7."
+      description:
+        "Full-service pharmacy with medication management and consultation services available 24/7.",
     },
     {
       icon: <UserCheck className="h-8 w-8 text-blue-600" />,
       title: "Patient Care",
-      description: "Personalized patient care services with dedicated support staff and care coordinators."
+      description:
+        "Personalized patient care services with dedicated support staff and care coordinators.",
     },
     {
-      icon: <Dna className="h-8 w-8 text-blue-600" />,
+      icon: <Dna className="h-8 w-8 text-yellow-600" />,
       title: "Genetic Testing",
-      description: "Advanced genetic testing and counseling services for personalized medicine approaches."
+      description:
+        "Advanced genetic testing and counseling services for personalized medicine approaches.",
     },
     {
-      icon: <Wheelchair className="h-8 w-8 text-blue-600" />,
+      icon: <Wheelchair className="h-8 w-8 text-orange-600" />,
       title: "Rehabilitation",
-      description: "Complete rehabilitation services including physical therapy and occupational therapy."
+      description:
+        "Complete rehabilitation services including physical therapy and occupational therapy.",
     },
     {
-      icon: <FileText className="h-8 w-8 text-blue-600" />,
+      icon: <FileText className="h-8 w-8 text-black-600" />,
       title: "Medical Records",
-      description: "Secure digital medical records management with easy access and comprehensive documentation."
-    }
+      description:
+        "Secure digital medical records management with easy access and comprehensive documentation.",
+    },
   ];
 
   return (
-    <section id="services" className="py-20 bg-white">
+    <section id="services" className="py-20 bg-blue">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Services</h2>
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">
+            Our Services
+          </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Comprehensive healthcare services designed to meet all your medical needs with excellence and compassion
+            Comprehensive healthcare services designed to meet all your medical
+            needs with excellence and compassion
           </p>
         </div>
 

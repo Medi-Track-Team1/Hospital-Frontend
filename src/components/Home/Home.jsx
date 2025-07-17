@@ -17,18 +17,23 @@ const Home = () => {
   return (
     <>
       <Header />
-      <Hero />
-      <About />
-      <Services />
-      <Departments />
-      <Doctors />
-      <Appointment />
-      <Stats />
-      <Gallery />
-      <FAQ />
-      <Testimonials />
-      <Contact />
-      <Footer />
+
+      <div className="pt-[130px]">
+        {" "}
+        {/* Adjust based on total header height */}
+        <Hero />
+        <About />
+        <Services />
+        <Departments />
+        <Doctors />
+        <Appointment />
+        <Stats />
+        <Gallery />
+        <FAQ />
+        <Testimonials />
+        <Contact />
+        <Footer />
+      </div>
     </>
   );
 };

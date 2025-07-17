@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Send } from 'lucide-react';
+import React, { useState } from "react";
+import { MapPin, Phone, Mail, Send } from "lucide-react";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +17,7 @@ const Contact = () => {
     setIsSubmitting(true);
 
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setSubmitted(true);
     setIsSubmitting(false);
@@ -26,23 +26,23 @@ const Contact = () => {
     setTimeout(() => {
       setSubmitted(false);
       setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
       });
     }, 3000);
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   return (
-    <section id="contact" className="py-20 bg-white">
+    <section id="contact" className="py-20 bg-white scroll-mt-[130px]">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
@@ -72,9 +72,13 @@ const Contact = () => {
                 <MapPin className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Location</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  Location
+                </h3>
                 <p className="text-gray-600">
-                  123 Medical Center Drive<br />New York, NY 10001
+                  123 Medical Center Drive
+                  <br />
+                  New York, NY 10001
                 </p>
               </div>
             </div>
@@ -84,9 +88,13 @@ const Contact = () => {
                 <Phone className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Call Us</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  Call Us
+                </h3>
                 <p className="text-gray-600">
-                  +1 (555) 123-4567<br />Emergency: +1 (555) 911-0000
+                  +1 (555) 123-4567
+                  <br />
+                  Emergency: +1 (555) 911-0000
                 </p>
               </div>
             </div>
@@ -96,9 +104,13 @@ const Contact = () => {
                 <Mail className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Email Us</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  Email Us
+                </h3>
                 <p className="text-gray-600">
-                  info@medilab.com<br />appointments@medilab.com
+                  info@medilab.com
+                  <br />
+                  appointments@medilab.com
                 </p>
               </div>
             </div>
@@ -112,7 +124,9 @@ const Contact = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Send className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Message Sent!</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                    Message Sent!
+                  </h3>
                   <p className="text-gray-600">
                     Thank you for your message. We'll get back to you soon.
                   </p>
@@ -121,7 +135,9 @@ const Contact = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Your Name
+                      </label>
                       <input
                         type="text"
                         name="name"
@@ -133,7 +149,9 @@ const Contact = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
                       <input
                         type="email"
                         name="email"
@@ -147,7 +165,9 @@ const Contact = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Subject
+                    </label>
                     <input
                       type="text"
                       name="subject"
@@ -160,7 +180,9 @@ const Contact = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Message
+                    </label>
                     <textarea
                       name="message"
                       value={formData.message}
@@ -178,7 +200,7 @@ const Contact = () => {
                       disabled={isSubmitting}
                       className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
                     >
-                      {isSubmitting ? 'Sending...' : 'Send Message'}
+                      {isSubmitting ? "Sending..." : "Send Message"}
                     </button>
                   </div>
                 </form>

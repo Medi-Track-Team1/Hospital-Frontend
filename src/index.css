@@ -16,7 +16,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Remove forced dark mode */
 body {
   margin: 0;
   padding: 0;
@@ -35,6 +34,7 @@ a {
 a:hover {
   color: #2563eb; /* blue-600 */
 }
+
 
 button {
   border-radius: 8px;
@@ -55,12 +55,16 @@ button:hover {
   background-color: #f3f4f6; /* gray-100 */
 }
 
+
 input,
 textarea,
 select {
   background-color: white;
   color: black;
   border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-family: inherit;
 }
 
 input:focus,
@@ -71,7 +75,6 @@ select:focus {
   box-shadow: 0 0 0 1px #2563eb;
 }
 
-/* Success feedback */
 .success-message {
   background-color: #ecfdf5; /* green-50 */
   color: #065f46; /* green-800 */
@@ -79,6 +82,7 @@ select:focus {
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
+
 }
 
 /* Ensure SVG icons display properly */
@@ -86,3 +90,7 @@ svg {
   display: inline-block;
   vertical-align: middle;
 }
+
+  margin: 1rem 0;
+}
+

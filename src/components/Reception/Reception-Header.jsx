@@ -1,207 +1,309 @@
-import * as React from "react";
-import PropTypes from "prop-types";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import AppBar from "@mui/material/AppBar";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid";
-import MenuIcon from "@mui/icons-material/Menu";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-import Toolbar from "@mui/material/Toolbar";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import {
+  Menu,
+  X,
+  Bell,
+  User,
+  ChevronDown,
+  Activity,
+  Users,
+  Calendar,
+  FileText,
+  CreditCard,
+  History,
+} from "lucide-react";
 
-const lightColor = "rgba(255, 255, 255, 0.7)";
-
-function Header(props) {
-  const { onDrawerToggle } = props;
+const Header = ({ onDrawerToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBillingDropdownOpen, setIsBillingDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
+  const navigationItems = [
+    {
+      id: "registration",
+      label: "Patient Registration",
+      path: "/reception/registration",
+      icon: Users,
+    },
+    {
+      id: "management",
+      label: "Patient Management",
+      path: "/reception/management",
+      icon: Activity,
+    },
+    {
+      id: "appointment",
+      label: "Appointments",
+      path: "/reception/appointment",
+      icon: Calendar,
+    },
+    {
+      id: "billing",
+      label: "Billing",
+      path: "/reception/billing",
+      icon: CreditCard,
+      hasDropdown: true,
+      dropdownItems: [
+        {
+          label: "Generate Bill",
+          path: "/reception/generate-bill",
+          icon: FileText,
+        },
+        {
+          label: "Bill History",
+          path: "/reception/bill-history",
+          icon: History,
+        },
+      ],
+    },
+  ];
 
-  const handleBillingHover = (event) => {
-    setAnchorEl(event.currentTarget);
+  const isActiveRoute = (path) => location.pathname.startsWith(path);
+
+  const getActiveItem = () => {
+    for (const item of navigationItems) {
+      if (item.hasDropdown && item.dropdownItems) {
+        for (const dropdownItem of item.dropdownItems) {
+          if (isActiveRoute(dropdownItem.path)) {
+            return item.id;
+          }
+        }
+      }
+      if (isActiveRoute(item.path)) {
+        return item.id;
+      }
+    }
+    return null;
   };
 
-  const handleBillingClose = () => {
-    setAnchorEl(null);
-  };
+  const activeItem = getActiveItem();
 
-  const handleMenuItemClick = (path) => {
+  const handleNavigation = (path) => {
     navigate(path);
-    handleBillingClose();
-  };
-
-  const tabValue = (() => {
-    if (location.pathname.startsWith("/reception/registration")) return 0;
-    if (location.pathname.startsWith("/reception/management")) return 1;
-    if (location.pathname.startsWith("/reception/appointment")) return 2;
-    if (
-      location.pathname.startsWith("/reception/billing") ||
-      location.pathname.startsWith("/reception/generate-bill") ||
-      location.pathname.startsWith("/reception/bill-history")
-    )
-      return 3;
-    return false;
-  })();
-
-  const tabStyle = {
-    color: lightColor,
-    fontWeight: 500,
-    "&:hover": {
-      color: "#ffffff",
-    },
-    "&.Mui-selected": {
-      color: "#ffffff",
-    },
+    setIsMenuOpen(false);
+    setIsBillingDropdownOpen(false);
   };
 
   return (
-    <>
-      {/* Top App Bar */}
-      <AppBar color="primary" position="sticky" elevation={0}>
-        <Toolbar>
-          <Grid container spacing={1} sx={{ alignItems: "center" }}>
-            <Grid sx={{ display: { sm: "none", xs: "block" } }} item>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
+    <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+      {/* Top Nav */}
+      <nav className="bg-gradient-to-r from-blue-600 to-blue-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <button
                 onClick={onDrawerToggle}
-                edge="start"
+                className="md:hidden p-2 rounded-md text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-white"
               >
-                <MenuIcon />
-              </IconButton>
-            </Grid>
-            <Grid item>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  fontSize: "1.3rem",
-                  fontFamily:
-                    "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-                  color: "#ffffff",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                MediTrack
-              </Typography>
-            </Grid>
-            <Grid item xs />
-            <Grid item>
-              <Tooltip title="Alerts • No alerts">
-                <IconButton color="inherit">
-                  <NotificationsIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-            <Grid item>
-              <IconButton color="inherit" sx={{ p: 0.5 }}>
-                <Avatar src="/static/images/avatar/1.jpg" alt="My Avatar" />
-              </IconButton>
-            </Grid>
-          </Grid>
-        </Toolbar>
-      </AppBar>
+                <Menu className="h-6 w-6" />
+              </button>
+              <div className="flex items-center ml-2 md:ml-0">
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-white tracking-wide">
+                  MediTrack
+                </h1>
+              </div>
+            </div>
 
-      {/* Reception & Tabs Combined Bar */}
-      <AppBar
-        component="div"
-        color="primary"
-        position="static"
-        elevation={0}
-        sx={{ px: 3, py: 2 }}
-      >
-        <Toolbar
-          disableGutters
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            minHeight: "64px",
-          }}
-        >
-          {/* Reception Heading */}
-          <Typography
-            variant="h5"
-            component="h1"
-            sx={{
-              fontWeight: "bold",
-              letterSpacing: "0.1rem",
-              fontFamily:
-                "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-              color: "#fff",
-              fontSize: 39,
-              pb: 0.5,
-            }}
-          >
-            Reception
-          </Typography>
+            {/* Right Icons */}
+            <div className="flex items-center gap-4 pr-2">
+              <button className="relative p-2 rounded-full bg-white/20 hover:bg-white/30 text-white focus:outline-none focus:ring-2 focus:ring-white">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 block h-2 w-2 bg-red-500 rounded-full" />
+              </button>
 
-          {/* Right Tabs */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Tabs value={tabValue} textColor="inherit">
-              <Tab
-                label="Patient Registration"
-                onClick={() => navigate("/reception/registration")}
-                sx={{ ...tabStyle, mr: 4 }}
-              />
-              <Tab
-                label="Patient Management"
-                onClick={() => navigate("/reception/management")}
-                sx={{ ...tabStyle, mr: 4 }}
-              />
-              <Tab
-                label="Appointment"
-                onClick={() => navigate("/reception/appointment")}
-                sx={{ ...tabStyle, mr: 4 }}
-              />
-              <Tab
-                label="Billing"
-                aria-controls={open ? "billing-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-                onMouseEnter={handleBillingHover}
-                sx={{ ...tabStyle }}
-              />
-            </Tabs>
+              {/* Profile */}
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                  }
+                  className="flex items-center space-x-2 px-3 py-2 rounded-full bg-white/20 text-white border border-white/30 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                    <User className="h-5 w-5" />
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <button
+                      onClick={() => {
+                        // TODO: Add your logout logic here
+                        // e.g., clear auth tokens, user state, etc.
 
-            <Menu
-              id="billing-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleBillingClose}
-              MenuListProps={{ onMouseLeave: handleBillingClose }}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
+                        setIsProfileDropdownOpen(false); // close dropdown if needed
+                        navigate("/"); // or navigate("/"), based on your route
+                      }}
+                      className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h2 className="text-2xl font-bold text-gray-800">Reception</h2>
+            <nav className="hidden md:flex space-x-6">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeItem === item.id;
+
+                if (item.hasDropdown) {
+                  return (
+                    <div key={item.id} className="relative">
+                      <button
+                        onClick={() =>
+                          setIsBillingDropdownOpen(!isBillingDropdownOpen)
+                        }
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition ${
+                          isActive
+                            ? "text-blue-600 border-b-2 border-blue-600 hover:text-blue-600 hover:bg-transparent"
+                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                      {isBillingDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                          {item.dropdownItems?.map((dropdownItem) => {
+                            const DropdownIcon = dropdownItem.icon;
+                            return (
+                              <button
+                                key={dropdownItem.path}
+                                onClick={() =>
+                                  handleNavigation(dropdownItem.path)
+                                }
+                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                              >
+                                <DropdownIcon className="h-4 w-4" />
+                                <span>{dropdownItem.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition ${
+                      isActive
+                        ? "text-blue-600 border-b-2 border-blue-600 hover:text-blue-600 hover:bg-transparent"
+                        : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <MenuItem
-                onClick={() => handleMenuItemClick("/reception/generate-bill")}
-              >
-                Generate Bill
-              </MenuItem>
-              <MenuItem
-                onClick={() => handleMenuItemClick("/reception/bill-history")}
-              >
-                Bill History
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </AppBar>
-    </>
-  );
-}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
 
-Header.propTypes = {
-  onDrawerToggle: PropTypes.func.isRequired,
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-b border-gray-200 shadow-lg">
+          <div className="px-4 pt-2 pb-3 space-y-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeItem === item.id;
+
+              if (item.hasDropdown) {
+                return (
+                  <div key={item.id}>
+                    <button
+                      onClick={() =>
+                        setIsBillingDropdownOpen(!isBillingDropdownOpen)
+                      }
+                      className={`flex justify-between items-center w-full px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive
+                          ? "text-blue-600 bg-blue-50 hover:text-blue-600 hover:bg-blue-50"
+                          : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {isBillingDropdownOpen && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {item.dropdownItems?.map((dropdownItem) => {
+                          const DropdownIcon = dropdownItem.icon;
+                          return (
+                            <button
+                              key={dropdownItem.path}
+                              onClick={() =>
+                                handleNavigation(dropdownItem.path)
+                              }
+                              className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                            >
+                              <DropdownIcon className="h-4 w-4" />
+                              <span>{dropdownItem.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </header>
+  );
 };
 
 export default Header;

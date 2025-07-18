@@ -2,7 +2,7 @@ import React from "react";
 import { Heart } from "lucide-react";
 import cardio from "../../assets/Cardio.jpg";
 import Sunil from "../../assets/Sunil.jpeg";
-// import Mahesh from "../../assets/Mahesh.jpg";
+import Mahesh from "../../assets/Mahesh.png";
 import { motion } from "framer-motion";
 
 const fadeInVariant = {
@@ -21,7 +21,8 @@ const fadeInVariant = {
 
 const Cardio = () => {
   return (
-    <div className="min-h-screen bg-blue-100 p-6 flex flex-col items-center">
+   <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
+
       <div className=" relative overflow-hidden rounded-lg text-white px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6">
         <div className="relative z-10 flex items-center space-x-4">
           <Heart className="w-10 h-10 text-red-500" />
@@ -100,7 +101,7 @@ const Cardio = () => {
 
    <div className="h-[90px]"></div>
    
-      <h1 className="text-3xl font-bold text-black text-center" id="Doctors">
+<h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
         Find Your <span className="text-blue-600">Specialist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
@@ -155,7 +156,7 @@ const Cardio = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center">
   <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
     <img
-      src={Sunil}
+      src={Mahesh}
       alt="Dr. Mahesh Kumar"
       className="w-50 h-30 object-contain"
     />
@@ -165,7 +166,7 @@ const Cardio = () => {
     <h2 className="text-xl font-semibold">Dr. Mahesh Kumar</h2>
     <p className="text-blue-600 text-sm">Cardiology Specialist</p>
     <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-      {"★".repeat(4)}☆☆<span className="text-black ml-2">3.5</span>
+      {"★".repeat(3)}☆☆<span className="text-black ml-2">3.5</span>
     </div>
   </div>
 

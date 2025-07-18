@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LogIn, LogOut, User } from "lucide-react";
+
+import {
+  LogIn,
+  LogOut,
+  User,
+} from "lucide-react";
 
 const MedilabHeader = () => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
@@ -9,8 +14,8 @@ const MedilabHeader = () => {
   const profileRef = useRef(null);
 
   const departments = [
-    { name: "Cardiology", link: "/cardiology" },
-    { name: "Neurology", link: "#neurology" },
+    { name: "Cardiology", link: "/departments/cardiology" },
+    { name: "Neurology", link: "/departments/neurology" },
     { name: "Hepatology", link: "#hepatology" },
     { name: "Pediatrics", link: "#pediatrics" },
     { name: "Eye Care", link: "#eye-care" },
@@ -114,7 +119,9 @@ const MedilabHeader = () => {
               {isLoggedIn ? (
                 <div>
                   <button
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    onClick={() =>
+                      setProfileDropdownOpen(!profileDropdownOpen)
+                    }
                     className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
                   >
                     <User className="w-4 h-4 mr-2" />

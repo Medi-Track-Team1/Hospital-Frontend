@@ -1,4 +1,7 @@
-// Home.jsx
+
+
+// src/components/Home/Home.jsx
+
 import React from "react";
 import Header from "./Header";
 import Hero from "./Hero";
@@ -18,8 +21,11 @@ const Home = () => {
   return (
     <>
       <Header />
+
+    
       {/* pt-16 matches the navbar height: h-16 = 4rem = 64px */}
       <div className="pt-16">
+
         <Hero />
         <About />
         <Services />

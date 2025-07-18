@@ -11,6 +11,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 html {
   scroll-behavior: smooth;
 }
@@ -42,14 +43,16 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #ffffff; /* blue-500 */
-  color: white;
+  background-color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 
+/* Remove color white: let Tailwind control button colors */
+
+/* Optional hover */
 button:hover {
-  background-color: #2563eb; /* blue-600 */
+  background-color: #f3f4f6; /* gray-100 */
 }
 
 input,
@@ -76,4 +79,10 @@ select:focus {
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
+}
+
+/* Ensure SVG icons display properly */
+svg {
+  display: inline-block;
+  vertical-align: middle;
 }

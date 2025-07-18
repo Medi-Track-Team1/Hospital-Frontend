@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  X,
-  Facebook,
-  Instagram,
-  Linkedin,
-  Mail,
-  Phone,
-  LogIn,
-  LogOut,
-  User,
-} from "lucide-react";
+import { LogIn, LogOut, User } from "lucide-react";
 
 const MedilabHeader = () => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
@@ -50,48 +40,26 @@ const MedilabHeader = () => {
     setProfileDropdownOpen(false);
   };
 
+  const navLinkClass =
+    "text-blue-100 hover:text-white hover:bg-blue-700 rounded-md px-2 py-1 transition duration-200";
+
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
-      {/* Top header */}
-      <div className="bg-blue-600 text-white py-3 px-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4" />
-              <span className="text-sm">contact@example.com</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4" />
-              <span className="text-sm">+1 5589 55488 55</span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex space-x-3">
-              <Facebook className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
-              <Instagram className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
-              <Linkedin className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
-            </div>
-            <X className="h-4 w-4 hover:text-blue-200 cursor-pointer ml-4" />
-          </div>
-        </div>
-      </div>
-
-      {/* Navbar */}
-      <nav className="bg-white shadow-md">
+      <nav className="bg-blue-600 shadow-md">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <h1 className="text-2xl font-bold text-gray-700">MediTrack</h1>
+            <h1 className="text-2xl font-bold text-white">MediTrack</h1>
 
             {/* Navbar links */}
-            <div className="flex items-center space-x-8">
-              <a href="#hero" className="text-blue-600 font-medium">
+            <div className="flex items-center space-x-6">
+              <a href="#hero" className={navLinkClass}>
                 Home
               </a>
-              <a href="#about" className="text-gray-600 hover:text-blue-600">
+              <a href="#about" className={navLinkClass}>
                 About
               </a>
-              <a href="#services" className="text-gray-600 hover:text-blue-600">
+              <a href="#services" className={navLinkClass}>
                 Services
               </a>
 
@@ -105,23 +73,20 @@ const MedilabHeader = () => {
                 onMouseLeave={() => {
                   const timeout = setTimeout(() => {
                     setIsDepartmentsOpen(false);
-                  }, 200); // Delay before hiding
+                  }, 200);
                   setDepartmentsTimeout(timeout);
                 }}
               >
-                <a
-                  href="#departments"
-                  className="text-gray-600 hover:text-blue-600"
-                >
+                <a href="#departments" className={navLinkClass}>
                   Departments
                 </a>
                 {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10">
+                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out">
                     {departments.map((dept, idx) => (
                       <a
                         key={idx}
                         href={dept.link}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        className="block px-4 py-2 text-sm text-black hover:bg-blue-50 hover:text-blue-600"
                       >
                         {dept.name}
                       </a>
@@ -130,13 +95,16 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-              <a href="#doctors" className="text-gray-600 hover:text-blue-600">
+              <a href="#doctors" className={navLinkClass}>
                 Doctors
               </a>
-              <a href="#contact" className="text-gray-600 hover:text-blue-600">
+              <a href="#contact" className={navLinkClass}>
                 Contact
               </a>
-              <a href="#appointment" className="text-gray-600 font-medium">
+              <a
+                href="#appointment"
+                className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
+              >
                 Make Appointment
               </a>
             </div>
@@ -147,12 +115,11 @@ const MedilabHeader = () => {
                 <div>
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 flex items-center"
+                    className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
                   >
                     <User className="w-4 h-4 mr-2" />
                     Profile
                   </button>
-
                   {profileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
                       <button
@@ -168,7 +135,7 @@ const MedilabHeader = () => {
               ) : (
                 <button
                   onClick={handleLoginClick}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 flex items-center"
+                  className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
                   Login

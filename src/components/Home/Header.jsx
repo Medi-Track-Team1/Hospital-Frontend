@@ -49,7 +49,35 @@ const MedilabHeader = () => {
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
-      <nav className="bg-blue-600 shadow-md">
+
+      {/* Top header */}
+      <div className="bg-blue-600 text-white py-3 px-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <Mail className="h-4 w-4" />
+              <span className="text-sm">meditrack@example.com</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Phone className="h-4 w-4" />
+              <span className="text-sm">+91 9999888871</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex space-x-3">
+              <Facebook className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
+              <Instagram className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
+              <Linkedin className="h-4 w-4 hover:text-blue-200 cursor-pointer" />
+            </div>
+            <X className="h-4 w-4 hover:text-blue-200 cursor-pointer ml-4" />
+          </div>
+        </div>
+      </div>
+
+      {/* Navbar */}
+      <nav className="bg-white shadow-md">
+
+  
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}

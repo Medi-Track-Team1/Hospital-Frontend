@@ -21,6 +21,7 @@ return (
  <Route path="/departments/*" element={<DeptRoute/>} />
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
     <Route path="/patient/*" element={<Patient />} />
+
        <Route path="/reception/*" element={<Reception/>}></Route>
   </Routes>
 </Router>

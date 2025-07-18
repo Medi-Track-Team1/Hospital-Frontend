@@ -132,13 +132,18 @@ const Header = ({ onDrawerToggle }) => {
                 </button>
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                   
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    <button
+                      onClick={() => {
+                        // TODO: Add your logout logic here
+                        // e.g., clear auth tokens, user state, etc.
+
+                        setIsProfileDropdownOpen(false); // close dropdown if needed
+                        navigate("/"); // or navigate("/"), based on your route
+                      }}
+                      className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Sign Out
-                    </a>
+                    </button>
                   </div>
                 )}
               </div>

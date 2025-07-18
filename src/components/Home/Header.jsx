@@ -19,7 +19,7 @@ const MedilabHeader = () => {
   const profileRef = useRef(null);
 
   const departments = [
-    { name: "Cardiology", link: "#cardiology" },
+    { name: "Cardiology", link: "/cardiology" },
     { name: "Neurology", link: "#neurology" },
     { name: "Hepatology", link: "#hepatology" },
     { name: "Pediatrics", link: "#pediatrics" },

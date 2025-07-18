@@ -57,13 +57,13 @@ const MedilabHeader = () => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
-              <a href="#hero" className={navLinkClass}>
+              <a href="/#hero" className={navLinkClass}>
                 Home
               </a>
-              <a href="#about" className={navLinkClass}>
+              <a href="/#about" className={navLinkClass}>
                 About
               </a>
-              <a href="#services" className={navLinkClass}>
+              <a href="/#services" className={navLinkClass}>
                 Services
               </a>
 
@@ -99,14 +99,14 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-              <a href="#doctors" className={navLinkClass}>
+              <a href="/#doctors" className={navLinkClass}>
                 Doctors
               </a>
-              <a href="#contact" className={navLinkClass}>
+              <a href="/#contact" className={navLinkClass}>
                 Contact
               </a>
               <a
-                href="#appointment"
+                href="/#appointment"
                 className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
               >
                 Make Appointment

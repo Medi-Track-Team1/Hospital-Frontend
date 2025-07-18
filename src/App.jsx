@@ -8,7 +8,10 @@ import Patient from "./components/PatientProfile/Patient"; // now handles sub-ro
 
 import Reception from "./components/Reception/Reception";
 import Cardio from "./components/Department/Cardio";
+
 // import Neuro from "./components/Department/Neuro"; 
+
+import Admin from "./components/Admin/Admin";
 
 
 function App() {
@@ -21,8 +24,11 @@ return (
  <Route path="/cardiology" element={<Cardio />} />
 
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
-    <Route path="/patient/*" element={<Patient />} />
+       <Route path="/patient/*" element={<Patient />} />
        <Route path="/reception/*" element={<Reception/>}></Route>
+
+       {/* Admin Routes*/}
+       <Route path="/admin/*" element={<Admin />} />
   </Routes>
 </Router>
 );

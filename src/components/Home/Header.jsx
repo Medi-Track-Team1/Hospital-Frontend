@@ -58,11 +58,11 @@ const MedilabHeader = () => {
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <Mail className="h-4 w-4" />
-              <span className="text-sm">contact@example.com</span>
+              <span className="text-sm">meditrack@example.com</span>
             </div>
             <div className="flex items-center space-x-2">
               <Phone className="h-4 w-4" />
-              <span className="text-sm">+1 5589 55488 55</span>
+              <span className="text-sm">+91 9999888871</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">

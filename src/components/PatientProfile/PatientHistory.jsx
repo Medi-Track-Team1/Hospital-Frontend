@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   ArrowLeft,
@@ -232,7 +233,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100 border border-transparent hover:border-gray-300"
           >
             <X size={24} />
           </button>
@@ -528,6 +529,10 @@ const PrescriptionHistory = () => {
     setSelectedPrescription(prescription);
     setIsModalOpen(true);
   };
+ const navigate = useNavigate();
+  const handleBackToProfile = () => {
+    navigate('/patient');
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -597,24 +602,29 @@ const PrescriptionHistory = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="flex items-center space-x-4">
-          <button className="hover:bg-blue-700 p-2 rounded-lg transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-xl font-semibold">Patient History</h1>
-            <p className="text-blue-100 text-sm">
-              Complete medical prescription records
-            </p>
+      {/* Fixed Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="bg-blue-600 text-white px-6 py-4">
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={handleBackToProfile}
+              className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">Patient History</h1>
+              <p className="text-blue-100 text-sm mt-1">
+                Complete medical prescription records
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -623,7 +633,7 @@ const PrescriptionHistory = () => {
             <input
               type="text"
               placeholder="Search by doctor, medication, department, diagnosis, or prescription number..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -631,26 +641,26 @@ const PrescriptionHistory = () => {
         </div>
 
         {/* Enhanced Tabs */}
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
+            <nav className="flex space-x-20">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`py-4 px-2 font-medium text-sm border-b-2 transition-colors ${
+                  className={`py-4 px-2 font-medium text-base border-b-2 transition-all duration-200 ${
                     activeTab === tab.key
                       ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-center">
                     {getTabIcon(tab.key)}
                     <div className="text-left">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <span>{tab.label}</span>
                         <span
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
                             activeTab === tab.key
                               ? "bg-blue-100 text-blue-800"
                               : "bg-gray-100 text-gray-600"
@@ -671,11 +681,11 @@ const PrescriptionHistory = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="text-blue-600" size={20} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FileText className="text-blue-600" size={24} />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Prescriptions</p>
@@ -686,10 +696,10 @@ const PrescriptionHistory = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="text-green-600" size={20} />
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <CheckCircle className="text-green-600" size={24} />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Completed Treatments</p>
@@ -700,10 +710,10 @@ const PrescriptionHistory = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Activity className="text-orange-600" size={20} />
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Activity className="text-orange-600" size={24} />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Active Treatments</p>
@@ -795,7 +805,7 @@ const PrescriptionHistory = () => {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleViewDetails(prescription)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                           View Full Details
                         </button>

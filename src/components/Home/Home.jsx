@@ -1,3 +1,4 @@
+// src/components/Home/Home.jsx
 import React from "react";
 import Header from "./Header";
 import Hero from "./Hero";
@@ -17,10 +18,7 @@ const Home = () => {
   return (
     <>
       <Header />
-
       <div className="pt-[130px]">
-        {" "}
-        {/* Adjust based on total header height */}
         <Hero />
         <About />
         <Services />

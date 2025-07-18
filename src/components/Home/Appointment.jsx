@@ -169,7 +169,7 @@ const Appointment = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MessageSquare className="inline h-4 w-4 mr-2" /> Additional Message (Optional)
+                    <MessageSquare className="inline h-4 w-4 mr-2" /> Symptoms
                   </label>
                   <textarea name="message" value={formData.message} onChange={handleChange} rows={4} placeholder="Any additional information or specific requirements..." className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 resize-none" />
                 </div>

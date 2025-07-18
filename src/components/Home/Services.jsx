@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Heart,
   Pill,
@@ -9,40 +10,48 @@ import {
 } from "lucide-react";
 
 const Services = () => {
+  const navigate = useNavigate();
+
   const services = [
     {
       icon: <Heart className="h-8 w-8 text-red-600" />,
       title: "Cardiology",
+      path: "/cardiology",
       description:
         "Comprehensive heart care with advanced diagnostic and treatment options for all cardiovascular conditions.",
     },
     {
       icon: <Pill className="h-8 w-8 text-green-600" />,
       title: "Pharmacy Services",
+      path: "/pharmacy",
       description:
         "Full-service pharmacy with medication management and consultation services available 24/7.",
     },
     {
       icon: <UserCheck className="h-8 w-8 text-blue-600" />,
       title: "Patient Care",
+      path: "/patient-care",
       description:
         "Personalized patient care services with dedicated support staff and care coordinators.",
     },
     {
       icon: <Dna className="h-8 w-8 text-yellow-600" />,
       title: "Genetic Testing",
+      path: "/genetic-testing",
       description:
         "Advanced genetic testing and counseling services for personalized medicine approaches.",
     },
     {
       icon: <Wheelchair className="h-8 w-8 text-orange-600" />,
       title: "Rehabilitation",
+      path: "/rehabilitation",
       description:
         "Complete rehabilitation services including physical therapy and occupational therapy.",
     },
     {
       icon: <FileText className="h-8 w-8 text-black-600" />,
       title: "Medical Records",
+      path: "/medical-records",
       description:
         "Secure digital medical records management with easy access and comprehensive documentation.",
     },
@@ -67,6 +76,7 @@ const Services = () => {
           {services.map((service, index) => (
             <div
               key={index}
+              onClick={() => navigate(service.path)}
               className="bg-gray-50 rounded-xl p-8 hover:bg-blue-50 transition-all duration-300 group cursor-pointer transform hover:-translate-y-2 hover:shadow-xl"
             >
               <div className="mb-6 group-hover:scale-110 transition-transform duration-300">

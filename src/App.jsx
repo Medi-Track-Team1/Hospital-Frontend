@@ -24,7 +24,9 @@ return (
 <Router>
 <Routes>
 {/* Homepage */}
-<Route path="/" element={<Home />} />
+<Route path="/*" element={<Home />} />
+
+     
 {/* //  <Route path="/cardiology" element={<Cardio />} /> */}
  <Route path="/departments/*" element={<DeptRoute/>} />
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}

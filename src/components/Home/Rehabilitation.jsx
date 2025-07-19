@@ -1,5 +1,6 @@
 import React from "react";
-import Header from "../Header"; 
+import Header from "./Header";
+
 import { useNavigate } from "react-router-dom";
 const Rehabilitation = () => {
   const navigate=useNavigate();

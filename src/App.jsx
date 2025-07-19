@@ -7,16 +7,15 @@ import Patient from "./components/PatientProfile/Patient"; // now handles sub-ro
 
 
 import Reception from "./components/Reception/Reception";
-<<<<<<< HEAD
-import Cardio from "./components/Department/Cardio";
+
+
 
 // import Neuro from "./components/Department/Neuro"; 
 
 import Admin from "./components/Admin/Admin";
 
-=======
 import DeptRoute from "./components/Department/DeptRoute";
->>>>>>> f5db562675347d832c684b3454fef9cc090f454d
+
 
 function App() {
 
@@ -29,12 +28,9 @@ return (
 {/* //  <Route path="/cardiology" element={<Cardio />} /> */}
  <Route path="/departments/*" element={<DeptRoute/>} />
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
-<<<<<<< HEAD
-       <Route path="/patient/*" element={<Patient />} />
-=======
+
     <Route path="/patient/*" element={<Patient />} />
 
->>>>>>> f5db562675347d832c684b3454fef9cc090f454d
        <Route path="/reception/*" element={<Reception/>}></Route>
 
        {/* Admin Routes*/}

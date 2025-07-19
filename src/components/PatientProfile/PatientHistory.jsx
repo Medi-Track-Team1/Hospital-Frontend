@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -225,19 +226,44 @@ const PrescriptionModal = ({ prescription, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Prescription Details
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100 border border-transparent hover:border-gray-300"
-          >
-            <X size={24} />
-          </button>
-        </div>
+      <div className="bg-blue rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+       {/* Header */}
+{/* <div className="flex items-center gap-4 p-6 bg-blue-600 text-white rounded-t-lg">
+  <div
+    onClick={() => navigate(-1)}
+    className="cursor-pointer bg-white p-2 rounded-lg hover:bg-gray-200 transition"
+  >
+    <ArrowLeft size={24} className="text-[#2563eb]" />
+
+  </div>
+
+  <div>
+    <h2 className="text-xl font-semibold">Patient History</h2>
+    <p className="text-sm text-white/90">Complete medical prescription records</p>
+  </div>
+</div> */}
+
+
+
+<div className="flex items-center gap-4 bg-blue-600 text-white p-4 rounded-t-md shadow">
+      {/* Back Arrow */}
+      <ArrowLeft
+        size={24}
+        onClick={() => navigate(-1)}
+        className="text-[#2563eb] cursor-pointer hover:opacity-80 transition"
+      />
+
+      <div>
+        <ArrowLeft
+        size={24}
+        onClick={() => navigate(-1)}
+        className="text-[#2563eb] cursor-pointer hover:opacity-80 transition"
+      />
+        <h2 className="text-lg font-semibold">Patient History</h2>
+        <p className="text-sm text-white/90">Complete medical prescription records</p>
+      </div>
+    </div>
+
 
         {/* Content */}
         <div className="p-6 space-y-6">
@@ -248,7 +274,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <Calendar className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
-                  <p className="font-medium">{formatDate(prescription.date)}</p>
+                  <p className="font-medium text-base">{formatDate(prescription.date)}</p>
                 </div>
               </div>
 
@@ -256,7 +282,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <Clock className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Time</p>
-                  <p className="font-medium">{formatTime(prescription.time)}</p>
+                  <p className="font-medium text-base">{formatTime(prescription.time)}</p>
                 </div>
               </div>
 
@@ -264,7 +290,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <FileText className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Prescription Number</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-base">
                     {prescription.prescriptionNumber}
                   </p>
                 </div>
@@ -276,7 +302,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <Stethoscope className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Doctor</p>
-                  <p className="font-medium">{prescription.doctor.name}</p>
+                  <p className="font-medium text-base">{prescription.doctor.name}</p>
                 </div>
               </div>
 
@@ -284,7 +310,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <User className="text-blue-600" size={20} />
                 <div>
                   <p className="text-sm text-gray-500">Department</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-base">
                     {prescription.doctor.department}
                   </p>
                 </div>
@@ -325,15 +351,15 @@ const PrescriptionModal = ({ prescription, onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Name</p>
-                <p className="font-medium">{prescription.patient.name}</p>
+                <p className="font-medium text-base">{prescription.patient.name}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Age</p>
-                <p className="font-medium">{prescription.patient.age} years</p>
+                <p className="font-medium text-base">{prescription.patient.age} years</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Gender</p>
-                <p className="font-medium">{prescription.patient.gender}</p>
+                <p className="font-medium text-base">{prescription.patient.gender}</p>
               </div>
             </div>
           </div>
@@ -343,7 +369,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
               Diagnosis
             </h3>
-            <p className="text-gray-700 bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-700 bg-gray-50 rounded-lg p-4 text-base">
               {prescription.diagnosis}
             </p>
           </div>
@@ -363,7 +389,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                     <Pill className="text-blue-600 mt-1" size={20} />
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-gray-900 text-base">
                           {medication.name}
                         </h4>
                         <span className="text-sm text-gray-500">
@@ -373,19 +399,19 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-gray-500">Dosage</p>
-                          <p className="font-medium">{medication.dosage}</p>
+                          <p className="font-medium text-base">{medication.dosage}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Frequency</p>
-                          <p className="font-medium">{medication.frequency}</p>
+                          <p className="font-medium text-base">{medication.frequency}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Duration</p>
-                          <p className="font-medium">{medication.duration}</p>
+                          <p className="font-medium text-base">{medication.duration}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Quantity</p>
-                          <p className="font-medium">{medication.quantity}</p>
+                          <p className="font-medium text-base">{medication.quantity}</p>
                         </div>
                       </div>
                       {medication.instructions && (
@@ -410,7 +436,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Doctor's Notes
                 </h3>
-                <p className="text-gray-700 bg-gray-50 rounded-lg p-4">
+                <p className="text-gray-700 bg-gray-50 rounded-lg p-4 text-base">
                   {prescription.notes}
                 </p>
               </div>
@@ -420,7 +446,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
               {prescription.nextFollowUp && (
                 <div>
                   <p className="text-sm text-gray-500">Next Follow-up</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-base">
                     {formatDate(prescription.nextFollowUp)}
                   </p>
                 </div>
@@ -429,14 +455,14 @@ const PrescriptionModal = ({ prescription, onClose }) => {
               {prescription.pharmacyName && (
                 <div>
                   <p className="text-sm text-gray-500">Pharmacy</p>
-                  <p className="font-medium">{prescription.pharmacyName}</p>
+                  <p className="font-medium text-base">{prescription.pharmacyName}</p>
                 </div>
               )}
 
               {prescription.dispensedDate && (
                 <div>
                   <p className="text-sm text-gray-500">Dispensed Date</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-base">
                     {formatDate(prescription.dispensedDate)}
                   </p>
                 </div>
@@ -445,7 +471,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
               {prescription.totalAmount && (
                 <div>
                   <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="font-medium">
+                  <p className="font-medium text-base">
                     ${prescription.totalAmount.toFixed(2)}
                   </p>
                 </div>
@@ -608,9 +634,9 @@ const PrescriptionHistory = () => {
           <div className="flex items-center space-x-6">
             <button
               onClick={handleBackToProfile}
-              className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+              className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-blue-700 transition-all duration-200 focus:outline-none"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={22} />
             </button>
             <div className="flex-1">
               <h1 className="text-xl font-semibold">Patient History</h1>
@@ -633,7 +659,7 @@ const PrescriptionHistory = () => {
             <input
               type="text"
               placeholder="Search by doctor, medication, department, diagnosis, or prescription number..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 text-base"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -729,7 +755,7 @@ const PrescriptionHistory = () => {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading patient history...</p>
+            <p className="mt-4 text-gray-600 text-base">Loading patient history...</p>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

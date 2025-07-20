@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "./Header";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -13,32 +13,29 @@ const PatientCare = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="font-sans text-lg">
-      <Header />
-      <br />
-
-      {/* Back Button with Heading */}
-      <motion.section
-        className="flex items-center gap-4 mt-6 mb-10 px-4 py-6 rounded-md shadow"
-        style={{ backgroundColor: "#e4e8f0ff" }}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.button
-          onClick={() => navigate("/")}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-blue-500 hover:text-white transition duration-300 shadow"
-          title="Back to Home"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          ←
-        </motion.button>
-        <h1 className="text-4xl font-bold text-blue-900">Patient Care</h1>
-      </motion.section>
+    <div className="bg-blue-50 min-h-screen text-blue-900 font-sans text-lg">
+      {/* ✅ Sticky Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="bg-blue-600 text-white px-6 py-4">
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">Patient Care</h1>
+              <p className="text-blue-100 text-sm mt-1">
+                24/7 patient care services available
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Intro Section */}
-      <section className="bg-blue-50 py-10 px-6 md:flex items-center gap-8">
+      <section className="py-10 px-6 md:flex items-center gap-8">
         <motion.div
           className="md:w-1/2 min-h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
           style={{
@@ -69,9 +66,6 @@ const PatientCare = () => {
             <li>Medical interpretation & patient advocacy services</li>
             <li>Support for elderly and differently-abled patients</li>
           </ul>
-          {/* <p className="text-gray-700">
-            We go beyond medicine—creating a healing space for the body and peace for the mind.
-          </p> */}
         </motion.div>
       </section>
 
@@ -163,18 +157,15 @@ const PatientCare = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {[
             {
-              quote:
-                "The nurses were incredibly kind and attentive. I felt safe and cared for every single day.",
+              quote: "The nurses were incredibly kind and attentive. I felt safe and cared for every single day.",
               name: "— Ananya R."
             },
             {
-              quote:
-                "Excellent service. From the food to the medical care, everything was well-organized and thoughtful.",
+              quote: "Excellent service. From the food to the medical care, everything was well-organized and thoughtful.",
               name: "— Suresh M."
             },
             {
-              quote:
-                "I recovered faster than I expected thanks to their customized therapy and constant encouragement.",
+              quote: "I recovered faster than I expected thanks to their customized therapy and constant encouragement.",
               name: "— Priya K."
             }
           ].map((item, i) => (

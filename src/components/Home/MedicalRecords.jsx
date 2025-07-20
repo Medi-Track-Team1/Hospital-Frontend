@@ -1,12 +1,11 @@
 import React from "react";
-import Header from "./Header";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 
 const MedicalRecords = () => {
   const navigate = useNavigate();
 
-  // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: (i = 1) => ({
@@ -28,29 +27,29 @@ const MedicalRecords = () => {
   };
 
   return (
-    <div className="font-sans text-lg">
-      <Header />
-      <br />
+    <div className="bg-blue-50 min-h-screen text-blue-900 font-sans text-lg">
+      {/* ✅ Sticky Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="bg-blue-600 text-white px-6 py-4">
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">Medical Reports</h1>
+              <p className="text-blue-100 text-sm mt-1">
+                24/7 services available
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Back Button + Heading */}
-      <motion.section
-        className="flex items-center gap-4 mt-6 mb-10 px-4 py-6 rounded-md shadow"
-        style={{ backgroundColor: "#e4e8f0ff" }}
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
-        <motion.button
-          onClick={() => navigate("/")}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-blue-500 hover:text-white transition duration-300 shadow"
-          title="Back to Home"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          ←
-        </motion.button>
-        <h1 className="text-4xl font-bold text-blue-900">Medical Records</h1>
-      </motion.section>
+     
 
       {/* Image and Content */}
       <motion.section
@@ -60,7 +59,6 @@ const MedicalRecords = () => {
         variants={fadeInUp}
         custom={2}
       >
-        {/* Image */}
         <motion.div
           className="md:w-1/2 min-h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
           style={{
@@ -72,7 +70,6 @@ const MedicalRecords = () => {
           transition={{ duration: 1 }}
         ></motion.div>
 
-        {/* Text */}
         <motion.div
           className="md:w-1/2 mt-6 md:mt-0 max-w-xl"
           variants={fadeInUp}

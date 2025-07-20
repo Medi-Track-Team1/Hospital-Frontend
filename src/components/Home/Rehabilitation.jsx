@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "./Header";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react"; // Make sure to install lucide-react or use any icon lib you prefer
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -25,27 +25,26 @@ const Rehabilitation = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="font-sans text-lg">
-      <Header />
-<br></br>
-      <motion.section
-        className="flex items-center gap-4 mt-6 mb-10 px-4 py-6 rounded-md shadow"
-        style={{ backgroundColor: "#e4e8f0ff" }}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.button
-          onClick={() => navigate("/")}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-blue-500 hover:text-white transition duration-300 shadow"
-          title="Back to Home"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          ←
-        </motion.button>
-        <h1 className="text-4xl font-bold text-blue-900">Rehabilitation</h1>
-      </motion.section>
+    <div className="bg-blue-50 min-h-screen text-blue-900 font-sans text-lg">
+      {/* ✅ Sticky Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div className="bg-blue-600 text-white px-6 py-4">
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">Rehabilitation</h1>
+              <p className="text-blue-100 text-sm mt-1">
+                24/7 services available
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <motion.section
@@ -87,9 +86,6 @@ const Rehabilitation = () => {
               </motion.li>
             ))}
           </ul>
-          {/* <p className="text-gray-700 leading-relaxed">
-            We ensure every patient gets the support they need to regain strength, function, and confidence.
-          </p> */}
         </motion.div>
       </motion.section>
 

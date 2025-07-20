@@ -1,101 +1,126 @@
 import React from "react";
-import Header from "./Header"; 
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import Header from "./Header";
 
-const PharmacyServices = () => {
+const Pharmacy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-blue-50 min-h-screen text-blue-900 font-sans">
+    <div className="bg-blue-50 min-h-screen text-blue-900">
       <Header />
+      <br />
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="ml-4 mt-4 px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full shadow-md transition duration-300"
+      {/* Back Button with Heading */}
+      <motion.section
+        className="flex items-center gap-4 mt-6 mb-10 px-4 py-6 rounded-md shadow"
+        style={{ backgroundColor: "#e4e8f0ff" }}
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
       >
-        ← Back
-      </button>
-<section className="text-center mt-6 mb-10 px-4 py-6 rounded-md shadow" style={{ backgroundColor: '#2563eb' }}>
-  <h1 className="text-4xl font-bold text-white">Pharmacy Services</h1>
-</section>
+        <motion.button
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-blue-500 hover:text-white transition duration-300 shadow"
+          title="Back to Home"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          ←
+        </motion.button>
+        <h1 className="text-4xl font-bold text-blue-900">Pharmacy Services</h1>
+      </motion.section>
 
-
-
-      {/* Image + Overview */}
-      <section className="py-10 px-6 md:flex items-center gap-8">
-        {/* Left: Image */}
-        <div
-          className="md:w-1/2 min-h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
-          style={{ backgroundImage: "url('/ui/pharmacyservice.png')" }}
-        ></div>
-
-        {/* Right: Text */}
-        <div className="md:w-1/2 mt-6 md:mt-0">
-          <h2 className="text-2xl font-semibold mb-4">Comprehensive Medication Support</h2>
+      {/* Image and Overview Section */}
+       <motion.section
+        className="md:flex items-center px-6 gap-10"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* Left - Image */}
+        <motion.div
+          className="md:w-1/2 h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
+          style={{
+            backgroundImage:
+              "url('https://graduate.northeastern.edu/resources/wp-content/uploads/sites/4/2022/01/what-does-a-pharmacist-do.jpg')",
+          }}
+          initial={{ scale: 0.95, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        ></motion.div>
+        {/* Right - Text */}
+        <motion.div
+          className="md:w-1/2 mt-6 md:mt-0"
+          initial={{ x: 50, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-2xl font-semibold mb-4">Complete Care in One Place</h2>
           <p className="text-blue-800 mb-4">
-            Our in-house pharmacy ensures patients receive prescribed medications safely and promptly. With trained pharmacists and a digital inventory system, we ensure that medication distribution is error-free and efficient.
+            Our pharmacy is integrated into the hospital to ensure timely, safe, and efficient access to prescribed medications. Our qualified pharmacists guide patients through usage, side effects, and potential interactions.
           </p>
           <p className="text-blue-800">
-            From prescription fulfillment to patient counseling, our pharmacy team provides accurate guidance on dosage, interactions, and side effects to improve patient outcomes.
+            We prioritize quality assurance, transparency, and patient education with every prescription we fulfill.
           </p>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
-      {/* Technology & Safety */}
-      <section className="py-12 px-6 bg-blue-50 text-center">
-        <h2 className="text-2xl font-bold text-blue-900 mb-6">
-          Modern Infrastructure & Technology
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto text-left">
-          <div className="bg-white p-6 rounded-xl shadow-md hover:bg-blue-100 transition duration-300">
-            <h4 className="text-xl font-semibold text-blue-800 mb-2">
-              Barcode Verification System
-            </h4>
-            <p className="text-gray-700">
-              Reduces errors by verifying prescriptions using barcode scans during dispensing.
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-md hover:bg-blue-100 transition duration-300">
-            <h4 className="text-xl font-semibold text-blue-800 mb-2">
-              Real-time Stock Management
-            </h4>
-            <p className="text-gray-700">
-              Automated inventory tracking ensures timely replenishment of critical medications.
-            </p>
-          </div>
-        </div>
-      </section>
-      
+      {/* Highlights Section */}
+      <motion.section
+        className="py-12 px-6 mt-12 bg-white text-center"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <h2 className="text-2xl font-bold text-blue-900 mb-8">Why Our Pharmacy?</h2>
 
-      {/* Testimonials */}
-      <section className="py-12 bg-white px-6 text-center">
-        <h2 className="text-2xl font-bold text-blue-900 mb-10">
-          Patient Feedback
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="bg-blue-50 p-6 rounded-xl shadow-md hover:bg-blue-100 transition duration-300 text-left">
-            <p className="text-gray-800 italic mb-4">
-              “I was surprised how fast the pharmacy processed my prescription. The staff explained everything clearly.”
-            </p>
-            <span className="font-semibold text-blue-800">— Naveen P.</span>
-          </div>
-          <div className="bg-blue-50 p-6 rounded-xl shadow-md hover:bg-blue-100 transition duration-300 text-left">
-            <p className="text-gray-800 italic mb-4">
-              “They made sure my medication didn’t interfere with other drugs I was taking. Very professional.”
-            </p>
-            <span className="font-semibold text-blue-800">— Keerthi M.</span>
-          </div>
-          <div className="bg-blue-50 p-6 rounded-xl shadow-md hover:bg-blue-100 transition duration-300 text-left">
-            <p className="text-gray-800 italic mb-4">
-              “Even at midnight, they had what I needed. Truly dependable pharmacy service.”
-            </p>
-            <span className="font-semibold text-blue-800">— Rajesh K.</span>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto text-left">
+          {[
+            {
+              title: "24/7 Availability",
+              desc: "Day or night, our pharmacy is always ready to support emergency and routine prescriptions.",
+            },
+            {
+              title: "Digital Inventory Tracking",
+              desc: "Real-time medication availability monitored to prevent stock-outs.",
+            },
+            {
+              title: "Expert Pharmacists",
+              desc: "Licensed professionals on hand for personalized medication guidance.",
+            },
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.2 }}
+              className="bg-blue-100 p-6 rounded-xl shadow-md hover:bg-blue-200 transition duration-300"
+            >
+              <h4 className="text-xl font-semibold text-blue-800 mb-2">{item.title}</h4>
+              <p className="text-blue-700">{item.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </motion.section>
+
+      {/* Footer Note */}
+      <motion.div
+        className="text-center text-sm text-blue-600 mt-12 pb-6"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        <p>We're committed to improving your care with safe medication practices.</p>
+      </motion.div>
     </div>
   );
 };
 
-export default PharmacyServices;
+export default Pharmacy;

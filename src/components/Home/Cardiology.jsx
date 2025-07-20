@@ -1,33 +1,44 @@
 import React from "react";
 import Header from "./Header"; 
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Cardiology = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="font-sans text-lg">
+    <motion.div className="font-sans text-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
       {/* Header Bar */}
       <Header />
+      <br></br>
 
       {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="ml-4 mt-2 px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full shadow-md transition duration-300"
+      <motion.section
+        className="flex items-center gap-4 mt-6 mb-10 px-4 py-6 rounded-md shadow"
+        style={{ backgroundColor: '#e4e8f0ff' }}
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
       >
-        ← Back
-      </button>
-
-     <section className="text-center mt-6 mb-10 px-4 py-6 rounded-md shadow" style={{ backgroundColor: '#2563eb' }}>
-  <h1 className="text-4xl font-bold text-white">Cardiology Services</h1>
-</section>
-
+        <motion.button
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-blue-500 hover:text-white transition duration-300 shadow"
+          title="Back to Home"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          ←
+        </motion.button>
+        <h1 className="text-4xl font-bold text-blue-900">Cardiology Services</h1>
+      </motion.section>
 
       {/* Heart Services Section */}
-      <section className="bg-blue-50 py-10 px-6 md:flex items-center gap-8">
+      <motion.section className="bg-blue-50 py-10 px-6 md:flex items-center gap-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <div
           className="md:w-1/2 min-h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
-          style={{ backgroundImage: "url('/ui/heartservice.png')" }}
+          style={{
+            backgroundImage: "url('https://southdenver.com/wp-content/uploads/2022/08/heart-specialist.jpg')",
+          }}
         ></div>
 
         <div className="md:w-1/2 mt-6 md:mt-0 max-w-xl">
@@ -47,17 +58,17 @@ const Cardiology = () => {
             Whether you're seeking diagnosis or recovery guidance, our personalized care pathways ensure clarity, comfort, and continuity for every heartbeat.
           </p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Our Cardiologists */}
-      <section className="py-10 px-6 bg-white text-center">
+      <motion.section className="py-10 px-6 bg-white text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <h2 className="text-3xl font-bold text-blue-900 mb-8">Our Cardiologists</h2>
 
         {/* Doctor 1 */}
         <div className="md:flex items-center gap-8 mb-10 text-left">
           <div className="md:w-1/2 flex justify-center">
             <img
-              src="/ui/doctor1.png"
+              src="https://tse2.mm.bing.net/th/id/OIP.BVLxB8CbqkSbBBckNrY6_QHaHa?pid=Api&P=0&h=180"
               alt="Dr. Kavita Sharma"
               className="rounded-xl w-72 shadow-lg"
             />
@@ -75,7 +86,7 @@ const Cardiology = () => {
         <div className="md:flex items-center gap-8 text-left bg-blue-50 py-10 px-4 rounded-xl">
           <div className="md:w-1/2 flex justify-center">
             <img
-              src="/ui/doctor2.png"
+              src="https://st.depositphotos.com/2234518/3930/i/950/depositphotos_39307949-stock-photo-doctor.jpg"
               alt="Dr. Rohan Das"
               className="rounded-xl w-72 shadow-lg"
             />
@@ -88,18 +99,18 @@ const Cardiology = () => {
             </p>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Mission */}
-      <section className="py-10 bg-white text-center px-6">
+      <motion.section className="py-10 bg-white text-center px-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <h2 className="text-2xl font-bold mb-6 text-blue-900">Our Mission</h2>
         <p className="text-gray-800 leading-relaxed max-w-3xl mx-auto text-left text-lg">
           To advance heart health with a holistic, patient-first approach. Through innovation, compassion, and world-class care, we aim to make every beat count.
         </p>
-      </section>
+      </motion.section>
 
       {/* Heart Health Tips */}
-      <section className="py-10 bg-blue-50 text-center">
+      <motion.section className="py-10 bg-blue-50 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
         <h2 className="text-2xl font-bold mb-8 text-blue-900">Heart Health Tips</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-6">
           <div className="bg-white rounded-xl p-6 shadow-lg flex flex-col items-center text-left">
@@ -127,8 +138,8 @@ const Cardiology = () => {
             </p>
           </div>
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 };
 

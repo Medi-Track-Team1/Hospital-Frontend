@@ -1,82 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, Building, FlaskRound as Flask, Award } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const Stats = () => {
-  const [counters, setCounters] = useState({
-    doctors: 0,
-    departments: 0,
-    labs: 0,
-    awards: 0
-  });
-
-  const finalValues = {
-    doctors: 85,
-    departments: 18,
-    labs: 12,
-    awards: 150
-  };
+// Count-up hook
+const useCountUp = (end, duration = 2000) => {
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const duration = 2000;
+    let start = 0;
     const steps = 60;
-    const stepDuration = duration / steps;
+    const increment = end / steps;
+    const intervalTime = duration / steps;
 
-    const interval = setInterval(() => {
-      setCounters(prev => ({
-        doctors: Math.min(prev.doctors + Math.ceil(finalValues.doctors / steps), finalValues.doctors),
-        departments: Math.min(prev.departments + Math.ceil(finalValues.departments / steps), finalValues.departments),
-        labs: Math.min(prev.labs + Math.ceil(finalValues.labs / steps), finalValues.labs),
-        awards: Math.min(prev.awards + Math.ceil(finalValues.awards / steps), finalValues.awards)
-      }));
-    }, stepDuration);
+    const counter = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(counter);
+      } else {
+        setCount(Math.ceil(start));
+      }
+    }, intervalTime);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(counter);
+  }, [end, duration]);
+
+  return count;
+};
+
+const Stats = () => {
+  const doctors = useCountUp(85);
+  const departments = useCountUp(18);
+  const labs = useCountUp(12);
+  const awards = useCountUp(150);
 
   const stats = [
     {
-      icon: <Users className="h-12 w-12 text-blue-600" />,
-      number: counters.doctors,
-      label: "Doctors"
+      icon: Users,
+      number: doctors,
+      label: 'Doctors'
     },
     {
-      icon: <Building className="h-12 w-12 text-blue-600" />,
-      number: counters.departments,
-      label: "Departments"
+      icon: Building,
+      number: departments,
+      label: 'Departments'
     },
     {
-      icon: <Flask className="h-12 w-12 text-blue-600" />,
-      number: counters.labs,
-      label: "Research Labs"
+      icon: Flask,
+      number: labs,
+      label: 'Research Labs'
     },
     {
-      icon: <Award className="h-12 w-12 text-blue-600" />,
-      number: counters.awards,
-      label: "Awards"
+      icon: Award,
+      number: awards,
+      label: 'Awards'
     }
   ];
+
+  const cardContainerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 40 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut'
+      }
+    }
+  };
+
+  const iconVariants = {
+    hover: {
+      rotate: [0, 15, -15, 0],
+      scale: 1.1,
+      transition: {
+        duration: 0.6,
+        ease: 'easeInOut'
+      }
+    }
+  };
 
   return (
     <section id="stats" className="py-20 bg-blue-50">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <motion.div
+          className="grid grid-cols-2 lg:grid-cols-4 gap-8"
+          variants={cardContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {stats.map((stat, index) => (
-            <div
+            <motion.div
               key={index}
-              className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-2"
+              variants={cardVariants}
+              whileHover={{ scale: 1.05 }}
+              className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
             >
-              <div className="flex justify-center mb-4">
-                {stat.icon}
-              </div>
+              <motion.div
+                variants={iconVariants}
+                whileHover="hover"
+                className="flex justify-center mb-4"
+              >
+                <stat.icon className="h-12 w-12 text-blue-600" />
+              </motion.div>
               <div className="text-4xl font-bold text-gray-800 mb-2">
                 {stat.number}
               </div>
-              <div className="text-gray-600 font-medium">
-                {stat.label}
-              </div>
-            </div>
+              <div className="text-gray-600 font-medium">{stat.label}</div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

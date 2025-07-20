@@ -8,6 +8,7 @@ import Patient from "./components/PatientProfile/Patient"; // now handles sub-ro
 
 import Reception from "./components/Reception/Reception";
 import Cardio from "./components/Department/Cardio";
+import DoctorPage from "./Pages/DoctorPage";
 // import Neuro from "./components/Department/Neuro"; 
 
 
@@ -18,8 +19,9 @@ return (
 <Routes>
 {/* Homepage */}
 <Route path="/" element={<Home />} />
+<Route path="/doctor" element={<DoctorPage/>}/>
  <Route path="/cardiology" element={<Cardio />} />
-
+ 
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
     <Route path="/patient/*" element={<Patient />} />
        <Route path="/reception/*" element={<Reception/>}></Route>

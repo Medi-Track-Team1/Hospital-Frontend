@@ -35,7 +35,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <ul className="space-y-2">
           {navItems.map((item, index) => (
             <li key={index}>
-              <NavLink
+              {/* <NavLink
                 to={item.path}
                 end
                className={({ isActive }) =>
@@ -47,9 +47,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 }
               >
                 {/* Icon and Text (no z-index needed) */}
-                <item.icon className="text-xl" />
+                {/* <item.icon className="text-xl" />
                 {sidebarOpen && <span className="ml-3">{item.name}</span>}
-              </NavLink>
+              </NavLink> */}
+              <NavLink
+  to={item.path}
+  end
+  className={({ isActive }) =>
+    `flex items-center text-white p-3 rounded-lg transition-colors duration-200 ${
+      isActive
+        ? 'bg-blue-900 pointer-events-none'
+        : 'hover:bg-white hover:text-blue-900'
+    } ${!sidebarOpen ? 'justify-center' : ''}`
+  }
+>
+  <item.icon className="text-xl" />
+  {sidebarOpen && <span className="ml-3">{item.name}</span>}
+</NavLink>
+
             </li>
           ))}
         </ul>

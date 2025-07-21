@@ -76,8 +76,12 @@ const Header = ({ onLoginClick}) => {
                 )}
               </div>
 
-              <a href="#doctors" className={navLinkClass}>Doctors</a>
-              <a href="#contact" className={navLinkClass}>Contact</a>
+           <a href="#doctors" className={navLinkClass}>
+                Doctors
+              </a>
+              <a href="#contact" className={navLinkClass}>
+                Contact
+              </a>
               <a
                 href="#appointment"
                 className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"

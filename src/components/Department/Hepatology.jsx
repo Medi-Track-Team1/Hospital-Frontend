@@ -1,7 +1,7 @@
 import React from "react";
 import { Droplet } from "lucide-react";
 import hepatology from "../../assets/hepatology.jpeg";
-import Mahesh from "../../assets/Mahesh.png";
+import seeni from "../../assets/seeni.png";
 import Sunil from "../../assets/Sunil.jpeg";
 
 const Hepatology = () => {
@@ -84,12 +84,12 @@ const Hepatology = () => {
                 <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
             <img
               src={Sunil}
-              alt="Dr. Sunil Kumar"
+              alt="Dr. Meganthan"
               className="w-full h-full object-cover object-top rounded-full"
             />
           </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Sunil Kumar</h2>
+            <h2 className="text-xl font-semibold">Dr. Meganthan</h2>
             <p className="text-blue-600 text-sm">Hepatology Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★☆☆<span className="text-black ml-2">3.5</span>
@@ -102,8 +102,8 @@ const Hepatology = () => {
           <div className="mt-4 w-full px-6">
             <p className="font-semibold text-sm mb-1">Specializations</p>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Liver Biopsy</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Fatty Liver</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Hepatitis B & C</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Liver Cirrhosis</span>
             </div>
           </div>
           <div className="mt-6 w-full px-6">
@@ -118,21 +118,21 @@ const Hepatology = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
                <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
            <img
-             src={Mahesh}
-             alt="Dr. Mahesh Kumar"
+             src={seeni}
+             alt="Dr. Seenivasan"
              className="w-full h-full object-cover object-top rounded-full"
            />
          </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Mahesh Kumar</h2>
+            <h2 className="text-xl font-semibold">Dr. Seenivasan</h2>
             <p className="text-blue-600 text-sm">Hepatology Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★☆☆<span className="text-black ml-2">3.5</span>
+              ★★★★☆<span className="text-black ml-2">4.5</span>
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 10 years</p>
-            <p><strong>Education:</strong> Star Medical School</p>
+            <p><strong>Experience:</strong> 14 years</p>
+            <p><strong>Education:</strong> Walter Medical School</p>
           </div>
           <div className="mt-4 w-full px-6">
             <p className="font-semibold text-sm mb-1">Specializations</p>

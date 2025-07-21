@@ -1,6 +1,4 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
-
+import React, { useState } from "react";
 import Header from "./Header";
 import Hero from "./Hero";
 import About from "./About";
@@ -14,51 +12,81 @@ import FAQ from "./FAQ";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
 import Footer from "./Footer";
-
-// import Cardiology from "./Cardiology";
-// import Pharmacy from "./Pharmacy";
-// import PatientCare from "./PatientCare";
-// import GeneticTesting from "./GeneticTesting";
-// import Rehabilitation from "./Rehabilitation";
-// import MedicalRecords from "./MedicalRecords";
-
+import Login from "../../Pages/Auth/Login";
+import Signup from "../../Pages/Auth/Signup";
 
 const Home = () => {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
+
+  const openLogin = () => {
+
+    setIsSignupOpen(false);
+
+    setIsLoginOpen(true);
+  };
+
+  const openSignup = () => {
+
+    setIsLoginOpen(false);
+
+    setIsSignupOpen(true);
+  };
+
+  const closeModals = () => {
+    setIsLoginOpen(false);
+    setIsSignupOpen(false);
+  };
+
   return (
     <>
-      <Header />
-      {/* pt-16 matches the navbar height: h-16 = 4rem = 64px */}
+
+      <Header onLoginClick={openLogin} onSignupClick={openSignup} />
+
+
       <div className="pt-16">
-        <Hero />
-        <About />
-        <Services />
-        <Departments />
-        <Doctors />
-        <Appointment />
+        <section id="hero">
+          <Hero />
+        </section>
+        <section id="about">
+          <About />
+        </section>
+        <section id="services">
+          <Services />
+        </section>
+        <section id="departments">
+          <Departments />
+        </section>
+        <section id="doctors">
+          <Doctors />
+        </section>
+        <section id="appointment">
+          <Appointment />
+        </section>
         <Stats />
         <Gallery />
         <FAQ />
         <Testimonials />
-        <Contact />
+        <section id="contact">
+          <Contact />
+        </section>
         <Footer />
-        
-        {/* <Router>
-      <Routes>
-        
-        <Route path="/cardiology" element={<Cardiology />} />
-        <Route path="/pharmacy" element={<Pharmacy />} />
-        <Route path="/patient-care" element={<PatientCare />} />
-        <Route path="/genetic-testing" element={<GeneticTesting />} />
-        <Route path="/rehabilitation" element={<Rehabilitation />} />
-        <Route path="/medical-records" element={<MedicalRecords />} />
-      </Routes>
-    </Router> */}
-
-
       </div>
+
+
+      {(isLoginOpen || isSignupOpen) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          {isLoginOpen && (
+            <Login onClose={closeModals} onSignupClick={openSignup} />
+          )}
+          {isSignupOpen && (
+            <Signup onClose={closeModals} onLoginClick={openLogin} />
+          )}
+
+        </div>
+      )}
     </>
   );
 };
 
 export default Home;
-

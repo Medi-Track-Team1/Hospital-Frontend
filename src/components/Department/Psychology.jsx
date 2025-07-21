@@ -2,7 +2,7 @@ import React from "react";
 import { Brain } from "lucide-react";
 import psychology from "../../assets/psychology.jpg";
 import  dr from "../../assets/dr.jpg";
-import  dv from "../../assets/dv.jpg";
+import  poovu from "../../assets/poovu.png";
 
 const Psychology = () => {
   return (
@@ -114,13 +114,13 @@ const Psychology = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
              <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
     <img
-      src={dv}
-      alt="Dr. Vijay"
+      src={poovu}
+      alt="Dr. Poovarasan"
       className="w-50 h-30 object-contain"
     />
   </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Vijay</h2>
+            <h2 className="text-xl font-semibold">Dr. Poovarasan</h2>
             <p className="text-blue-600 text-sm">Behavioral Therapist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★★☆<span className="text-black ml-2">4.3</span>

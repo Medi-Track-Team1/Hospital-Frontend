@@ -2,7 +2,7 @@ import React from "react";
 import { Baby } from "lucide-react";
 import fertility from "../../assets/fertility.jpeg";
 import dkr from "../../assets/dkr.jpg";
-import dp from "../../assets/dp.jpg";
+import xyz from "../../assets/xyz.png";
 
 
 const Fertility = () => {
@@ -80,13 +80,13 @@ const Fertility = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
             <img
-              src={dp}
-              alt="Dr. Pavithra"
+              src={xyz}
+              alt="Dr. Raj"
               className="w-50 h-30 object-contain"
             />
           </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Pavithra</h2>
+            <h2 className="text-xl font-semibold">Dr. Raj</h2>
             <p className="text-blue-600 text-sm">Fertility Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★★☆<span className="text-black ml-2">4.0</span>

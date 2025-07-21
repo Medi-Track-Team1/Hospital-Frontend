@@ -2,6 +2,7 @@ import React from "react";
 import { Eye } from "lucide-react";
 import eyecare from "../../assets/EyeCare.jpeg";
 import ds from "../../assets/ds.png";
+import rakesh from "../../assets/rakesh.png";
 
 const Eyecare = () => {
   return (
@@ -78,7 +79,7 @@ const Eyecare = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
                       <img
-                        src={ds}
+                        src={rakesh}
                         alt="Dr. Rakesh Kumar"
                         className="w-50 h-30 object-contain"
                       />

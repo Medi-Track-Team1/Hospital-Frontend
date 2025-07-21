@@ -1,8 +1,7 @@
 import React from "react";
 import { Droplet } from "lucide-react";
 import Pedia from "../../assets/Pedia.png"; 
-import DoctorA from "../../assets/Sunil.jpeg"; 
-import DoctorB from "../../assets/Sunil.jpeg"; 
+import Sunil from "../../assets/Sunil.jpeg"; 
 
 const Pediatrics = () => {
   return (
@@ -78,10 +77,14 @@ const Pediatrics = () => {
         {/* Doctor 1 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={DoctorA} alt="Dr. Meganthan" className="w-full h-full object-cover rounded-full" />
-          </div>
+                     <img
+                       src={Sunil}
+                       alt="Dr. Naveen"
+                       className="w-50 h-30 object-contain"
+                     />
+                   </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr.Meganthan</h2>
+            <h2 className="text-xl font-semibold">Dr. Naveen</h2>
             <p className="text-blue-600 text-sm">Pediatrics Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★★★<span className="text-black ml-2">4.8</span>
@@ -109,11 +112,15 @@ const Pediatrics = () => {
 
         {/* Doctor 2 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-          <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={DoctorB} alt="Dr. Saranesh Pandiyan" className="w-full h-full object-cover rounded-full" />
-          </div>
+           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+                      <img
+                        src={Sunil}
+                        alt="Dr. Saranesh Pandian"
+                        className="w-50 h-30 object-contain"
+                      />
+                    </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Saranesh Pandiyan</h2>
+            <h2 className="text-xl font-semibold">Dr. Saranesh Pandian</h2>
             <p className="text-blue-600 text-sm">Pediatrics Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★★☆<span className="text-black ml-2">4.3</span>

@@ -2,6 +2,8 @@ import React from "react";
 import { Heart } from "lucide-react";
 import cardio from "../../assets/Cardio.jpg";
 import Boo from "../../assets/boo.png";  
+import Mahesh from "../../assets/Mahesh.png";  
+
 const Cardio = () => {
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
@@ -110,15 +112,15 @@ const Cardio = () => {
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
         <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
   <img
-    src={Boo}
-    alt="Dr. Chandru "
+    src={Mahesh}
+    alt="Dr. Mahesh Kumar"
     className="w-full h-full object-cover object-top rounded-full"
   />
 </div>
 
 
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Chandru</h2>
+            <h2 className="text-xl font-semibold">Dr. Mahesh Kumar</h2>
             <p className="text-blue-600 text-sm">Cardiologist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★★☆<span className="text-black ml-2">4.0</span>

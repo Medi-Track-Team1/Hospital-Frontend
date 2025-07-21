@@ -100,7 +100,7 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-              <a href="#doctors" className={navLinkClass}>
+           <a href="doctors" className={navLinkClass}>
                 Doctors
               </a>
               <a href="#contact" className={navLinkClass}>
@@ -129,7 +129,7 @@ const MedilabHeader = () => {
                   </button>
                   {profileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
-                      <button
+                                    <button
                         onClick={handleLogoutClick}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                       >

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LogOut, LogIn, User } from "lucide-react";
 
-const Header = ({ onLoginClick}) => {
+import { LogIn } from "lucide-react";
+
+const Header = ({ onLoginClick }) => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("#hero");
+
   const profileRef = useRef(null);
 
   const departments = [
@@ -19,7 +21,7 @@ const Header = ({ onLoginClick}) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileDropdownOpen(false);
+        setIsDepartmentsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -29,8 +31,14 @@ const Header = ({ onLoginClick}) => {
     };
   }, [departmentsTimeout]);
 
-  const navLinkClass =
-    "text-blue-100 hover:text-white hover:bg-blue-700 rounded-md px-2 py-1 transition duration-200";
+
+  const navLinkClass = (href) =>
+    `relative px-2 py-1 text-blue-100 hover:text-white transition duration-200
+     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
+     after:bg-white after:w-full after:origin-left after:scale-x-0
+     after:transition-transform after:duration-300 hover:after:scale-x-100
+     ${activeTab === href ? "after:scale-x-100 text-white" : ""}`;
+
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
@@ -42,9 +50,28 @@ const Header = ({ onLoginClick}) => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
-              <a href="#hero" className={navLinkClass}>Home</a>
-              <a href="#about" className={navLinkClass}>About</a>
-              <a href="#services" className={navLinkClass}>Services</a>
+
+              <a
+                href="#hero"
+                onClick={() => setActiveTab("#hero")}
+                className={navLinkClass("#hero")}
+              >
+                Home
+              </a>
+              <a
+                href="#about"
+                onClick={() => setActiveTab("#about")}
+                className={navLinkClass("#about")}
+              >
+                About
+              </a>
+              <a
+                href="#services"
+                onClick={() => setActiveTab("#services")}
+                className={navLinkClass("#services")}
+              >
+                Services
+              </a>
 
               {/* Departments dropdown */}
               <div
@@ -60,7 +87,15 @@ const Header = ({ onLoginClick}) => {
                   setDepartmentsTimeout(timeout);
                 }}
               >
-                <a href="#departments" className={navLinkClass}>Departments</a>
+
+                <a
+                  href="#departments"
+                  onClick={() => setActiveTab("#departments")}
+                  className={navLinkClass("#departments")}
+                >
+                  Departments
+                </a>
+
                 {isDepartmentsOpen && (
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10">
                     {departments.map((dept, idx) => (
@@ -76,21 +111,31 @@ const Header = ({ onLoginClick}) => {
                 )}
               </div>
 
-           <a href="#doctors" className={navLinkClass}>
+
+              <a
+                href="#doctors"
+                onClick={() => setActiveTab("#doctors")}
+                className={navLinkClass("#doctors")}
+              >
+
                 Doctors
               </a>
-              <a href="#contact" className={navLinkClass}>
+              <a
+                href="#contact"
+                onClick={() => setActiveTab("#contact")}
+                className={navLinkClass("#contact")}
+              >
                 Contact
               </a>
               <a
                 href="#appointment"
-                className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
+                onClick={() => setActiveTab("#appointment")}
+                className={navLinkClass("#appointment")}
               >
                 Make Appointment
               </a>
             </div>
 
-            {/* Login*/}
             <div className="flex gap-2 items-center">
               <button
                 onClick={onLoginClick}
@@ -99,7 +144,7 @@ const Header = ({ onLoginClick}) => {
                 <LogIn className="w-4 h-4 mr-2" />
                 Login
               </button>
-              
+
             </div>
           </div>
         </div>

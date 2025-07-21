@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { LogOut, LogIn, User } from "lucide-react";
 
-import {
-  LogIn,
-  LogOut,
-  User,
-} from "lucide-react";
-
-const MedilabHeader = () => {
+const Header = ({ onLoginClick}) => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -35,16 +29,6 @@ const MedilabHeader = () => {
     };
   }, [departmentsTimeout]);
 
-  const handleLoginClick = () => {
-    setIsLoggedIn(true);
-    setProfileDropdownOpen(false);
-  };
-
-  const handleLogoutClick = () => {
-    setIsLoggedIn(false);
-    setProfileDropdownOpen(false);
-  };
-
   const navLinkClass =
     "text-blue-100 hover:text-white hover:bg-blue-700 rounded-md px-2 py-1 transition duration-200";
 
@@ -58,15 +42,9 @@ const MedilabHeader = () => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
-              <a href="#hero" className={navLinkClass}>
-                Home
-              </a>
-              <a href="#about" className={navLinkClass}>
-                About
-              </a>
-              <a href="#services" className={navLinkClass}>
-                Services
-              </a>
+              <a href="#hero" className={navLinkClass}>Home</a>
+              <a href="#about" className={navLinkClass}>About</a>
+              <a href="#services" className={navLinkClass}>Services</a>
 
               {/* Departments dropdown */}
               <div
@@ -82,11 +60,9 @@ const MedilabHeader = () => {
                   setDepartmentsTimeout(timeout);
                 }}
               >
-                <a href="#departments" className={navLinkClass}>
-                  Departments
-                </a>
+                <a href="#departments" className={navLinkClass}>Departments</a>
                 {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out">
+                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10">
                     {departments.map((dept, idx) => (
                       <a
                         key={idx}
@@ -100,7 +76,7 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-           <a href="doctors" className={navLinkClass}>
+           <a href="#doctors" className={navLinkClass}>
                 Doctors
               </a>
               <a href="#contact" className={navLinkClass}>
@@ -114,40 +90,16 @@ const MedilabHeader = () => {
               </a>
             </div>
 
-            {/* Login / Profile button */}
-            <div className="relative" ref={profileRef}>
-              {isLoggedIn ? (
-                <div>
-                  <button
-                    onClick={() =>
-                      setProfileDropdownOpen(!profileDropdownOpen)
-                    }
-                    className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </button>
-                  {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
-                                    <button
-                        onClick={handleLogoutClick}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <LogOut className="w-4 h-4 inline mr-2" />
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={handleLoginClick}
-                  className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </button>
-              )}
+            {/* Login*/}
+            <div className="flex gap-2 items-center">
+              <button
+                onClick={onLoginClick}
+                className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </button>
+              
             </div>
           </div>
         </div>
@@ -156,4 +108,4 @@ const MedilabHeader = () => {
   );
 };
 
-export default MedilabHeader;
+export default Header;

@@ -81,17 +81,17 @@ const Contact = () => {
             {[{
               icon: <MapPin className="h-6 w-6 text-white" />,
               title: "Location",
-              lines: ["123 Medical Center Drive", "New York, NY 10001"]
+              lines: ["123 Medical Center Drive", "KCE, Coimbatore 10001"]
             },
             {
               icon: <Phone className="h-6 w-6 text-white" />,
               title: "Call Us",
-              lines: ["+1 (555) 123-4567", "Emergency: +1 (555) 911-0000"]
+              lines: ["+1 (555) 123-4567", "Emergency: +91 9999888877"]
             },
             {
               icon: <Mail className="h-6 w-6 text-white" />,
               title: "Email Us",
-              lines: ["info@medilab.com", "appointments@medilab.com"]
+              lines: ["info@meditrack.com", "appointments@meditrack.com"]
             }].map((item, index) => (
               <motion.div
                 key={index}

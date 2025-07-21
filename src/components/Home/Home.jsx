@@ -20,12 +20,16 @@ const Home = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   const openLogin = () => {
+
     setIsSignupOpen(false);
+
     setIsLoginOpen(true);
   };
 
   const openSignup = () => {
+
     setIsLoginOpen(false);
+
     setIsSignupOpen(true);
   };
 
@@ -36,7 +40,9 @@ const Home = () => {
 
   return (
     <>
+
       <Header onLoginClick={openLogin} onSignupClick={openSignup} />
+
 
       <div className="pt-16">
         <section id="hero">
@@ -67,6 +73,7 @@ const Home = () => {
         <Footer />
       </div>
 
+
       {(isLoginOpen || isSignupOpen) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           {isLoginOpen && (
@@ -75,6 +82,7 @@ const Home = () => {
           {isSignupOpen && (
             <Signup onClose={closeModals} onLoginClick={openLogin} />
           )}
+
         </div>
       )}
     </>

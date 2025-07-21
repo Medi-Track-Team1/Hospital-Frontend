@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import StatsCard from '../../components/Admin/StatsCard';
 import DoctorCard from '../../components/Admin/DoctorCard';
 import AppointmentCard from '../../components/Admin/AppointmentCard';
+import DoctorProfileModal from '../../components/Admin/DoctorProfileModal';
 
 const Dashboard = () => {
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+
   const stats = [
     { title: 'Total Patients', value: '1,245', change: '+12%', trend: 'up' },
     { title: 'Total Doctors', value: '48', change: '+5%', trend: 'up' },
@@ -11,9 +16,48 @@ const Dashboard = () => {
   ];
 
   const doctors = [
-    { id: 1, name: 'Dr. Sarah Johnson', specialty: 'Cardiology', image: '', availability: 'Available' },
-    { id: 2, name: 'Dr. Michael Chen', specialty: 'Neurology', image: '', availability: 'On Leave' },
-    { id: 3, name: 'Dr. Emily Wilson', specialty: 'Pediatrics', image: '', availability: 'Available' },
+    { 
+      id: 1, 
+      name: 'Dr. Sarah Johnson', 
+      specialty: 'Cardiology', 
+      image: '', 
+      availability: 'Available',
+      email: 's.johnson@hospital.com',
+      phone: '(555) 123-4567',
+      bio: 'Board-certified cardiologist with 10 years of experience specializing in interventional cardiology.',
+      education: 'MD from Harvard Medical School, Fellowship in Cardiology at Mayo Clinic',
+      experience: 'Chief of Cardiology at City Hospital (2015-2020), Senior Cardiologist at Metro Medical Center',
+      languages: ['English', 'Spanish'],
+      joinDate: '2012-05-15'
+    },
+    { 
+      id: 2, 
+      name: 'Dr. Michael Chen', 
+      specialty: 'Neurology', 
+      image: '', 
+      availability: 'On Leave',
+      email: 'm.chen@hospital.com',
+      phone: '(555) 234-5678',
+      bio: 'Neurology specialist focusing on movement disorders and neurodegenerative diseases.',
+      education: 'PhD in Neuroscience from Stanford University, MD from Johns Hopkins',
+      experience: 'Researcher at National Neurology Institute, Clinical Neurologist at Brain Health Center',
+      languages: ['English', 'Mandarin', 'Cantonese'],
+      joinDate: '2015-08-22'
+    },
+    { 
+      id: 3, 
+      name: 'Dr. Emily Wilson', 
+      specialty: 'Pediatrics', 
+      image: '', 
+      availability: 'Available',
+      email: 'e.wilson@hospital.com',
+      phone: '(555) 345-6789',
+      bio: 'Pediatrician dedicated to child wellness, development, and preventive care.',
+      education: 'MD from Johns Hopkins University, Residency at Boston Children\'s Hospital',
+      experience: 'Pediatric Resident at Children\'s Hospital, Private Practice at Kids Care Clinic',
+      languages: ['English', 'French', 'German'],
+      joinDate: '2018-03-10'
+    },
   ];
 
   const appointments = [
@@ -22,8 +66,13 @@ const Dashboard = () => {
     { id: 3, patient: 'Robert Brown', doctor: 'Dr. Emily Wilson', time: '2:15 PM', status: 'Confirmed' },
   ];
 
+  const handleViewProfile = (doctor) => {
+    setSelectedDoctor(doctor);
+    setIsProfileModalOpen(true);
+  };
+
   return (
-    <div>
+    <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
       
       {/* Stats Cards */}
@@ -45,7 +94,11 @@ const Dashboard = () => {
           </div>
           <div className="space-y-4">
             {doctors.map((doctor) => (
-              <DoctorCard key={doctor.id} {...doctor} />
+              <DoctorCard 
+                key={doctor.id} 
+                {...doctor} 
+                onViewProfile={() => handleViewProfile(doctor)}
+              />
             ))}
           </div>
         </div>
@@ -65,6 +118,15 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Doctor Profile Modal */}
+      {selectedDoctor && (
+        <DoctorProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          doctor={selectedDoctor}
+        />
+      )}
     </div>
   );
 };

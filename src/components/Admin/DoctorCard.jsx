@@ -1,6 +1,6 @@
 import { HiUserCircle, HiPhone, HiMail, HiStatusOnline } from 'react-icons/hi';
 
-const DoctorCard = ({ name, specialty, email, phone, availability }) => {
+const DoctorCard = ({ name, specialty, email, phone, availability,onViewProfile  }) => {
   const availabilityColors = {
     Available: 'text-green-600 bg-green-100',
     'On Leave': 'text-yellow-600 bg-yellow-100',
@@ -39,7 +39,7 @@ const DoctorCard = ({ name, specialty, email, phone, availability }) => {
       </div>
       
       <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between">
-        <button className="px-3 py-1 text-sm bg-[#2563eb] text-white rounded hover:bg-blue-700 transition-colors">
+        <button className="px-3 py-1 text-sm bg-[#2563eb] text-white rounded hover:bg-blue-700 transition-colors" onClick={onViewProfile} >
           View Profile
         </button>
         <div className="flex space-x-2">

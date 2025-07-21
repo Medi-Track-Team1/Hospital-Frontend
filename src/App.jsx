@@ -1,35 +1,25 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+
 import Home from "./components/Home/Home";
-import Patient from "./components/PatientProfile/Patient"; // now handles sub-routes
-
-
-
+import Patient from "./components/PatientProfile/Patient";
 import Reception from "./components/Reception/Reception";
 import Cardio from "./components/Department/Cardio";
 import DoctorPage from "./Pages/DoctorPage";
-// import Neuro from "./components/Department/Neuro"; 
-
 
 function App() {
-
-return (
-<Router>
-<Routes>
-{/* Homepage */}
-<Route path="/" element={<Home />} />
-<Route path="/doctor" element={<DoctorPage/>}/>
- <Route path="/cardiology" element={<Cardio />} />
- 
-    {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
-    <Route path="/patient/*" element={<Patient />} />
-       <Route path="/reception/*" element={<Reception/>}></Route>
-  </Routes>
-</Router>
-);
-
-
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/doctor-panel" element={<DoctorPage />} />
+        <Route path="/cardiology" element={<Cardio />} />
+        <Route path="/patient/*" element={<Patient />} />
+        <Route path="/reception/*" element={<Reception />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

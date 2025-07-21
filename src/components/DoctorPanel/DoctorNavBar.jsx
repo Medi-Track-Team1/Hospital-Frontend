@@ -7,12 +7,9 @@ const DoctorNavbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full bg-blue-600 text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Left: Title */}
         <h1 className="text-2xl font-extrabold tracking-tight font-serif">
           Doctor Panel
         </h1>
-
-        {/* Right: Profile icon with hover dropdown */}
         <div
           className="relative"
           onMouseEnter={() => setShowDropdown(true)}

@@ -512,7 +512,7 @@ export const MedicalAppointments = () => {
       </div>
       
 
-      {/* Modals */}
+    
       {selectedPatient && (
         <PatientDetailsModal
           isOpen={!!selectedPatient}

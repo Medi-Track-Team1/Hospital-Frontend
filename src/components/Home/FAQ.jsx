@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const FAQ = () => {
-  const [activeIndex, setActiveIndex] = useState(0); // Removed TypeScript syntax
+  const [activeIndex, setActiveIndex] = useState(null);
 
   const faqs = [
     {
@@ -42,21 +43,34 @@ const FAQ = () => {
   };
 
   return (
-    <section id="faq" className="py-20 bg-gray-50">
+    <motion.section
+      id="faq"
+      className="py-20 bg-gray-50"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+    >
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Frequently Asked Questions</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Find answers to common questions about our services and facilities
           </p>
-        </div>
+        </motion.div>
 
-        {/* FAQ List */}
         <div className="max-w-3xl mx-auto">
           {faqs.map((faq, index) => (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
               className="bg-white rounded-xl shadow-md mb-4 overflow-hidden"
             >
               <button
@@ -66,23 +80,35 @@ const FAQ = () => {
                 <h3 className="text-lg font-semibold text-gray-800 pr-4">
                   {faq.question}
                 </h3>
-                {activeIndex === index ? (
-                  <ChevronUp className="h-5 w-5 text-blue-600" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
+                <motion.div
+                  animate={{ rotate: activeIndex === index ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className={`h-5 w-5 ${activeIndex === index ? 'text-blue-600' : 'text-gray-400'}`} />
+                </motion.div>
               </button>
 
-              {activeIndex === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                </div>
-              )}
-            </div>
+              <AnimatePresence initial={false}>
+                {activeIndex === index && (
+                  <motion.div
+                    key="content"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                    className="px-6 pb-4"
+                  >
+                    <p className="text-gray-600 leading-relaxed">
+                      {faq.answer}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

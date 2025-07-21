@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import {
   LogIn,
   LogOut,
@@ -57,13 +58,13 @@ const MedilabHeader = () => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
-              <a href="/#hero" className={navLinkClass}>
+              <a href="#hero" className={navLinkClass}>
                 Home
               </a>
-              <a href="/#about" className={navLinkClass}>
+              <a href="#about" className={navLinkClass}>
                 About
               </a>
-              <a href="/#services" className={navLinkClass}>
+              <a href="#services" className={navLinkClass}>
                 Services
               </a>
 
@@ -99,14 +100,14 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-              <a href="/#doctors" className={navLinkClass}>
+           <a href="doctors" className={navLinkClass}>
                 Doctors
               </a>
-              <a href="/#contact" className={navLinkClass}>
+              <a href="#contact" className={navLinkClass}>
                 Contact
               </a>
               <a
-                href="/#appointment"
+                href="#appointment"
                 className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
               >
                 Make Appointment
@@ -128,7 +129,7 @@ const MedilabHeader = () => {
                   </button>
                   {profileDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
-                      <button
+                                    <button
                         onClick={handleLogoutClick}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                       >

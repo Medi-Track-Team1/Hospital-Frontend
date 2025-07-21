@@ -10,7 +10,7 @@ const DoctorPage = () => {
   <DoctorInfoBar
         name="Dr. Sravani"
         qualification="MBBS, MS, MCh (Neurosurgery)"
-        imageSrc="/doctor.jpg" // adjust as needed
+        imageSrc="/doctor.jpg"
   />
   <div className="max-w-5xl mx-auto px-4">
   <MedicalAppointments />

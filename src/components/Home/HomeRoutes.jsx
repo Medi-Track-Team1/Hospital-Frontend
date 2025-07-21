@@ -9,10 +9,13 @@ import GeneticTesting from "./GeneticTesting";
 import Rehabilitation from "./Rehabilitation";
 import MedicalRecords from "./MedicalRecords";
 
-const HomeRoutes = () => {
+const HomeRoutes = ({ onLoginClick, onSignupClick }) => {
   return (
     <Routes>
-      <Route index element={<Home />} />
+      <Route
+        index
+        element={<Home onLoginClick={onLoginClick} onSignupClick={onSignupClick} />}
+      />
       <Route path="cardiology" element={<Cardiology />} />
       <Route path="pharmacy" element={<Pharmacy />} />
       <Route path="patient-care" element={<PatientCare />} />

@@ -1,6 +1,4 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
-
+import React, { useState } from "react";
 import Header from "./Header";
 import Hero from "./Hero";
 import About from "./About";
@@ -14,20 +12,34 @@ import FAQ from "./FAQ";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
 import Footer from "./Footer";
-
-// import Cardiology from "./Cardiology";
-// import Pharmacy from "./Pharmacy";
-// import PatientCare from "./PatientCare";
-// import GeneticTesting from "./GeneticTesting";
-// import Rehabilitation from "./Rehabilitation";
-// import MedicalRecords from "./MedicalRecords";
-
+import Login from "../../Pages/Auth/Login";
+import Signup from "../../Pages/Auth/Signup";
 
 const Home = () => {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
+
+  const openLogin = () => {
+    setIsSignupOpen(false); // Close Signup if open
+    setIsLoginOpen(true);
+  };
+
+  const openSignup = () => {
+    setIsLoginOpen(false); // Close Login if open
+    setIsSignupOpen(true);
+  };
+
+  const closeModals = () => {
+    setIsLoginOpen(false);
+    setIsSignupOpen(false);
+  };
+
   return (
     <>
-      <Header />
-      {/* pt-16 matches the navbar height: h-16 = 4rem = 64px */}
+      {/* ✅ Header receives popup control handlers */}
+      <Header onLoginClick={openLogin} onSignupClick={openSignup} />
+
+      {/* ✅ Main Content */}
       <div className="pt-16">
         <Hero />
         <About />
@@ -41,24 +53,17 @@ const Home = () => {
         <Testimonials />
         <Contact />
         <Footer />
-        
-        {/* <Router>
-      <Routes>
-        
-        <Route path="/cardiology" element={<Cardiology />} />
-        <Route path="/pharmacy" element={<Pharmacy />} />
-        <Route path="/patient-care" element={<PatientCare />} />
-        <Route path="/genetic-testing" element={<GeneticTesting />} />
-        <Route path="/rehabilitation" element={<Rehabilitation />} />
-        <Route path="/medical-records" element={<MedicalRecords />} />
-      </Routes>
-    </Router> */}
-
-
       </div>
+
+      {/* ✅ Popup modals */}
+      {(isLoginOpen || isSignupOpen) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          {isLoginOpen && <Login onClose={closeModals} onSignupClick={openSignup} />}
+          {isSignupOpen && <Signup onClose={closeModals} onLoginClick={openLogin} />}
+        </div>
+      )}
     </>
   );
 };
 
 export default Home;
-

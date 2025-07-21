@@ -100,7 +100,7 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-           <a href="doctors" className={navLinkClass}>
+           <a href="#doctors" className={navLinkClass}>
                 Doctors
               </a>
               <a href="#contact" className={navLinkClass}>

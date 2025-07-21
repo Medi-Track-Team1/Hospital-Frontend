@@ -20,6 +20,9 @@ const MedilabHeader = () => {
     { name: "Pediatrics", link: "#pediatrics" },
     { name: "Eye Care", link: "#eye-care" },
     { name: "Dental Care", link: "#dental-care" },
+    { name: "Fertility", link: "/departments/fertility" },
+    { name: "Psychology", link: "/departments/psychology" }
+    
   ];
 
   useEffect(() => {

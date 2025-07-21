@@ -1,5 +1,6 @@
-// Home.jsx
 import React from "react";
+import { useLocation } from "react-router-dom";
+
 import Header from "./Header";
 import Hero from "./Hero";
 import About from "./About";
@@ -13,6 +14,14 @@ import FAQ from "./FAQ";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
 import Footer from "./Footer";
+
+// import Cardiology from "./Cardiology";
+// import Pharmacy from "./Pharmacy";
+// import PatientCare from "./PatientCare";
+// import GeneticTesting from "./GeneticTesting";
+// import Rehabilitation from "./Rehabilitation";
+// import MedicalRecords from "./MedicalRecords";
+
 
 const Home = () => {
   return (
@@ -32,9 +41,24 @@ const Home = () => {
         <Testimonials />
         <Contact />
         <Footer />
+        
+        {/* <Router>
+      <Routes>
+        
+        <Route path="/cardiology" element={<Cardiology />} />
+        <Route path="/pharmacy" element={<Pharmacy />} />
+        <Route path="/patient-care" element={<PatientCare />} />
+        <Route path="/genetic-testing" element={<GeneticTesting />} />
+        <Route path="/rehabilitation" element={<Rehabilitation />} />
+        <Route path="/medical-records" element={<MedicalRecords />} />
+      </Routes>
+    </Router> */}
+
+
       </div>
     </>
   );
 };
 
 export default Home;
+

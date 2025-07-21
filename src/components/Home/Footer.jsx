@@ -10,10 +10,10 @@ const Footer = () => {
           {/* Medilab Info */}
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">MediTrack</h2>
-            <p>Kce othakalmandabam </p>
-            <p>Coimbatore, NY 535022</p>
+            <p>Karpagam college of engineering</p>
+            <p>Coimbatore, Tamil nadu,India ,606001</p>
             <p className="mt-4 font-semibold">
-              Phone: <span className="font-normal">+1 5589 55488 55</span>
+              Phone: <span className="font-normal">+91 9999888852</span>
             </p>
             <p className="font-semibold">
               Email: <span className="font-normal">meditrack@example.com</span>
@@ -73,27 +73,27 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Web Design
+                  cardiology
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Web Development
+                  Pharmacy services
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Product Management
+                  Patient care
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Marketing
+                  Genetic Testing
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Graphic Design
+                  Rehabilation
                 </a>
               </li>
             </ul>
@@ -101,31 +101,31 @@ const Footer = () => {
 
           {/* Hic solutastep */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Hic solutastep</h3>
+            <h3 className="text-lg font-semibold mb-4">Major Departments</h3>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Molestiae accusamus iure
+                  Departments
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Excepturi dignissimos
+                  Cancer Center
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Suscipit distinctio
+                  Health check Program
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Dilecta
+                  Fertility and Reproductive Medicine
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Sit quas consectetur
+                  Pediatracks
                 </a>
               </li>
             </ul>
@@ -133,31 +133,31 @@ const Footer = () => {
 
           {/* Nobis illum */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Nobis illum</h3>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Ipsam
+                  career
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Laudantium dolorum
+                  Feedback
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Dinera
+                  Insurance
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Trodela
+                  Environmental forms
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-blue-600">
-                  Flexo
+                  NewsLetter
                 </a>
               </li>
             </ul>
@@ -167,7 +167,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="py-6 flex flex-col lg:flex-row justify-between items-center text-sm text-gray-500">
           <p>
-            © Copyright <span className="font-bold text-gray-700">Medilab</span>
+            © Copyright <span className="font-bold text-gray-700">MediTrack and Team</span>
             . All Rights Reserved
           </p>
           <p>
@@ -176,14 +176,14 @@ const Footer = () => {
               href="https://bootstrapmade.com/"
               className="text-blue-600 hover:underline"
             >
-              BootstrapMade
+              Full Stack Java 
             </a>
             &nbsp;| Distributed by{" "}
             <a
               href="https://themewagon.com/"
               className="text-blue-600 hover:underline"
             >
-              ThemeWagon
+              Kceian
             </a>
           </p>
         </div>

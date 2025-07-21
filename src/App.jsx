@@ -8,6 +8,7 @@ import Reception from "./components/Reception/Reception";
 import Admin from "./components/Admin/Admin";
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
+import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
 
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
@@ -31,6 +32,22 @@ function App() {
           }
         />
  <Route path="/doctor-panel" element={<DoctorPanelPage/>}/>
+
+
+{/* //  <Route path="/cardiology" element={<Cardio />} /> */}
+ <Route path="/departments/*" element={<DeptRoute/>} />
+    {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
+
+    <Route path="/patient/*" element={<Patient />} />
+       <Route path="/reception/*" element={<Reception/>}></Route>
+
+       {/* Admin Routes*/}
+       <Route path="/admin/*" element={<Admin />} />
+  </Routes>
+</Router>
+);
+
+
         <Route path="/departments/*" element={<DeptRoute />} />
         <Route path="/patient/*" element={<Patient />} />
         <Route path="/reception/*" element={<Reception />} />
@@ -64,6 +81,7 @@ function App() {
       )}
     </Router>
   );
+
 
 }
 

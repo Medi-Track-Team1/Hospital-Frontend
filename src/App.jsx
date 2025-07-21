@@ -17,6 +17,7 @@ import Admin from "./components/Admin/Admin";
 
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
+import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
 
 
 function App() {
@@ -29,7 +30,7 @@ return (
 {/* <Route path="/*" element={<Home />} /> */}
  <Route path="/*" element={<HomeRoutes />} />
  <Route path="/doctor-panel" element={<DoctorPanelPage/>}/>
-     
+
 {/* //  <Route path="/cardiology" element={<Cardio />} /> */}
  <Route path="/departments/*" element={<DeptRoute/>} />
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}

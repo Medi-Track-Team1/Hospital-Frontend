@@ -70,41 +70,9 @@ function App() {
   );
 
 
-        <Route path="/departments/*" element={<DeptRoute />} />
-        <Route path="/patient/*" element={<Patient />} />
-        <Route path="/reception/*" element={<Reception />} />
-        <Route path="/admin/*" element={<Admin />} />
-      </Routes>
+     
 
-      {/* Show Login Popup */}
-      {showLoginPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <Login
-            onClose={() => setShowLoginPopup(false)}
-            onSignupClick={() => {
-              setShowLoginPopup(false);
-              setShowSignupPopup(true);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Show Signup Popup */}
-      {showSignupPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <Signup
-            onClose={() => setShowSignupPopup(false)}
-            onLoginClick={() => {
-              setShowSignupPopup(false);
-              setShowLoginPopup(true);
-            }}
-          />
-        </div>
-      )}
-    </Router>
-  );
-
-
+    
 }
 
 export default App;

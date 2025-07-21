@@ -3,6 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import Cardio from "./Cardio";
 import Header from "../Home/Header"; 
 import Hepatology from "./Hepatology";
+import Fertility from "./Fertility";
+import Psychology from "./Psychology";
 
 function DeptRoute() {
   return (
@@ -10,7 +12,8 @@ function DeptRoute() {
     <Header></Header>
     <Routes>
       <Route path="cardiology" element={<Cardio />} />
-        
+      <Route path="fertility" element={<Fertility />} />
+        <Route path="psychology" element={<Psychology />} />
       <Route path="hepatology" element={<Hepatology />} />
 
         </Routes>

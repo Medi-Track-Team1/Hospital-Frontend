@@ -3,8 +3,9 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+
 import {
   MdCalendarToday,
   MdPerson,
@@ -20,10 +21,14 @@ import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
 import { RescheduleModal } from "./RescheduleModal";
 import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
+import PrescribeModal from "./PrescribeModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [showPrescribeModal, setShowPrescribeModal] = useState(false);
+  const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
+  const navigate = useNavigate();
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
   const [appointments, setAppointments] = useState([
     {
@@ -251,15 +256,7 @@ export const MedicalAppointments = () => {
     });
   };
 
-  const getPriorityBadge = (priority) => {
-    const variants = {
-      high: "bg-red-100 text-red-700 border-red-200",
-      medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      low: "bg-green-100 text-green-700 border-green-200",
-    };
-    return variants[priority] || variants.medium;
-  };
-
+  
   const getStatusBadge = (status) => {
     const variants = {
       pending: "bg-orange-100 text-orange-700 border-orange-200",
@@ -335,7 +332,7 @@ export const MedicalAppointments = () => {
                     <tbody>
                       {appointments.map((appointment) => (
                         <tr key={appointment.id} className="border-b hover:bg-muted/50">
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
@@ -352,7 +349,7 @@ export const MedicalAppointments = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
@@ -361,19 +358,19 @@ export const MedicalAppointments = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <Badge variant="outline" className="text-primary border-primary">
                               {appointment.type}
                             </Badge>
                           </td>
-                          <td className="p-4">{appointment.reason}</td>
+                          <td className="p-3 text-sm">{appointment.reason}</td>
                           
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <Badge className={`border ${getStatusBadge(appointment.status)}`}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                             </Badge>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
                               {!appointment.isAccepted ? (
                                 <Button
@@ -395,13 +392,29 @@ export const MedicalAppointments = () => {
                                 Reschedule
                               </Button>
                               <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                <MdDescription className="h-3 w-3 mr-1" />
-                                Prescription
-                              </Button>
+  size="sm"
+  variant="outline"
+  className={`text-xs ${!appointment.isAccepted ? "opacity-50 cursor-not-allowed" : ""}`}
+  onClick={() => setShowPrescribeModal(true)}
+  disabled={!appointment.isAccepted}
+>
+  <MdDescription className="h-3 w-3 mr-1" />
+  Prescription
+</Button>
+<Button
+  size="sm"
+  variant="outline"
+  className="text-xs"
+  onClick={() =>
+    navigate("/patient", {
+      state: { patient: appointment.patient }, // Pass patient object
+    })
+  }
+>
+  <MdVisibility className="h-3 w-3 mr-1" />
+  View History
+</Button>
+
                             </div>
                           </td>
                         </tr>
@@ -442,7 +455,7 @@ export const MedicalAppointments = () => {
                     <tbody>
                       {appointmentHistory.map((appointment) => (
                         <tr key={appointment.id} className="border-b hover:bg-muted/50">
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
@@ -459,7 +472,7 @@ export const MedicalAppointments = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
@@ -468,19 +481,19 @@ export const MedicalAppointments = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <Badge variant="outline" className="text-primary border-primary">
                               {appointment.type}
                             </Badge>
                           </td>
-                          <td className="p-4">{appointment.reason}</td>
+                          <td className="p-3 text-sm">{appointment.reason}</td>
                           
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <Badge className={`border ${getStatusBadge(appointment.status)}`}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                             </Badge>
                           </td>
-                          <td className="p-4">
+                          <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
                               <Button
                                 size="sm"
@@ -532,6 +545,13 @@ export const MedicalAppointments = () => {
           patientName={rescheduleAppointment.patient.name}
         />
       )}
+      {showPrescribeModal && (
+  <PrescribeModal
+    isOpen={showPrescribeModal}
+    onClose={() => setShowPrescribeModal(false)}
+  />
+)}
+
     </div>
   );
 };

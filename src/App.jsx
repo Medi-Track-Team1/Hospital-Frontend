@@ -8,16 +8,13 @@ import Reception from "./components/Reception/Reception";
 import Admin from "./components/Admin/Admin";
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
-
 import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
-
 
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
 
 function App() {
-
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [showSignupPopup, setShowSignupPopup] = useState(false);
 
@@ -33,8 +30,7 @@ function App() {
             />
           }
         />
- <Route path="/doctor-panel" element={<DoctorPanelPage/>}/>
-
+        <Route path="/doctor-panel" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
         <Route path="/patient/*" element={<Patient />} />
         <Route path="/reception/*" element={<Reception />} />
@@ -68,43 +64,6 @@ function App() {
       )}
     </Router>
   );
-
-
-        <Route path="/departments/*" element={<DeptRoute />} />
-        <Route path="/patient/*" element={<Patient />} />
-        <Route path="/reception/*" element={<Reception />} />
-        <Route path="/admin/*" element={<Admin />} />
-      </Routes>
-
-      {/* Show Login Popup */}
-      {showLoginPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <Login
-            onClose={() => setShowLoginPopup(false)}
-            onSignupClick={() => {
-              setShowLoginPopup(false);
-              setShowSignupPopup(true);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Show Signup Popup */}
-      {showSignupPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-          <Signup
-            onClose={() => setShowSignupPopup(false)}
-            onLoginClick={() => {
-              setShowSignupPopup(false);
-              setShowLoginPopup(true);
-            }}
-          />
-        </div>
-      )}
-    </Router>
-  );
-
-
 }
 
 export default App;

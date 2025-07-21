@@ -20,6 +20,8 @@ All colors MUST be HSL.
     --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
+
+
     --secondary: 220 100% 96%;
     --secondary-foreground: 221 83% 53%;
 
@@ -109,4 +111,5 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
 }

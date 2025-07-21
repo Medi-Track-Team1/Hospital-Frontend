@@ -20,12 +20,16 @@ const Home = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   const openLogin = () => {
-    setIsSignupOpen(false); // Close Signup if open
+
+    setIsSignupOpen(false);
+
     setIsLoginOpen(true);
   };
 
   const openSignup = () => {
-    setIsLoginOpen(false); // Close Login if open
+
+    setIsLoginOpen(false);
+
     setIsSignupOpen(true);
   };
 
@@ -36,30 +40,49 @@ const Home = () => {
 
   return (
     <>
-      {/* ✅ Header receives popup control handlers */}
+
       <Header onLoginClick={openLogin} onSignupClick={openSignup} />
 
-      {/* ✅ Main Content */}
+
       <div className="pt-16">
-        <Hero />
-        <About />
-        <Services />
-        <Departments />
-        <Doctors />
-        <Appointment />
+        <section id="hero">
+          <Hero />
+        </section>
+        <section id="about">
+          <About />
+        </section>
+        <section id="services">
+          <Services />
+        </section>
+        <section id="departments">
+          <Departments />
+        </section>
+        <section id="doctors">
+          <Doctors />
+        </section>
+        <section id="appointment">
+          <Appointment />
+        </section>
         <Stats />
         <Gallery />
         <FAQ />
         <Testimonials />
-        <Contact />
+        <section id="contact">
+          <Contact />
+        </section>
         <Footer />
       </div>
 
-      {/* ✅ Popup modals */}
+
       {(isLoginOpen || isSignupOpen) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          {isLoginOpen && <Login onClose={closeModals} onSignupClick={openSignup} />}
-          {isSignupOpen && <Signup onClose={closeModals} onLoginClick={openLogin} />}
+          {isLoginOpen && (
+            <Login onClose={closeModals} onSignupClick={openSignup} />
+          )}
+          {isSignupOpen && (
+            <Signup onClose={closeModals} onLoginClick={openLogin} />
+          )}
+
         </div>
       )}
     </>

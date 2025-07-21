@@ -1,19 +1,18 @@
 import React from "react";
-import { Droplet } from "lucide-react";
-import Pedia from "../../assets/Pedia.png"; 
-import DoctorA from "../../assets/Sunil.jpeg"; 
-import DoctorB from "../../assets/Sunil.jpeg"; 
+import { Eye } from "lucide-react";
+import eyecare from "../../assets/EyeCare.jpeg";
+import ds from "../../assets/ds.png";
 
-const Pediatrics = () => {
+const Eyecare = () => {
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
       {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
-          <Droplet className="w-10 h-10 text-blue-500" />
+          <Eye className="w-10 h-10 text-blue-600" />
           <div>
-            <h2 className="text-4xl font-bold text-black">Pediatrics</h2>
-            <p className="text-xl font-bold text-gray-500">Care for Your Child</p>
+            <h2 className="text-4xl font-bold text-black">Eyecare</h2>
+            <p className="text-xl font-bold text-gray-500">Vision You Can Trust</p>
           </div>
         </div>
         <div className="relative z-10">
@@ -35,31 +34,31 @@ const Pediatrics = () => {
         {/* Image */}
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
-            src={Pedia}
-            alt="Pediatrics Department"
+            src={eyecare}
+            alt="Eyecare Department"
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
 
         {/* Text */}
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
-          <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-            Department of Pediatrics
+          <h2 className="text-2xl font-bold text-cyan-800 mb-2 hover:text-cyan-600 transition-colors duration-300">
+            Department of Eyecare
           </h2>
           <p className="animate-fade-in-up">
-            Our Pediatrics department offers comprehensive healthcare services for infants, children, and adolescents.
+            Our Eyecare department is committed to preserving and enhancing your vision through advanced diagnostic and treatment services.
           </p>
           <p className="animate-fade-in-up">
-            We specialize in preventive care, immunizations, growth monitoring, and treatment of childhood illnesses.
+            We treat a wide range of conditions including cataracts, glaucoma, diabetic retinopathy, and dry eye syndrome.
           </p>
           <p className="animate-fade-in-up">
-            From newborn screenings to adolescent wellness, our team ensures personalized and compassionate care.
+            Our ophthalmologists and optometrists use cutting-edge tools to ensure precise vision correction and routine eye health monitoring.
           </p>
           <p className="animate-fade-in-up">
-            Equipped with child-friendly facilities and experienced pediatricians, we focus on your child's health and development.
+            We offer both medical and surgical solutions, as well as pediatric and elderly eye care.
           </p>
           <p className="animate-fade-in-up">
-            Our mission is to nurture healthy children with expert guidance and supportive care at every stage.
+            Clear vision is our priority—delivered with care, clarity, and commitment.
           </p>
         </div>
       </div>
@@ -68,35 +67,38 @@ const Pediatrics = () => {
 
       {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
-        Find Your <span className="text-blue-600">Specialist</span>
+        Find Your <span className="text-blue-600">Eye Specialist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
-        Connect with top-rated pediatric specialists and book appointments with ease.
+        Book an appointment with our trusted ophthalmologists for advanced eye care and vision clarity.
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
         {/* Doctor 1 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-          <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={DoctorA} alt="Dr. Meganthan" className="w-full h-full object-cover rounded-full" />
-          </div>
+           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+                      <img
+                        src={ds}
+                        alt="Dr. Rakesh Kumar"
+                        className="w-50 h-30 object-contain"
+                      />
+                    </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr.Meganthan</h2>
-            <p className="text-blue-600 text-sm">Pediatrics Specialist</p>
+            <h2 className="text-xl font-semibold">Dr. Rakesh Kumar</h2>
+            <p className="text-blue-600 text-sm">Ophthalmologist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★★<span className="text-black ml-2">4.8</span>
+              ★★★★☆<span className="text-black ml-2">4.7</span>
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 12 years</p>
-            <p><strong>Education:</strong> Namakkal Medical College</p>
+            <p><strong>Experience:</strong> 15 years</p>
+            <p><strong>Education:</strong> Retina Vision Institute</p>
           </div>
           <div className="mt-4 w-full px-6">
             <p className="font-semibold text-sm mb-1">Specializations</p>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Neonatal Care</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Child Nutrition</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Immunizations</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Cataract Surgery</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Glaucoma Care</span>
             </div>
           </div>
           <div className="mt-6 w-full px-6">
@@ -104,30 +106,34 @@ const Pediatrics = () => {
               Book Appointment
             </button>
           </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Tomorrow, 10:00 AM</p>
+          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 3:30 PM</p>
         </div>
 
         {/* Doctor 2 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={DoctorB} alt="Dr. Saranesh Pandiyan" className="w-full h-full object-cover rounded-full" />
-          </div>
+                     <img
+                       src={ds}
+                       alt="Dr. Sakthivel"
+                       className="w-50 h-30 object-contain"
+                     />
+                   </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Saranesh Pandiyan</h2>
-            <p className="text-blue-600 text-sm">Pediatrics Specialist</p>
+            <h2 className="text-xl font-semibold">Dr. Sakthivel</h2>
+            <p className="text-blue-600 text-sm">Eye Surgeon</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★☆<span className="text-black ml-2">4.3</span>
+              ★★★★☆<span className="text-black ml-2">4.4</span>
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 8 years</p>
-            <p><strong>Education:</strong> Perambalur Medical Institute</p>
+            <p><strong>Experience:</strong> 10 years</p>
+            <p><strong>Education:</strong> ClearVision Eye Institute</p>
           </div>
           <div className="mt-4 w-full px-6">
             <p className="font-semibold text-sm mb-1">Specializations</p>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Pediatric Allergies</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Growth Disorders</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">LASIK</span>
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Diabetic Retinopathy</span>
             </div>
           </div>
           <div className="mt-6 w-full px-6">
@@ -135,7 +141,7 @@ const Pediatrics = () => {
               Book Appointment
             </button>
           </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Tomorrow, 3:00 PM</p>
+          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 5:00 PM</p>
         </div>
       </div>
 
@@ -144,4 +150,4 @@ const Pediatrics = () => {
   );
 };
 
-export default Pediatrics;
+export default Eyecare;

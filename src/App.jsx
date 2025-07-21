@@ -1,49 +1,66 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-
-// import Home from "./components/Home/Home";
+// Routes and Components
 import HomeRoutes from "./components/Home/HomeRoutes";
-import Patient from "./components/PatientProfile/Patient"; // now handles sub-routes
-
-
+import Patient from "./components/PatientProfile/Patient";
 import Reception from "./components/Reception/Reception";
-
-
-
-// import Neuro from "./components/Department/Neuro"; 
-
 import Admin from "./components/Admin/Admin";
-
 import DeptRoute from "./components/Department/DeptRoute";
 
+// Login/Signup Components
+import Login from "./Pages/Auth/Login";
+import Signup from "./Pages/Auth/Signup";
 
 function App() {
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const [showSignupPopup, setShowSignupPopup] = useState(false);
 
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/*"
+          element={
+            <HomeRoutes
+              onLoginClick={() => setShowLoginPopup(true)}
+              onSignupClick={() => setShowSignupPopup(true)}
+            />
+          }
+        />
+        <Route path="/departments/*" element={<DeptRoute />} />
+        <Route path="/patient/*" element={<Patient />} />
+        <Route path="/reception/*" element={<Reception />} />
+        <Route path="/admin/*" element={<Admin />} />
+      </Routes>
 
-return (
-<Router>
-<Routes>
-{/* Homepage */}
-{/* <Route path="/*" element={<Home />} /> */}
- <Route path="/*" element={<HomeRoutes />} />
+      {/* Show Login Popup */}
+      {showLoginPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+          <Login
+            onClose={() => setShowLoginPopup(false)}
+            onSignupClick={() => {
+              setShowLoginPopup(false);
+              setShowSignupPopup(true);
+            }}
+          />
+        </div>
+      )}
 
-     
-{/* //  <Route path="/cardiology" element={<Cardio />} /> */}
- <Route path="/departments/*" element={<DeptRoute/>} />
-    {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
-
-    <Route path="/patient/*" element={<Patient />} />
-
-       <Route path="/reception/*" element={<Reception/>}></Route>
-
-       {/* Admin Routes*/}
-       <Route path="/admin/*" element={<Admin />} />
-  </Routes>
-</Router>
-);
-
-
+      {/* Show Signup Popup */}
+      {showSignupPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+          <Signup
+            onClose={() => setShowSignupPopup(false)}
+            onLoginClick={() => {
+              setShowSignupPopup(false);
+              setShowLoginPopup(true);
+            }}
+          />
+        </div>
+      )}
+    </Router>
+  );
 }
 
 export default App;

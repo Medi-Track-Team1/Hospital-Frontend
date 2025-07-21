@@ -14,7 +14,7 @@ const MedilabHeader = () => {
 
   const departments = [
     { name: "Cardiology", link: "/departments/cardiology" },
-    { name: "Neurology", link: "/departments/neurology" },
+    { name: "Neurology", link:"/departments/neurology" },
     { name: "Hepatology", link: "/departments/hepatology" },
     { name: "Pediatrics", link: "#pediatrics" },
     { name: "Eye Care", link: "#eye-care" },

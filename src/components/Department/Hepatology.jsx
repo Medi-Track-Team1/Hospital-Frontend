@@ -2,6 +2,7 @@ import React from "react";
 import { Droplet } from "lucide-react";
 import hepatology from "../../assets/hepatology.jpeg";
 import Mahesh from "../../assets/Mahesh.png";
+import Sunil from "../../assets/Sunil.jpeg";
 
 const Hepatology = () => {
   return (
@@ -80,11 +81,15 @@ const Hepatology = () => {
       <div className="flex flex-wrap justify-center gap-6">
         {/* Doctor 1 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-          <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={Mahesh} alt="Dr. Mahesh Kumar" className="w-full h-full object-cover rounded-full" />
+                <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+            <img
+              src={Sunil}
+              alt="Dr. Sunil Kumar"
+              className="w-full h-full object-cover object-top rounded-full"
+            />
           </div>
           <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Boopathi</h2>
+            <h2 className="text-xl font-semibold">Dr. Sunil Kumar</h2>
             <p className="text-blue-600 text-sm">Hepatology Specialist</p>
             <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
               ★★★☆☆<span className="text-black ml-2">3.5</span>
@@ -111,9 +116,13 @@ const Hepatology = () => {
 
         {/* Doctor 2 */}
         <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-          <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img src={Mahesh} alt="Dr. Mahesh Kumar" className="w-full h-full object-cover rounded-full" />
-          </div>
+               <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+           <img
+             src={Mahesh}
+             alt="Dr. Mahesh Kumar"
+             className="w-full h-full object-cover object-top rounded-full"
+           />
+         </div>
           <div className="mt-4 text-center">
             <h2 className="text-xl font-semibold">Dr. Mahesh Kumar</h2>
             <p className="text-blue-600 text-sm">Hepatology Specialist</p>

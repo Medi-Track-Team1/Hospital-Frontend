@@ -6,35 +6,35 @@ const Gallery = () => {
 
   const images = [
     {
-      src: 'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://img.freepik.com/premium-photo/modern-operating-room-with-advanced-medical-equipment_641503-12952.jpg',
       alt: 'Modern hospital facility'
     },
     {
-      src: 'https://images.pexels.com/photos/236380/pexels-photo-236380.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1gKNoneRzTZWISj7PQhTth-Wrl6Ndp8Q05A&s',
       alt: 'Medical equipment'
     },
     {
-      src: 'https://images.pexels.com/photos/4021775/pexels-photo-4021775.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://media.istockphoto.com/id/1171902434/photo/smart-industry-control-concept.jpg?s=612x612&w=0&k=20&c=c1Hrxeu7UzcoS-cPPtlYn6b7luFwcPMvSLuZeEICLXo=',
       alt: 'Doctor consultation'
     },
     {
-      src: 'https://images.pexels.com/photos/3845129/pexels-photo-3845129.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://t3.ftcdn.net/jpg/08/81/62/02/360_F_881620223_CwVewD9btKnyyvbT3UG2tPNFyICAjglP.jpg',
       alt: 'Surgery room'
     },
     {
-      src: 'https://images.pexels.com/photos/4021775/pexels-photo-4021775.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://hospitalarchitects.in/sites/default/files/best_architect_for_hospital_design_in_india.jpg',
       alt: 'Patient care'
     },
     {
-      src: 'https://images.pexels.com/photos/4173251/pexels-photo-4173251.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://www.cgarchitect.com/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBcU1zIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--09b55469a8dea7a5cfb9cd831f70fde35cb37af4/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9VY21WemFYcGxYM1J2WDJ4cGJXbDBXd2RwQWxZRk1Eb0tjMkYyWlhKN0Jqb01jWFZoYkdsMGVXbGsiLCJleHAiOm51bGwsInB1ciI6InZhcmlhdGlvbiJ9fQ==--a140f81341e053a34b77dbf5e04e777cacb11aff/55cb72de.jpg',
       alt: 'Medical team'
     },
     {
-      src: 'https://images.pexels.com/photos/3845129/pexels-photo-3845129.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://thumbs.dreamstime.com/b/advanced-hospital-room-blue-lighting-featuring-patient-bed-high-tech-medical-equipment-creating-futuristic-healthcare-386850957.jpg',
       alt: 'Laboratory'
     },
     {
-      src: 'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop',
+      src: 'https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://media.easy-peasy.ai/5c38e5d4-741e-444b-81b0-9a5d6103e16e/fe5ce67b-b9fd-4442-969d-93fe764b2cc7.png',
       alt: 'Hospital reception'
     }
   ];

@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-
 // import Home from "./components/Home/Home";
 import HomeRoutes from "./components/Home/HomeRoutes";
 import Patient from "./components/PatientProfile/Patient"; // now handles sub-routes
@@ -26,15 +25,15 @@ return (
 <Routes>
 {/* Homepage */}
 {/* <Route path="/*" element={<Home />} /> */}
- <Route path="/*" element={<HomeRoutes />} />
+    <Route path="/*" element={<HomeRoutes />} />
 
      
 {/* //  <Route path="/cardiology" element={<Cardio />} /> */}
- <Route path="/departments/*" element={<DeptRoute/>} />
+     <Route path="/departments/*" element={<DeptRoute/>} />
     {/* All Patient related routes (e.g., /patient/, /patient/edit-profile) */}
     <Route path="/patient/*" element={<Patient />} />
 
-       <Route path="/reception/*" element={<Reception/>}></Route>
+    <Route path="/reception/*" element={<Reception/>}></Route>
 
        {/* Admin Routes*/}
        <Route path="/admin/*" element={<Admin />} />

@@ -1,12 +1,54 @@
-import React from "react";
-import { Eye } from "lucide-react";
+import React, { useState } from "react";
+import { Eye,Phone, Mail } from "lucide-react";
 import eyecare from "../../assets/EyeCare.jpeg";
 import ds from "../../assets/ds.png";
 import rakesh from "../../assets/rakesh.png";
 
 const Eyecare = () => {
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+
+  const handleBookClick = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedDoctor(null);
+  };
+
+  const doctors = [
+    {
+      id:301,
+      name: "Dr. Rakesh Kumar",
+      title: "Ophthalmologist",
+      rating: 4.7,
+      experience: "15 years",
+      education: "Retina Vision Institute",
+      specializations: ["Cataract Surgery", "Glaucoma Care"],
+      image: rakesh,
+      email: "rakesh@hospital.com",
+      phone: "+91 98765 43210",
+      languages: ["English", "Tamil"],
+    },
+    {
+      id:302,
+      name: "Dr. Sakthivel",
+      title: "Eye Surgeon",
+      rating: 4.4,
+      experience: "10 years",
+      education: "ClearVision Eye Institute",
+      specializations: ["LASIK", "Diabetic Retinopathy"],
+      image: ds,
+      email: "sakthivel@hospital.com",
+      phone: "+91 98765 09876",
+      languages: ["English", "Tamil", "Hindi"],
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
+    <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center relative">
       {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
@@ -32,7 +74,6 @@ const Eyecare = () => {
 
       {/* Department Info */}
       <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
-        {/* Image */}
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
             src={eyecare}
@@ -40,8 +81,6 @@ const Eyecare = () => {
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-
-        {/* Text */}
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
           <h2 className="text-2xl font-bold text-cyan-800 mb-2 hover:text-cyan-600 transition-colors duration-300">
             Department of Eyecare
@@ -75,76 +114,76 @@ const Eyecare = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {/* Doctor 1 */}
-        <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-                      <img
-                        src={rakesh}
-                        alt="Dr. Rakesh Kumar"
-                        className="w-50 h-30 object-contain"
-                      />
-                    </div>
-          <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Rakesh Kumar</h2>
-            <p className="text-blue-600 text-sm">Ophthalmologist</p>
-            <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★☆<span className="text-black ml-2">4.7</span>
+        {doctors.map((doctor, index) => (
+          <div
+            key={index}
+            className="bg-white p-4 rounded-xl shadow-md w-[450px] h-auto flex flex-col items-center animate-fade-in-up"
+          >
+            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+              <img
+                src={doctor.image}
+                alt={doctor.name}
+                className="w-50 h-30 object-contain"
+              />
             </div>
-          </div>
-          <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 15 years</p>
-            <p><strong>Education:</strong> Retina Vision Institute</p>
-          </div>
-          <div className="mt-4 w-full px-6">
-            <p className="font-semibold text-sm mb-1">Specializations</p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Cataract Surgery</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Glaucoma Care</span>
+            <div className="mt-4 text-center">
+              <h2 className="text-xl font-semibold">{doctor.name}</h2>
+              <p className="text-blue-600 text-sm">{doctor.title}</p>
+              <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
+              </div>
             </div>
-          </div>
-          <div className="mt-6 w-full px-6">
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
-              Book Appointment
-            </button>
-          </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 3:30 PM</p>
-        </div>
-
-        {/* Doctor 2 */}
-        <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-          <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-                     <img
-                       src={ds}
-                       alt="Dr. Sakthivel"
-                       className="w-50 h-30 object-contain"
-                     />
-                   </div>
-          <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Sakthivel</h2>
-            <p className="text-blue-600 text-sm">Eye Surgeon</p>
-            <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★☆<span className="text-black ml-2">4.4</span>
+            <div className="text-sm text-gray-700 mt-4 text-left w-full px-6 space-y-1">
+              <p><strong>ID:</strong> #{doctor.id}</p>
+              <p><strong>Experience:</strong> {doctor.experience}</p>
+              <p><strong>Education:</strong> {doctor.education}</p>
+              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
+               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.email}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" />  {doctor.phone}</p>
             </div>
-          </div>
-          <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 10 years</p>
-            <p><strong>Education:</strong> ClearVision Eye Institute</p>
-          </div>
-          <div className="mt-4 w-full px-6">
-            <p className="font-semibold text-sm mb-1">Specializations</p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">LASIK</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Diabetic Retinopathy</span>
+            <div className="mt-4 w-full px-6">
+              <p className="font-semibold text-sm mb-1">Specializations</p>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {doctor.specializations.map((spec, idx) => (
+                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+                    {spec}
+                  </span>
+                ))}
+              </div>
             </div>
+            <div className="mt-6 w-full px-6">
+              <button
+                onClick={() => handleBookClick(doctor)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
+                Book Appointment
+              </button>
+            </div>
+            
           </div>
-          <div className="mt-6 w-full px-6">
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
-              Book Appointment
-            </button>
-          </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 5:00 PM</p>
-        </div>
+        ))}
       </div>
+
+      {/* Popup Modal */}
+      {showPopup && selectedDoctor && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative animate-fade-in-up">
+            <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600" onClick={closePopup}>
+              <X />
+            </button>
+            <h2 className="text-xl font-bold text-center text-blue-700 mb-4">Appointment with {selectedDoctor.name}</h2>
+            <form className="space-y-4">
+              <input type="text" placeholder="Patient Name" className="w-full border px-4 py-2 rounded-lg" />
+              <input type="number" placeholder="Age" className="w-full border px-4 py-2 rounded-lg" />
+              <input type="tel" placeholder="Phone Number" className="w-full border px-4 py-2 rounded-lg" />
+              <textarea placeholder="Symptoms / Concerns" className="w-full border px-4 py-2 rounded-lg"></textarea>
+              <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-800 transition">
+                Confirm Appointment
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="h-[40px]"></div>
     </div>

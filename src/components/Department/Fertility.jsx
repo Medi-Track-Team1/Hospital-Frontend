@@ -1,14 +1,43 @@
 import React from "react";
-import { Baby } from "lucide-react";
+import { Baby , Phone, Mail} from "lucide-react";
 import fertility from "../../assets/fertility.jpeg";
 import dkr from "../../assets/dkr.jpg";
 import xyz from "../../assets/xyz.png";
 
-
 const Fertility = () => {
+  const doctors = [
+    {
+      id: 401,
+      name: "Dr. Raj",
+      designation: "Fertility Specialist",
+      experience: "12 years",
+      education: "Blossom Fertility Institute",
+      rating: 4.0,
+      image: xyz,
+      specialization: ["IVF", "IUI"],
+      nextAvailable: "Today, 5:00 PM",
+      languages: ["English", "Hindi", "Tamil"],
+      email: "raj@medilab.com",
+      phone: "+91 98765 33300",
+    },
+    {
+      id: 402,
+      name: "Dr. Kavi Bharathan",
+      designation: "Reproductive Endocrinologist",
+      experience: "9 years",
+      education: "LifeSpring Institute of Reproductive Science",
+      rating: 4.2,
+      image: dkr,
+      specialization: ["Egg Freezing", "Male Infertility"],
+      nextAvailable: "Today, 6:00 PM",
+      languages: ["English", "Tamil"],
+      email: "kavi@medilab.com",
+      phone: "+91 98765 44400",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
-      {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
           <Baby className="w-10 h-10 text-pink-600" />
@@ -31,9 +60,7 @@ const Fertility = () => {
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
-      {/* Department Info */}
       <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
-        {/* Image */}
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
             src={fertility}
@@ -41,8 +68,6 @@ const Fertility = () => {
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-
-        {/* Text */}
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
           <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Fertility
@@ -65,9 +90,8 @@ const Fertility = () => {
         </div>
       </div>
 
-      <div className="h-[90px]"></div>
+      <div className="h-[90px]" />
 
-      {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
         Find Your <span className="text-blue-600">Fertility Expert</span>
       </h1>
@@ -76,78 +100,49 @@ const Fertility = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {/* Doctor 1 */}
-        <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-           <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-            <img
-              src={xyz}
-              alt="Dr. Raj"
-              className="w-50 h-30 object-contain"
-            />
-          </div>
-          <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Raj</h2>
-            <p className="text-blue-600 text-sm">Fertility Specialist</p>
-            <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★☆<span className="text-black ml-2">4.0</span>
+        {doctors.map((doc) => (
+          <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[520px] flex flex-col items-center animate-fade-in-up">
+             <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+              <img src={doc.image} alt={doc.name} className="w-full h-full object-cover object-top rounded-full" />
             </div>
-          </div>
-          <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 12 years</p>
-            <p><strong>Education:</strong> Blossom Fertility Institute</p>
-          </div>
-          <div className="mt-4 w-full px-6">
-            <p className="font-semibold text-sm mb-1">Specializations</p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">IVF</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">IUI</span>
-            </div>
-          </div>
-          <div className="mt-6 w-full px-6">
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
-              Book Appointment
-            </button>
-          </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 5:00 PM</p>
-        </div>
 
-        {/* Doctor 2 */}
-        <div className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[452px] flex flex-col items-center animate-fade-in-up">
-            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
-             <img
-               src={dkr}
-               alt="Dr. Kavi Bharathan"
-               className="w-50 h-30 object-contain"
-             />
-           </div>
-          <div className="mt-4 text-center">
-            <h2 className="text-xl font-semibold">Dr. Kavi Bharathan</h2>
-            <p className="text-blue-600 text-sm">Reproductive Endocrinologist</p>
-            <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-              ★★★★☆<span className="text-black ml-2">4.2</span>
+            <div className="mt-4 text-center">
+              <h2 className="text-xl font-semibold">{doc.name}</h2>
+              <p className="text-blue-600 text-sm">{doc.designation}</p>
+              <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                ★★★★☆<span className="text-black ml-2">{doc.rating}</span>
+              </div>
             </div>
-          </div>
-          <div className="text-sm text-gray-700 mt-4 text-left w-full px-6">
-            <p><strong>Experience:</strong> 9 years</p>
-            <p><strong>Education:</strong> LifeSpring Institute of Reproductive Science</p>
-          </div>
-          <div className="mt-4 w-full px-6">
-            <p className="font-semibold text-sm mb-1">Specializations</p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Egg Freezing</span>
-              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">Male Infertility</span>
+
+            <div className="text-sm text-gray-700 mt-4 text-left w-full px-6 space-y-1">
+              <p><strong>ID:</strong> #{doc.id}</p>
+              <p><strong>Experience:</strong> {doc.experience}</p>
+              <p><strong>Education:</strong> {doc.education}</p>
+              <p><strong>Languages:</strong> {doc.languages.join(", ")}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" />  {doc.phone}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
+
+            <div className="mt-4 w-full px-6">
+              <p className="font-semibold text-sm mb-1">Specializations</p>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {doc.specialization.map((s, idx) => (
+                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">{s}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 w-full px-6">
+              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+                Book Appointment
+              </button>
+            </div>
+            {/* <p className="text-center text-xs text-gray-500 mt-2">Next available: {doc.nextAvailable}</p> */}
           </div>
-          <div className="mt-6 w-full px-6">
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
-              Book Appointment
-            </button>
-          </div>
-          <p className="text-center text-xs text-gray-500 mt-2">Next available: Today, 6:00 PM</p>
-        </div>
+        ))}
       </div>
 
-      <div className="h-[40px]"></div>
+      <div className="h-[40px]" />
     </div>
   );
 };

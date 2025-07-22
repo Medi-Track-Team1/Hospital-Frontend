@@ -13,6 +13,7 @@ import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
+import CompletedTreatments from "./components/PatientProfile/CompletedTreatments";
 
 function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -33,6 +34,7 @@ function App() {
         <Route path="/doctor-panel" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
         <Route path="/patient/*" element={<Patient />} />
+        <Route path="/doctor-panel/patienthistory" element={<CompletedTreatments/>}/>
         <Route path="/reception/*" element={<Reception />} />
         <Route path="/admin/*" element={<Admin />} />
       </Routes>

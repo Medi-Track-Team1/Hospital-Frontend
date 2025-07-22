@@ -1,33 +1,60 @@
-// ... same imports
-import React, {useState} from "react";
-import { Heart, Phone, Mail } from "lucide-react";
-import cardio from "../../assets/Cardio.jpg";
-import Boo from "../../assets/boo.png";
-import Mahesh from "../../assets/Mahesh.png";
+import React ,{useState}from "react";
+import { Brain, Phone, Mail } from "lucide-react";
+import neurology from "../../assets/neuro.jpg";
+import Sunil from "../../assets/Sunil.jpeg";
+import athi from "../../assets/athi.png";
 import AppointmentModal from "./AppointModal";
+const Neuro = () => {
+   const [selectedDoctor, setSelectedDoctor] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+  
+    const handleBookClick = (doctor) => {
+      setSelectedDoctor(doctor);
+      setShowModal(true);
+    };
+  
+    const closeModal = () => {
+      setShowModal(false);
+      setSelectedDoctor(null);
+    };
+  const doctors = [
+    {
+      id: 601,
+      name: "Dr. Sunil Kumar",
+      education: "Apex Medical University",
+      experience: "12 years",
+      specialization: ["Stroke", "Epilepsy"],
+      specialty: "Neurologist",
+      email: "sunil@medilab.com",
+      phone: "+91 90001 12345",
+      languages: ["English", "Hindi"],
+      image: Sunil,
+      rating: 4.2,
+    },
+    {
+      id: 602,
+      name: "Dr. Athithyan",
+      education: "Vels Medical University",
+      experience: "10 years",
+      specialization: ["Neurodegenerative Disorders", "Epilepsy"],
+      specialty: "Neurologist",
+      email: "athithyan@medilab.com",
+      phone: "+91 98765 67890",
+      languages: ["English", "Tamil"],
+      image: athi,
+      rating: 4.0,
+    },
+  ];
 
-const Cardio = () => {
-   const [showPopup, setShowPopup] = useState(false);
-      const [selectedDoctor, setSelectedDoctor] = useState(null);
-    
-      const handleBookClick = (doc) => {
-        setSelectedDoctor(doc);
-        setShowPopup(true);
-      };
-    
-      const closePopup = () => {
-        setShowPopup(false);
-        setSelectedDoctor(null);
-      };
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
       {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
-          <Heart className="w-10 h-10 text-red-500" />
+          <Brain className="w-10 h-10 text-purple-600" />
           <div>
-            <h2 className="text-4xl font-bold text-black">Cardiology</h2>
-            <p className="text-xl font-bold text-gray-500">Care for Your Heart</p>
+            <h2 className="text-4xl font-bold text-black">Neurology</h2>
+            <p className="text-xl font-bold text-gray-500">Expert Care for Brain & Nerves</p>
           </div>
         </div>
         <div className="relative z-10">
@@ -48,20 +75,19 @@ const Cardio = () => {
       <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
-            src={cardio}
-            alt="Cardiology Department"
+            src={neurology}
+            alt="Neurology Department"
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
           <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-            Department of Cardiology
+            Department of Neurology
           </h2>
-          <p className="animate-fade-in-up">Our Cardiology department offers expert care for heart conditions by a team of skilled cardiologists.</p>
-          <p className="animate-fade-in-up">We provide diagnosis, treatment, and prevention for heart disease, arrhythmias, and heart failure.</p>
-          <p className="animate-fade-in-up">From non-invasive testing to complex cardiac interventions, we prioritize patient-centered care.</p>
-          <p className="animate-fade-in-up">Advanced imaging, electrophysiology, and rehabilitation support ensure comprehensive treatment.</p>
-          <p className="animate-fade-in-up">We are committed to improving cardiovascular health with personalized care and the latest technology.</p>
+          <p className="animate-fade-in-up">Our Neurology department offers advanced diagnostic and treatment services for a broad range of neurological disorders.</p>
+          <p className="animate-fade-in-up">We manage conditions like epilepsy, stroke, multiple sclerosis, Parkinson's disease, and migraines.</p>
+          <p className="animate-fade-in-up">Our expert neurologists collaborate with radiology, neuro-rehabilitation, and neurosurgery teams to provide holistic care.</p>
+          <p className="animate-fade-in-up">We are committed to clinical excellence, continuous innovation, and patient-centric approaches.</p>
         </div>
       </div>
 
@@ -72,36 +98,11 @@ const Cardio = () => {
         Find Your <span className="text-blue-600">Specialist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
-        Connect with experienced cardiologists and book your appointment with ease.
+        Connect with experienced neurologists and book your appointment with ease.
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {[
-          {
-            id: 101,
-            name: "Dr. Boopathi",
-            education: "Apex Medical University",
-            experience: "12 years",
-            specialization: ["ECG", "Heart Failure"],
-            specialty: "Cardiologist",
-            email: "boopathi@medilab.com",
-            phone: "+91 98765 43210",
-            languages: ["English", "Tamil"],
-            image: Boo,
-          },
-          {
-            id: 102,
-            name: "Dr. Mahesh Kumar",
-            education: "Karur Medical University",
-            experience: "12 years",
-            specialization: ["Cardiac Imaging", "Cardiac Surgeons"],
-            specialty: "Cardiologist",
-            email: "chandru@medilab.com",
-            phone: "+91 98765 09876",
-            languages: ["English", "Tamil", "Hindi"],
-            image: Mahesh,
-          },
-        ].map((doc) => (
+        {doctors.map((doc) => (
           <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[520px] flex flex-col items-center animate-fade-in-up">
             <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
               <img src={doc.image} alt={doc.name} className="w-full h-full object-cover object-top rounded-full" />
@@ -109,9 +110,9 @@ const Cardio = () => {
 
             <div className="mt-4 text-center">
               <h2 className="text-xl font-semibold">{doc.name}</h2>
-              <p className="text-blue-600 text-sm">Cardiologist</p>
+              <p className="text-blue-600 text-sm">Neurologist</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">4.0</span>
+                ★★★★☆<span className="text-black ml-2">{doc.rating}</span>
               </div>
             </div>
 
@@ -120,7 +121,7 @@ const Cardio = () => {
               <p><strong>Experience:</strong> {doc.experience}</p>
               <p><strong>Education:</strong> {doc.education}</p>
               <p><strong>Languages:</strong> {doc.languages.join(", ")}</p>
-                <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
 
@@ -135,8 +136,8 @@ const Cardio = () => {
 
             <div className="mt-4 w-full px-6">
              <button
-                onClick={() => handleBookClick(doc)}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                onClick={() => handleBookClick(doc)}
               >
                 Book Appointment
               </button>
@@ -144,8 +145,11 @@ const Cardio = () => {
           </div>
         ))}
       </div>
-      {showPopup && selectedDoctor && (
-        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+       {showModal && selectedDoctor && (
+        <AppointmentModal
+          doctor={selectedDoctor}
+          onClose={closeModal}
+        />
       )}
 
       <div className="h-[40px]"></div>
@@ -153,4 +157,4 @@ const Cardio = () => {
   );
 };
 
-export default Cardio;
+export default Neuro;

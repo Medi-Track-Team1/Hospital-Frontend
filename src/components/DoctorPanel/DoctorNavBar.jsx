@@ -17,8 +17,8 @@ const DoctorNavbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-blue-600 text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 w-full h-15 bg-blue-600 text-white shadow-md">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Title */}
         <h1 className="text-2xl font-extrabold tracking-tight font-serif">
           MediTrack

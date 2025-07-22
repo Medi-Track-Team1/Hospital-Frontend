@@ -7,11 +7,12 @@ import { MedicalAppointments } from "../../components/DoctorPanel/MedicalAppoint
 const DoctorPanelPage = () => {
   return<>
   <DoctorNavbar/>
- <div className="flex justify-center">
+<div className="flex justify-center pt-6">
   <h1 className="text-2xl font-extrabold tracking-tight font-serif text-black-600">
     Doctor Panel
   </h1>
 </div>
+
 
 
   <div className="max-w-5xl mx-auto px-4">

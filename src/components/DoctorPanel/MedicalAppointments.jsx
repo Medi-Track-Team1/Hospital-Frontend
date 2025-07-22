@@ -406,7 +406,7 @@ export const MedicalAppointments = () => {
   variant="outline"
   className="text-xs"
   onClick={() =>
-    navigate("/patient", {
+    navigate("/doctor-panel/patienthistory", {
       state: { patient: appointment.patient }, // Pass patient object
     })
   }

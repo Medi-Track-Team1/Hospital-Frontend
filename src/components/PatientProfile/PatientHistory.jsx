@@ -1730,4 +1730,4 @@ function PatientHistory() {
   );
 }
 
-export default PatientHistory;
+export  {PatientHistory,mockPrescriptions,PrescriptionModal};

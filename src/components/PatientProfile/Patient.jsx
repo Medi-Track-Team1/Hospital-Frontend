@@ -3,7 +3,8 @@ import { Routes, Route } from "react-router-dom";
 
 import PatientProfile from "./PatientProfile";
 import EditProfileModel from "./EditProfileModel";
-import PatientHistory from "./PatientHistory";
+import { PatientHistory } from "./PatientHistory";
+//import PatientHistory from "./PatientHistory";
 
 const Patient = () => {
   return (

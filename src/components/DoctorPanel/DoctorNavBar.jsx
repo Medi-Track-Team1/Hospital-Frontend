@@ -21,7 +21,7 @@ const DoctorNavbar = () => {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Title */}
         <h1 className="text-2xl font-extrabold tracking-tight font-serif">
-          Doctor Panel
+          MediTrack
         </h1>
 
         {/* Profile Icon & Dropdown */}

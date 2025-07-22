@@ -1,33 +1,63 @@
-// ... same imports
 import React, {useState} from "react";
-import { Heart, Phone, Mail } from "lucide-react";
-import cardio from "../../assets/Cardio.jpg";
-import Boo from "../../assets/boo.png";
-import Mahesh from "../../assets/Mahesh.png";
+import { Droplet, Phone, Mail } from "lucide-react";
+import Pedia from "../../assets/Pedia.png";
+import Sunil from "../../assets/Sunil.jpeg";
+import Naveen from "../../assets/Naveen.png";
 import AppointmentModal from "./AppointModal";
 
-const Cardio = () => {
-   const [showPopup, setShowPopup] = useState(false);
-      const [selectedDoctor, setSelectedDoctor] = useState(null);
-    
-      const handleBookClick = (doc) => {
-        setSelectedDoctor(doc);
-        setShowPopup(true);
-      };
-    
-      const closePopup = () => {
-        setShowPopup(false);
-        setSelectedDoctor(null);
-      };
+const Pediatrics = () => {
+  const [showPopup, setShowPopup] = useState(false);
+        const [selectedDoctor, setSelectedDoctor] = useState(null);
+      
+        const handleBookClick = (doc) => {
+          setSelectedDoctor(doc);
+          setShowPopup(true);
+        };
+      
+        const closePopup = () => {
+          setShowPopup(false);
+          setSelectedDoctor(null);
+        };
+  const doctors = [
+    {
+      id: 701,
+      name: "Dr. Naveen",
+      education: "Namakkal Medical College",
+      experience: "12 years",
+      specialization: ["Neonatal Care", "Child Nutrition", "Immunizations"],
+      specialty: "Pediatrician Specialist",
+      email: "naveen@medilab.com",
+      phone: "+91 98765 43210",
+      languages: ["English", "Tamil"],
+      image: Naveen,
+      rating: 4.8,
+      available: "Tomorrow, 10:00 AM",
+    },
+    {
+      id: 702,
+      name: "Dr. Saranesh Pandian",
+      education: "Perambalur Medical Institute",
+      experience: "8 years",
+      specialization: ["Pediatric Allergies", "Growth Disorders"],
+      specialty: "Pediatrician Specialist",
+      email: "saranesh@medilab.com",
+      phone: "+91 98765 09876",
+      languages: ["English", "Tamil", "Hindi"],
+      image: Sunil,
+      rating: 4.3,
+      available: "Tomorrow, 3:00 PM",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
       {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
-          <Heart className="w-10 h-10 text-red-500" />
+          <Droplet className="w-10 h-10 text-blue-500" />
           <div>
-            <h2 className="text-4xl font-bold text-black">Cardiology</h2>
-            <p className="text-xl font-bold text-gray-500">Care for Your Heart</p>
+            <h2 className="text-4xl font-bold text-black">Pediatrics</h2>
+            <p className="text-xl font-bold text-gray-500">Care for Your Child</p>
           </div>
         </div>
         <div className="relative z-10">
@@ -48,20 +78,20 @@ const Cardio = () => {
       <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
-            src={cardio}
-            alt="Cardiology Department"
+            src={Pedia}
+            alt="Pediatrics Department"
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
           <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-            Department of Cardiology
+            Department of Pediatrics
           </h2>
-          <p className="animate-fade-in-up">Our Cardiology department offers expert care for heart conditions by a team of skilled cardiologists.</p>
-          <p className="animate-fade-in-up">We provide diagnosis, treatment, and prevention for heart disease, arrhythmias, and heart failure.</p>
-          <p className="animate-fade-in-up">From non-invasive testing to complex cardiac interventions, we prioritize patient-centered care.</p>
-          <p className="animate-fade-in-up">Advanced imaging, electrophysiology, and rehabilitation support ensure comprehensive treatment.</p>
-          <p className="animate-fade-in-up">We are committed to improving cardiovascular health with personalized care and the latest technology.</p>
+          <p className="animate-fade-in-up">Our Pediatrics department offers comprehensive healthcare services for infants, children, and adolescents.</p>
+          <p className="animate-fade-in-up">We specialize in preventive care, immunizations, growth monitoring, and treatment of childhood illnesses.</p>
+          <p className="animate-fade-in-up">From newborn screenings to adolescent wellness, our team ensures personalized and compassionate care.</p>
+          <p className="animate-fade-in-up">Equipped with child-friendly facilities and experienced pediatricians, we focus on your child's health and development.</p>
+          <p className="animate-fade-in-up">Our mission is to nurture healthy children with expert guidance and supportive care at every stage.</p>
         </div>
       </div>
 
@@ -72,36 +102,11 @@ const Cardio = () => {
         Find Your <span className="text-blue-600">Specialist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
-        Connect with experienced cardiologists and book your appointment with ease.
+        Connect with top-rated pediatric specialists and book appointments with ease.
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {[
-          {
-            id: 101,
-            name: "Dr. Boopathi",
-            education: "Apex Medical University",
-            experience: "12 years",
-            specialization: ["ECG", "Heart Failure"],
-            specialty: "Cardiologist",
-            email: "boopathi@medilab.com",
-            phone: "+91 98765 43210",
-            languages: ["English", "Tamil"],
-            image: Boo,
-          },
-          {
-            id: 102,
-            name: "Dr. Mahesh Kumar",
-            education: "Karur Medical University",
-            experience: "12 years",
-            specialization: ["Cardiac Imaging", "Cardiac Surgeons"],
-            specialty: "Cardiologist",
-            email: "chandru@medilab.com",
-            phone: "+91 98765 09876",
-            languages: ["English", "Tamil", "Hindi"],
-            image: Mahesh,
-          },
-        ].map((doc) => (
+        {doctors.map((doc) => (
           <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[520px] flex flex-col items-center animate-fade-in-up">
             <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
               <img src={doc.image} alt={doc.name} className="w-full h-full object-cover object-top rounded-full" />
@@ -109,9 +114,9 @@ const Cardio = () => {
 
             <div className="mt-4 text-center">
               <h2 className="text-xl font-semibold">{doc.name}</h2>
-              <p className="text-blue-600 text-sm">Cardiologist</p>
+              <p className="text-blue-600 text-sm">Pediatrics Specialist</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">4.0</span>
+                ★★★★☆<span className="text-black ml-2">{doc.rating}</span>
               </div>
             </div>
 
@@ -120,7 +125,7 @@ const Cardio = () => {
               <p><strong>Experience:</strong> {doc.experience}</p>
               <p><strong>Education:</strong> {doc.education}</p>
               <p><strong>Languages:</strong> {doc.languages.join(", ")}</p>
-                <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
 
@@ -134,7 +139,7 @@ const Cardio = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-             <button
+              <button
                 onClick={() => handleBookClick(doc)}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
               >
@@ -144,13 +149,12 @@ const Cardio = () => {
           </div>
         ))}
       </div>
-      {showPopup && selectedDoctor && (
+       {showPopup && selectedDoctor && (
         <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
       )}
-
       <div className="h-[40px]"></div>
     </div>
   );
 };
 
-export default Cardio;
+export default Pediatrics;

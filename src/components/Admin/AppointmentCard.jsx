@@ -9,18 +9,18 @@ const AppointmentCard = ({ patient, doctor, time, status }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="font-medium text-gray-900">{patient}</h3>
-          <p className="text-sm text-gray-600">{doctor}</p>
+          <h3 className="font-medium text-gray-900 text-sm sm:text-base">{patient}</h3>
+          <p className="text-xs sm:text-sm text-gray-600">{doctor}</p>
         </div>
         <span className={`px-2 py-1 rounded-full text-xs ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
           {status}
         </span>
       </div>
       
-      <div className="mt-4 flex items-center space-x-4 text-sm text-gray-600">
+      <div className="mt-3 sm:mt-4 flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm text-gray-600">
         <div className="flex items-center">
           <HiCalendar className="mr-1 text-[#2563eb]" />
           <span>Today</span>
@@ -31,11 +31,11 @@ const AppointmentCard = ({ patient, doctor, time, status }) => {
         </div>
       </div>
       
-      <div className="mt-4 flex justify-end space-x-2">
-        <button className="px-3 py-1 text-sm bg-[#2563eb] text-white rounded hover:bg-blue-700 transition-colors">
+      <div className="mt-3 sm:mt-4 flex justify-end space-x-2">
+        <button className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-[#2563eb] text-white rounded hover:bg-blue-700 transition-colors">
           Confirm
         </button>
-        <button className="px-3 py-1 text-sm bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+        <button className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
           Reschedule
         </button>
       </div>

@@ -74,7 +74,7 @@ const ReceptionBilling = () => {
   };
 
   return (
-    <div>
+    <div >
       {/* <div style={styles.header}>
         <h1 style={styles.title}>🏥 Reception Billing System</h1>
         <div style={styles.headerButtons}>
@@ -89,7 +89,6 @@ const ReceptionBilling = () => {
           </button>
         </div>
       </div> */}
-      
 
       {showHistory && (
         <div style={styles.historySection}>
@@ -298,7 +297,7 @@ const ReceptionBilling = () => {
 const styles = {
   container: {
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    padding: '20px',
+    padding: '10px',
     maxWidth: '1200px',
     margin: '0 auto',
     background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%)',
@@ -309,52 +308,58 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '30px',
-    padding: '20px',
+    marginBottom: '20px',
+    padding: '15px',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: '15px',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-    backdropFilter: 'blur(10px)'
+    backdropFilter: 'blur(10px)',
+    flexWrap: 'wrap',
+    gap: '10px'
   },
   title: {
     margin: 0,
-    fontSize: '2.5rem',
+    fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
     background: 'linear-gradient(45deg, #1e3c72, #2a5298, #4a90e2)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: '1 1 auto'
   },
   headerButtons: {
     display: 'flex',
-    gap: '10px'
+    gap: '10px',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
   },
   historyBtn: {
     backgroundColor: '#2563eb',
     color: 'white',
     border: 'none',
-    padding: '10px 20px',
+    padding: '10px 15px',
     borderRadius: '25px',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2vw, 14px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
-    
+    whiteSpace: 'nowrap'
   },
   resetBtn: {
     backgroundColor: '#2563eb',
     color: 'white',
     border: 'none',
-    padding: '10px 20px',
+    padding: '10px 15px',
     borderRadius: '25px',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2vw, 14px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
-    
+    whiteSpace: 'nowrap'
   },
   historySection: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: '20px',
+    padding: '15px',
     borderRadius: '15px',
     marginBottom: '20px',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
@@ -375,17 +380,20 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '5px'
+    marginBottom: '5px',
+    flexWrap: 'wrap',
+    gap: '5px'
   },
   historyDate: {
-    fontSize: '0.9rem',
+    fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
     color: '#666'
   },
   historyDetails: {
     display: 'flex',
-    gap: '20px',
-    fontSize: '0.9rem',
-    color: '#666'
+    gap: '10px',
+    fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
+    color: '#666',
+    flexWrap: 'wrap'
   },
   emptyHistory: {
     textAlign: 'center',
@@ -394,7 +402,7 @@ const styles = {
   },
   formGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
     gap: '20px',
     marginBottom: '20px'
   },
@@ -410,7 +418,7 @@ const styles = {
   },
   section: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: '25px',
+    padding: '20px',
     borderRadius: '15px',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
     backdropFilter: 'blur(10px)',
@@ -418,7 +426,7 @@ const styles = {
   },
   sectionTitle: {
     margin: '0 0 20px 0',
-    fontSize: '1.3rem',
+    fontSize: 'clamp(1.1rem, 3vw, 1.3rem)',
     fontWeight: 'bold',
     color: 'black',
     borderBottom: '2px solid black',
@@ -431,14 +439,15 @@ const styles = {
     display: 'block',
     marginBottom: '5px',
     fontWeight: 'bold',
-    color: 'black'
+    color: 'black',
+    fontSize: 'clamp(12px, 2.5vw, 14px)'
   },
   input: {
     width: '100%',
     padding: '12px',
     border: '2px solid #bbdefb',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2.5vw, 14px)',
     transition: 'all 0.3s ease',
     boxSizing: 'border-box'
   },
@@ -447,7 +456,7 @@ const styles = {
     padding: '12px',
     border: '2px solid #bbdefb',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2.5vw, 14px)',
     transition: 'all 0.3s ease',
     boxSizing: 'border-box',
     backgroundColor: 'white'
@@ -457,7 +466,7 @@ const styles = {
     padding: '12px',
     border: '2px solid #bbdefb',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2.5vw, 14px)',
     transition: 'all 0.3s ease',
     boxSizing: 'border-box',
     resize: 'vertical',
@@ -465,7 +474,7 @@ const styles = {
   },
   quickServices: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
     gap: '10px'
   },
   quickServiceBtn: {
@@ -475,9 +484,12 @@ const styles = {
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '12px',
+    fontSize: 'clamp(10px, 2vw, 12px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
   },
   itemsContainer: {
     maxHeight: '400px',
@@ -486,50 +498,57 @@ const styles = {
   itemRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '8px',
     marginBottom: '10px',
     padding: '10px',
     backgroundColor: '#f0f8ff',
     borderRadius: '8px',
-    border: '1px solid #e3f2fd'
+    border: '1px solid #e3f2fd',
+    flexWrap: 'wrap'
   },
   itemInput: {
-    flex: 2,
+    flex: '2 1 120px',
+    minWidth: '100px',
     padding: '8px',
     border: '1px solid #bbdefb',
     borderRadius: '4px',
-    fontSize: '14px'
+    fontSize: 'clamp(12px, 2vw, 14px)'
   },
   qtyInput: {
-    flex: 0.5,
+    flex: '0 1 60px',
+    minWidth: '50px',
     padding: '8px',
     border: '1px solid #bbdefb',
     borderRadius: '4px',
-    fontSize: '14px'
+    fontSize: 'clamp(12px, 2vw, 14px)'
   },
   rateInput: {
-    flex: 1,
+    flex: '1 1 80px',
+    minWidth: '70px',
     padding: '8px',
     border: '1px solid #bbdefb',
     borderRadius: '4px',
-    fontSize: '14px'
+    fontSize: 'clamp(12px, 2vw, 14px)'
   },
   amount: {
-    flex: 1,
+    flex: '1 1 80px',
     fontWeight: 'bold',
     color: 'black',
-    fontSize: '16px'
+    fontSize: 'clamp(12px, 2.5vw, 16px)',
+    textAlign: 'center',
+    minWidth: '60px'
   },
   removeBtn: {
     backgroundColor: '#f44336',
     color: 'white',
     border: 'none',
-    borderRadius: '70%',
-    width: '45px',
+    borderRadius: '50%',
+    width: '35px',
     height: '35px',
     cursor: 'pointer',
     fontSize: '12px',
-    transition: 'all 0.3s ease'
+    transition: 'all 0.3s ease',
+    flexShrink: 0
   },
   addBtn: {
     backgroundColor: '#2563eb',
@@ -538,19 +557,19 @@ const styles = {
     padding: '12px 20px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: 'clamp(12px, 2vw, 14px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
-    
+    width: '100%'
   },
   paymentGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
     gap: '15px'
   },
   summaryBox: {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    padding: '30px',
+    padding: '20px',
     borderRadius: '15px',
     boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
     backdropFilter: 'blur(10px)',
@@ -558,16 +577,16 @@ const styles = {
   },
   summaryTitle: {
     margin: '0 0 20px 0',
-    fontSize: '1.5rem',
+    fontSize: 'clamp(1.2rem, 3vw, 1.5rem)',
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center'
   },
   summaryGrid: {
     display: 'grid',
-    gridTemplateColumns: '2fr 1fr',
-    gap: '30px',
-    alignItems: 'center'
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '20px',
+    alignItems: 'start'
   },
   summaryLeft: {
     display: 'flex',
@@ -578,14 +597,14 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '8px 0',
-    fontSize: '16px',
+    fontSize: 'clamp(14px, 2.5vw, 16px)',
     borderBottom: '1px solid #e3f2fd'
   },
   totalRow: {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '15px 0',
-    fontSize: '20px',
+    fontSize: 'clamp(16px, 3vw, 20px)',
     fontWeight: 'bold',
     borderTop: '2px solid #2196F3',
     borderBottom: 'none',
@@ -603,27 +622,101 @@ const styles = {
   saveBtn: {
     backgroundColor: '#2563eb',
     color: 'white',
-    padding: '15px 25px',
+    padding: '15px 20px',
     border: 'none',
     borderRadius: '10px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: 'clamp(14px, 2.5vw, 16px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
-   
+    width: '100%'
   },
   payBtn: {
     backgroundColor: '#2563eb',
     color: 'white',
-    padding: '15px 25px',
+    padding: '15px 20px',
     border: 'none',
     borderRadius: '10px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: 'clamp(14px, 2.5vw, 16px)',
     fontWeight: 'bold',
     transition: 'all 0.3s ease',
-    
+    width: '100%'
   }
 };
+
+// Media query styles applied through JavaScript
+if (typeof window !== 'undefined') {
+  const mediaQuery = window.matchMedia('(max-width: 768px)');
+  
+  const handleMediaQuery = (e) => {
+    if (e.matches) {
+      // Mobile styles
+      Object.assign(styles, {
+        container: {
+          ...styles.container,
+          padding: '5px'
+        },
+        header: {
+          ...styles.header,
+          flexDirection: 'column',
+          textAlign: 'center',
+          padding: '10px'
+        },
+        formGrid: {
+          ...styles.formGrid,
+          gridTemplateColumns: '1fr',
+          gap: '15px'
+        },
+        section: {
+          ...styles.section,
+          padding: '15px'
+        },
+        itemRow: {
+          ...styles.itemRow,
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          gap: '8px'
+        },
+        itemInput: {
+          ...styles.itemInput,
+          flex: 'none',
+          width: '100%'
+        },
+        qtyInput: {
+          ...styles.qtyInput,
+          flex: 'none',
+          width: '100%'
+        },
+        rateInput: {
+          ...styles.rateInput,
+          flex: 'none',
+          width: '100%'
+        },
+        amount: {
+          ...styles.amount,
+          textAlign: 'left'
+        },
+        summaryGrid: {
+          ...styles.summaryGrid,
+          gridTemplateColumns: '1fr'
+        },
+        summaryRight: {
+          ...styles.summaryRight,
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        },
+        quickServices: {
+          ...styles.quickServices,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
+        }
+      });
+    }
+  };
+
+  mediaQuery.addListener(handleMediaQuery);
+  handleMediaQuery(mediaQuery);
+}
 
 export default ReceptionBilling;

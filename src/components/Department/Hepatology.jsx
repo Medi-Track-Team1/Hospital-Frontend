@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import { Droplet, Phone, Mail } from "lucide-react";
 import hepatology from "../../assets/hepatology.jpeg";
-import seeni from "../../assets/seeni.png";
+import rakesh from "../../assets/rakesh.png";
 import Sunil from "../../assets/Sunil.jpeg";
 import AppointmentModal from "./AppointModal";
 
@@ -25,6 +25,7 @@ const Hepatology = () => {
       education: "Star Medical School",
       experience: "10 years",
       specialization: ["Hepatitis B & C", "Liver Cirrhosis"],
+      specialty: "Hepatologist",
       email: "meganthan@medilab.com",
       phone: "+91 98765 11223",
       languages: ["English", "Tamil"],
@@ -33,14 +34,15 @@ const Hepatology = () => {
     },
     {
       id: 502,
-      name: "Dr. Seenivasan",
+      name: "Dr. Rakesh Kumar",
       education: "Walter Medical School",
       experience: "14 years",
       specialization: ["Liver Biopsy", "Fatty Liver"],
-      email: "seenivasan@medilab.com",
+      specialty: "Hepatologist",
+      email: "rakeshkumar@medilab.com",
       phone: "+91 98989 22233",
       languages: ["English", "Tamil", "Hindi"],
-      image: seeni,
+      image: rakesh,
       rating: 4.5
     },
   ];

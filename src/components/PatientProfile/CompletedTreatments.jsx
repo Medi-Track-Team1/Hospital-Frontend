@@ -9,7 +9,7 @@ import {
   CheckCircle,
   Pill
 } from "lucide-react";
-import { mockPrescriptions,PrescriptionModal } from "./PatientHistory";
+import PatientHistory  from "./PatientHistory";
 
 
 

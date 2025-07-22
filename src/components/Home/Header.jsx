@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
+import { LogIn, LogOut, User } from "lucide-react";
 
-import { LogIn } from "lucide-react";
-
-const Header = ({ onLoginClick }) => {
+const Header = () => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
-  const [activeTab, setActiveTab] = useState("#hero");
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef(null);
 
   const departments = [
     { name: "Cardiology", link: "/departments/cardiology" },
     { name: "Neurology", link: "/departments/neurology" },
-    { name: "Hepatology", link: "#hepatology" },
-    { name: "Pediatrics", link: "#pediatrics" },
-    { name: "Eye Care", link: "#eye-care" },
-    { name: "Dental Care", link: "#dental-care" },
+    { name: "Hepatology", link: "/departments/hepatology" },
+    { name: "Pediatrics", link: "/departments/pediatrics" },
+    { name: "Eye Care", link: "/departments/Eyecare" },
+    { name: "Dental", link: "/departments/Dental" },
+    { name: "Fertility", link: "/departments/fertility" },
+    { name: "Psychology", link: "/departments/psychology" },
   ];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setIsDepartmentsOpen(false);
+        setProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -31,14 +32,18 @@ const Header = ({ onLoginClick }) => {
     };
   }, [departmentsTimeout]);
 
+  const handleLoginClick = () => {
+    setIsLoggedIn(true);
+    setProfileDropdownOpen(false);
+  };
 
-  const navLinkClass = (href) =>
-    `relative px-2 py-1 text-blue-100 hover:text-white transition duration-200
-     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
-     after:bg-white after:w-full after:origin-left after:scale-x-0
-     after:transition-transform after:duration-300 hover:after:scale-x-100
-     ${activeTab === href ? "after:scale-x-100 text-white" : ""}`;
+  const handleLogoutClick = () => {
+    setIsLoggedIn(false);
+    setProfileDropdownOpen(false);
+  };
 
+  const navLinkClass =
+    "text-blue-100 hover:text-white hover:bg-blue-700 rounded-md px-2 py-1 transition duration-200";
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
@@ -50,30 +55,11 @@ const Header = ({ onLoginClick }) => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
+              <a href="/#hero" className={navLinkClass}>Home</a>
+              <a href="/#about" className={navLinkClass}>About</a>
+              <a href="/#services" className={navLinkClass}>Services</a>
 
-              <a
-                href="#hero"
-                onClick={() => setActiveTab("#hero")}
-                className={navLinkClass("#hero")}
-              >
-                Home
-              </a>
-              <a
-                href="#about"
-                onClick={() => setActiveTab("#about")}
-                className={navLinkClass("#about")}
-              >
-                About
-              </a>
-              <a
-                href="#services"
-                onClick={() => setActiveTab("#services")}
-                className={navLinkClass("#services")}
-              >
-                Services
-              </a>
-
-              {/* Departments dropdown */}
+              {/* Departments Dropdown */}
               <div
                 className="relative"
                 onMouseEnter={() => {
@@ -87,17 +73,11 @@ const Header = ({ onLoginClick }) => {
                   setDepartmentsTimeout(timeout);
                 }}
               >
-
-                <a
-                  href="#departments"
-                  onClick={() => setActiveTab("#departments")}
-                  className={navLinkClass("#departments")}
-                >
+                <a href="#departments" className={navLinkClass}>
                   Departments
                 </a>
-
                 {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10">
+                  <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out p-2 grid grid-cols-2 gap-1">
                     {departments.map((dept, idx) => (
                       <a
                         key={idx}
@@ -111,40 +91,48 @@ const Header = ({ onLoginClick }) => {
                 )}
               </div>
 
-
+              <a href="/#doctors" className={navLinkClass}>Doctors</a>
+              <a href="/#contact" className={navLinkClass}>Contact</a>
               <a
-                href="#doctors"
-                onClick={() => setActiveTab("#doctors")}
-                className={navLinkClass("#doctors")}
-              >
-
-                Doctors
-              </a>
-              <a
-                href="#contact"
-                onClick={() => setActiveTab("#contact")}
-                className={navLinkClass("#contact")}
-              >
-                Contact
-              </a>
-              <a
-                href="#appointment"
-                onClick={() => setActiveTab("#appointment")}
-                className={navLinkClass("#appointment")}
+                href="/#appointment"
+                className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
               >
                 Make Appointment
               </a>
             </div>
 
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={onLoginClick}
-                className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
-              </button>
-
+            {/* Login / Profile button */}
+            <div className="relative" ref={profileRef}>
+              {isLoggedIn ? (
+                <div>
+                  <button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </button>
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
+                      <button
+                        onClick={handleLogoutClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <LogOut className="w-4 h-4 inline mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleLoginClick}
+                  className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>

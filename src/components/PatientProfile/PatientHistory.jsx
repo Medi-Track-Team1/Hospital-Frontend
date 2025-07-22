@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -193,7 +194,7 @@ const mockPrescriptions = [
 ];
 
 // Prescription Modal Component
-const PrescriptionModal = ({ prescription, onClose }) => {
+const PrescriptionModel = ({ prescription, onClose }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -317,26 +318,7 @@ const PrescriptionModal = ({ prescription, onClose }) => {
             </div>
           </div>
 
-          {/* Patient Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              Patient Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Name</p>
-                <p className="font-medium">{prescription.patient.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Age</p>
-                <p className="font-medium">{prescription.patient.age} years</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Gender</p>
-                <p className="font-medium">{prescription.patient.gender}</p>
-              </div>
-            </div>
-          </div>
+         
 
           {/* Diagnosis */}
           <div>
@@ -831,7 +813,7 @@ const PrescriptionHistory = () => {
 
       {/* Modal */}
       {isModalOpen && selectedPrescription && (
-        <PrescriptionModal
+        <PrescriptionModel
           prescription={selectedPrescription}
           onClose={() => setIsModalOpen(false)}
         />

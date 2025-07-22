@@ -8,7 +8,7 @@ const AppointmentModal = ({ doctor, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-xl p-6 relative overflow-y-auto max-h-[90vh]">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-8 relative overflow-y-auto max-h-[90vh]">
         <button
           className="absolute top-3 right-3 text-gray-600 hover:text-red-600"
           onClick={onClose}
@@ -89,7 +89,7 @@ const AppointmentModal = ({ doctor, onClose }) => {
 
           <button
             type="submit"
-            className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
             Book Appointment
           </button>

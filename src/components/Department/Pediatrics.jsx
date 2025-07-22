@@ -25,7 +25,7 @@ const Pediatrics = () => {
       education: "Namakkal Medical College",
       experience: "12 years",
       specialization: ["Neonatal Care", "Child Nutrition", "Immunizations"],
-      
+      specialty: "Pediatrician Specialist",
       email: "naveen@medilab.com",
       phone: "+91 98765 43210",
       languages: ["English", "Tamil"],
@@ -39,6 +39,7 @@ const Pediatrics = () => {
       education: "Perambalur Medical Institute",
       experience: "8 years",
       specialization: ["Pediatric Allergies", "Growth Disorders"],
+      specialty: "Pediatrician Specialist",
       email: "saranesh@medilab.com",
       phone: "+91 98765 09876",
       languages: ["English", "Tamil", "Hindi"],

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Brain, Phone, Mail, X } from "lucide-react";
+import { Brain, Phone, Mail } from "lucide-react";
 import psychology from "../../assets/psychology.jpg";
 import dr from "../../assets/dr.jpg";
 import poovu from "../../assets/poovu.png";
@@ -51,32 +51,28 @@ const Psychology = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center relative">
+    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
-        <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
+      <div className="relative overflow-hidden rounded-lg px-6 py-6 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
+        <div className="flex items-center space-x-4 animate-fade-in-down mb-4 sm:mb-0">
           <Brain className="w-10 h-10 text-purple-600" />
           <div>
-            <h2 className="text-4xl font-bold text-black">Psychology</h2>
-            <p className="text-xl font-bold text-gray-500">Mind Matters Most</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-black">Psychology</h2>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">Mind Matters Most</p>
           </div>
         </div>
-        <div className="relative z-10">
-          <button
-            onClick={() => {
-              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold transition"
-          >
-            Find a Doctor
-          </button>
-        </div>
+        <button
+          onClick={() => document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" })}
+          className="bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold transition"
+        >
+          Find a Doctor
+        </button>
       </div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
       {/* Department Info */}
-      <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
+      <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center">
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
             src={psychology}
@@ -88,25 +84,15 @@ const Psychology = () => {
           <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Psychology
           </h2>
-          <p className="animate-fade-in-up">
-            Our Psychology department provides comprehensive mental health support through individualized therapy, counseling, and psychological assessments.
-          </p>
-          <p className="animate-fade-in-up">
-            We specialize in managing stress, anxiety, depression, behavioral issues, and emotional trauma with compassion and professionalism.
-          </p>
-          <p className="animate-fade-in-up">
-            Our team includes clinical psychologists, child therapists, and behavioral specialists committed to your emotional well-being.
-          </p>
-          <p className="animate-fade-in-up">
-            We offer both in-person and virtual therapy sessions tailored to suit your personal needs.
-          </p>
-          <p className="animate-fade-in-up">
-            Let us help you build mental strength and restore emotional balance through evidence-based care.
-          </p>
+          <p className="animate-fade-in-up">Our Psychology department provides comprehensive mental health support through individualized therapy, counseling, and psychological assessments.</p>
+          <p className="animate-fade-in-up">We specialize in managing stress, anxiety, depression, behavioral issues, and emotional trauma with compassion and professionalism.</p>
+          <p className="animate-fade-in-up">Our team includes clinical psychologists, child therapists, and behavioral specialists committed to your emotional well-being.</p>
+          <p className="animate-fade-in-up">We offer both in-person and virtual therapy sessions tailored to suit your personal needs.</p>
+          <p className="animate-fade-in-up">Let us help you build mental strength and restore emotional balance through evidence-based care.</p>
         </div>
       </div>
 
-      <div className="h-[90px]"></div>
+      <div className="h-[60px]" />
 
       {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
@@ -116,17 +102,17 @@ const Psychology = () => {
         Connect with licensed psychologists and mental health professionals for personal guidance.
       </p>
 
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
         {doctors.map((doctor, index) => (
-          <div
-            key={index}
-            className="bg-white p-4 rounded-xl shadow-md w-[450px] h-auto flex flex-col items-center animate-fade-in-up"
+         <div
+            key={doctor.id}
+            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center animate-fade-in-up"
           >
-            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+            <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
                 src={doctor.image}
                 alt={doctor.name}
-                className="w-50 h-30 object-contain"
+                className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="mt-4 text-center">
@@ -136,15 +122,15 @@ const Psychology = () => {
                 ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
               </div>
             </div>
-            <div className="text-sm text-gray-700 mt-4 text-left w-full px-6 space-y-1">
-               <p><strong>ID:</strong> #{doctor.id}</p>
+            <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+              <p><strong>ID:</strong> #{doctor.id}</p>
               <p><strong>Experience:</strong> {doctor.experience}</p>
               <p><strong>Education:</strong> {doctor.education}</p>
               <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
-              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.email}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" />  {doctor.phone}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" />  {doctor.email}</p>
             </div>
-            <div className="mt-4 w-full px-6">
+            <div className="mt-4 w-full px-4">
               <p className="font-semibold text-sm mb-1">Specializations</p>
               <div className="flex flex-wrap gap-2 text-xs">
                 {doctor.specializations.map((spec, idx) => (
@@ -154,7 +140,7 @@ const Psychology = () => {
                 ))}
               </div>
             </div>
-            <div className="mt-6 w-full px-6">
+            <div className="mt-6 w-full px-4">
               <button
                 onClick={() => handleBookClick(doctor)}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
@@ -165,10 +151,12 @@ const Psychology = () => {
           </div>
         ))}
       </div>
+
       {showPopup && selectedDoctor && (
         <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
       )}
-      <div className="h-[40px]"></div>
+
+      <div className="h-[40px]" />
     </div>
   );
 };

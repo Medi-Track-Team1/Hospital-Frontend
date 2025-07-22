@@ -47,13 +47,14 @@ const Dental = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
-      <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
-        <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
+    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
+      {/* Header Section */}
+      <div className="relative overflow-hidden rounded-lg px-4 py-6 sm:px-8 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
+        <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down mb-4 sm:mb-0">
           <Smile className="w-10 h-10 text-blue-600" />
           <div>
-            <h2 className="text-4xl font-bold text-black">Dental</h2>
-            <p className="text-xl font-bold text-gray-500">Smile with Confidence</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-black">Dental</h2>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">Smile with Confidence</p>
           </div>
         </div>
         <div className="relative z-10">
@@ -68,17 +69,19 @@ const Dental = () => {
         </div>
       </div>
 
+      {/* Divider */}
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
-      <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
-        <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
+      {/* Info + Image Section */}
+      <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center">
+        <div className="w-full lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
             src={dcare}
             alt="Dental Department"
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
+        <div className="w-full lg:w-1/2 lg:pl-8 text-black space-y-4">
           <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Dental Care
           </h2>
@@ -100,31 +103,33 @@ const Dental = () => {
         </div>
       </div>
 
-      <div className="h-[90px]"></div>
+      <div className="h-[60px] sm:h-[90px]"></div>
 
-      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+      {/* Find Doctor Section */}
+      <h1 className="text-2xl sm:text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
         Find Your <span className="text-blue-600">Dentist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
         Book appointments with top dental specialists for preventive and cosmetic treatments.
       </p>
 
-      <div className="flex flex-wrap justify-center gap-6">
+      {/* Doctor Cards */}
+      <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6">
         {doctors.map((doc) => (
-          <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-auto flex flex-col items-center animate-fade-in-up">
-            <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
+          <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] flex flex-col items-center animate-fade-in-up">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden rounded-full bg-white">
               <img src={doc.image} alt={doc.name} className="w-full h-full object-cover object-top rounded-full" />
             </div>
 
             <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doc.name}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold">{doc.name}</h2>
               <p className="text-blue-600 text-sm">Dentist</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
                 ★★★★☆<span className="text-black ml-2">4.5</span>
               </div>
             </div>
 
-            <div className="text-sm text-gray-700 mt-4 text-left w-full px-6 space-y-1">
+            <div className="text-sm text-gray-700 mt-4 text-left w-full px-2 sm:px-6 space-y-1">
               <p><strong>ID:</strong> #{doc.id}</p>
               <p><strong>Experience:</strong> {doc.experience}</p>
               <p><strong>Education:</strong> {doc.education}</p>
@@ -133,7 +138,7 @@ const Dental = () => {
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
 
-            <div className="mt-4 w-full px-6">
+            <div className="mt-4 w-full px-2 sm:px-6">
               <p className="font-semibold text-sm mb-1">Specializations</p>
               <div className="flex flex-wrap gap-2 text-xs">
                 {doc.specialization.map((s, idx) => (
@@ -142,7 +147,7 @@ const Dental = () => {
               </div>
             </div>
 
-            <div className="mt-4 w-full px-6">
+            <div className="mt-4 w-full px-2 sm:px-6">
               <button
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
                 onClick={() => handleBookClick(doc)}
@@ -153,11 +158,11 @@ const Dental = () => {
           </div>
         ))}
       </div>
-        
+
+      {/* Modal */}
       {showModal && selectedDoctor && (
         <AppointmentModal
           doctor={selectedDoctor}
-
           onClose={closeModal}
         />
       )}

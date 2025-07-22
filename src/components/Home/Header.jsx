@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LogIn, LogOut, User } from "lucide-react";
 
-const MedilabHeader = () => {
+const Header = () => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -11,10 +11,12 @@ const MedilabHeader = () => {
   const departments = [
     { name: "Cardiology", link: "/departments/cardiology" },
     { name: "Neurology", link: "/departments/neurology" },
-    { name: "Hepatology", link: "#hepatology" },
-    { name: "Pediatrics", link: "#pediatrics" },
-    { name: "Eye Care", link: "#eye-care" },
-    { name: "Dental Care", link: "#dental-care" },
+    { name: "Hepatology", link: "/departments/hepatology" },
+    { name: "Pediatrics", link: "/departments/pediatrics" },
+    { name: "Eye Care", link: "/departments/Eyecare" },
+    { name: "Dental", link: "/departments/Dental" },
+    { name: "Fertility", link: "/departments/fertility" },
+    { name: "Psychology", link: "/departments/psychology" },
   ];
 
   useEffect(() => {
@@ -53,17 +55,11 @@ const MedilabHeader = () => {
 
             {/* Navbar links */}
             <div className="flex items-center space-x-6">
-              <a href="#hero" className={navLinkClass}>
-                Home
-              </a>
-              <a href="#about" className={navLinkClass}>
-                About
-              </a>
-              <a href="#services" className={navLinkClass}>
-                Services
-              </a>
+              <a href="/#hero" className={navLinkClass}>Home</a>
+              <a href="/#about" className={navLinkClass}>About</a>
+              <a href="/#services" className={navLinkClass}>Services</a>
 
-              {/* Departments dropdown */}
+              {/* Departments Dropdown */}
               <div
                 className="relative"
                 onMouseEnter={() => {
@@ -81,7 +77,7 @@ const MedilabHeader = () => {
                   Departments
                 </a>
                 {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out">
+                  <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out p-2 grid grid-cols-2 gap-1">
                     {departments.map((dept, idx) => (
                       <a
                         key={idx}
@@ -95,14 +91,10 @@ const MedilabHeader = () => {
                 )}
               </div>
 
-              <a href="#doctors" className={navLinkClass}>
-                Doctors
-              </a>
-              <a href="#contact" className={navLinkClass}>
-                Contact
-              </a>
+              <a href="/#doctors" className={navLinkClass}>Doctors</a>
+              <a href="/#contact" className={navLinkClass}>Contact</a>
               <a
-                href="#appointment"
+                href="/#appointment"
                 className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
               >
                 Make Appointment
@@ -149,4 +141,4 @@ const MedilabHeader = () => {
   );
 };
 
-export default MedilabHeader;
+export default Header;

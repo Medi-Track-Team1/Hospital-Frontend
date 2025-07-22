@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import EditProfileModal from './EditProfileModel';
+import ScheduleAppointmentModal from './ScheduleAppointmentModal.jsx';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar, Phone, Mail, MapPin, Heart, Activity, Thermometer, Scale, Pill, AlertTriangle, Edit, CalendarPlus, History, Users, FileText, CreditCard, Filter, Search, X, Clock, Download, Printer, Share, ChevronRight, TestTube, Stethoscope, Eye, Brain, Zap, TrendingUp, Shield, UserCheck, ArrowLeft, Plus, MoreVertical, BeefIcon as Pdf, Image, FileImage } from 'lucide-react';
+import { User, Calendar, Phone, Mail, MapPin, Heart, Activity, Thermometer, Scale, Pill, Edit, History, Users, FileText, CreditCard, ArrowLeft, Plus, MoreVertical, TestTube, Stethoscope, UserCheck } from 'lucide-react';
 
 const PatientProfile = ({ onBackToHome }) => {
   const navigate = useNavigate();
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyFilter, setHistoryFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   
   const [patientData, setPatientData] = useState({
@@ -49,6 +48,27 @@ const PatientProfile = ({ onBackToHome }) => {
     }
   });
 
+  const [upcomingAppointments, setUpcomingAppointments] = useState([
+    {
+      id: 1,
+      date: "Jan 15, 2025",
+      time: "10:30 AM",
+      provider: "Dr. Johnson",
+      department: "Endocrinology",
+      type: "Follow-up",
+      status: "Confirmed"
+    },
+    {
+      id: 2,
+      date: "Feb 2, 2025",
+      time: "2:15 PM",
+      provider: "Dr. Wilson",
+      department: "Primary Care",
+      type: "Routine Check-up",
+      status: "Pending"
+    }
+  ]);
+
   const insurance = {
     provider: patientData.insurance.provider,
     planType: patientData.insurance.planType,
@@ -79,199 +99,16 @@ const PatientProfile = ({ onBackToHome }) => {
     }
   ];
 
-  const medicalHistory = [
-    {
-      date: "Jan 8, 2025",
-      type: "Follow-up Visit",
-      provider: "Dr. Johnson",
-      department: "Endocrinology",
-      description: "Diabetes management review - Good control maintained",
-      category: "visit",
-      status: "Completed"
-    },
-    {
-      date: "Dec 20, 2024",
-      type: "Annual Physical",
-      provider: "Dr. Wilson",
-      department: "Primary Care",
-      description: "Complete physical examination - All systems normal",
-      category: "visit",
-      status: "Completed"
-    },
-    {
-      date: "Nov 20, 2024",
-      type: "Blood Pressure Check",
-      provider: "Dr. Smith",
-      department: "Cardiology",
-      description: "Blood pressure well controlled with current medication",
-      category: "visit",
-      status: "Completed"
-    },
-    {
-      date: "Oct 15, 2024",
-      type: "HbA1c Test",
-      provider: "Lab Services",
-      department: "Laboratory",
-      description: "HbA1c: 6.8% - Good diabetes control",
-      category: "lab",
-      status: "Completed"
-    },
-    {
-      date: "Sep 10, 2024",
-      type: "Vitamin D3 Prescription",
-      provider: "Dr. Smith",
-      department: "Primary Care",
-      description: "Vitamin D3 1000 IU prescribed for deficiency",
-      category: "prescription",
-      status: "Active"
-    },
-    {
-      date: "Aug 5, 2024",
-      type: "Chest X-Ray",
-      provider: "Radiology Dept",
-      department: "Radiology",
-      description: "Normal cardiac and pulmonary findings",
-      category: "imaging",
-      status: "Completed"
-    }
-  ];
-
-  const vitalSigns = [
-    { label: "Blood Pressure", value: "120/80", unit: "mmHg", status: "normal", icon: Heart },
-    { label: "Heart Rate", value: "72", unit: "bpm", status: "normal", icon: Activity },
-    { label: "Temperature", value: "98.6", unit: "°F", status: "normal", icon: Thermometer },
-    { label: "BMI", value: patientData.bmi, unit: "", status: "normal", icon: Scale },
-  ];
-
-  const upcomingAppointments = [
-    {
-      date: "Jan 15, 2025",
-      time: "10:30 AM",
-      provider: "Dr. Johnson",
-      department: "Endocrinology",
-      type: "Follow-up",
-      status: "Confirmed"
-    },
-    {
-      date: "Feb 2, 2025",
-      time: "2:15 PM",
-      provider: "Dr. Wilson",
-      department: "Primary Care",
-      type: "Routine Check-up",
-      status: "Pending"
-    }
-  ];
-
-  const documents = [
-    {
-      id: 1,
-      name: "Lab Results - HbA1c Test",
-      type: "Lab Report",
-      date: "Oct 15, 2024",
-      size: "2.3 MB",
-      format: "PDF",
-      category: "lab",
-      provider: "Lab Services",
-      status: "Final"
-    },
-    {
-      id: 2,
-      name: "Chest X-Ray Images",
-      type: "Medical Imaging",
-      date: "Aug 5, 2024",
-      size: "15.7 MB",
-      format: "DICOM",
-      category: "imaging",
-      provider: "Radiology Dept",
-      status: "Final"
-    },
-    {
-      id: 3,
-      name: "Annual Physical Report",
-      type: "Medical Report",
-      date: "Dec 20, 2024",
-      size: "1.8 MB",
-      format: "PDF",
-      category: "report",
-      provider: "Dr. Wilson",
-      status: "Final"
-    },
-    {
-      id: 4,
-      name: "Prescription History",
-      type: "Medication Record",
-      date: "Jan 8, 2025",
-      size: "0.9 MB",
-      format: "PDF",
-      category: "prescription",
-      provider: "Dr. Johnson",
-      status: "Current"
-    },
-    {
-      id: 5,
-      name: "Emergency Contact Form",
-      type: "Administrative",
-      date: "Mar 15, 2024",
-      size: "0.3 MB",
-      format: "PDF",
-      category: "administrative",
-      provider: "Patient Services",
-      status: "Current"
-    }
-  ];
-
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'lab': return TestTube;
-      case 'visit': return Stethoscope;
-      case 'prescription': return Pill;
-      case 'imaging': return Eye;
-      case 'report': return FileText;
-      case 'insurance': return CreditCard;
-      case 'administrative': return User;
-      default: return FileText;
-    }
-  };
-
-  const getDocumentIcon = (format) => {
-    switch (format.toLowerCase()) {
-      case 'pdf': return FileText;
-      case 'dicom': return FileImage;
-      case 'jpg':
-      case 'jpeg':
-      case 'png': return Image;
-      default: return FileText;
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'completed': return 'text-green-600 bg-green-100';
       case 'active': return 'text-blue-600 bg-blue-100';
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'confirmed': return 'text-green-600 bg-green-100';
-      case 'final': return 'text-green-600 bg-green-100';
-      case 'current': return 'text-blue-600 bg-blue-100';
+      case 'scheduled': return 'text-blue-600 bg-blue-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
-
-  const getVitalStatusColor = (status) => {
-    switch (status) {
-      case 'normal': return 'text-green-600';
-      case 'high': return 'text-red-600';
-      case 'low': return 'text-yellow-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const filteredHistory = medicalHistory.filter(item => {
-    const matchesFilter = historyFilter === 'all' || item.category === historyFilter;
-    const matchesSearch = item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.type.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
 
   const handleBackToHome = () => {
     navigate('/');
@@ -289,14 +126,18 @@ const PatientProfile = ({ onBackToHome }) => {
     setShowEditModal(false);
   };
 
+  const handleScheduleAppointment = (newAppointment) => {
+    setUpcomingAppointments(prev => [newAppointment, ...prev]);
+    setShowScheduleModal(false);
+  };
+
   const formatAddress = (address) => {
     return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
   };
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
-    { id: 'appointments', label: 'Appointments', icon: Calendar },
-    // { id: 'documents', label: 'Documents', icon: FileText }
+    { id: 'appointments', label: 'Appointments', icon: Calendar }
   ];
 
   return (
@@ -310,7 +151,7 @@ const PatientProfile = ({ onBackToHome }) => {
               className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-3 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-lg sm:rounded-xl hover:bg-opacity-30 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="hidden sm:inline"></span>
+              <span className="hidden sm:inline">Back</span>
               <span className="sm:hidden">Back</span>
             </button>
             <div>
@@ -361,8 +202,7 @@ const PatientProfile = ({ onBackToHome }) => {
                 <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">
-                  {tab.id === 'overview' ? 'Info' : 
-                   tab.id === 'appointments' ? 'Appts' : 'Docs'}
+                  {tab.id === 'overview' ? 'Info' : 'Appts'}
                 </span>
               </button>
             );
@@ -529,113 +369,74 @@ const PatientProfile = ({ onBackToHome }) => {
               <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-green-500" />
               Upcoming Appointments
             </h3>
-            <button className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-500 text-white rounded-lg sm:rounded-xl hover:bg-green-400 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto justify-center">
+            <button 
+              onClick={() => setShowScheduleModal(true)}
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-500 text-white rounded-lg sm:rounded-xl hover:bg-green-400 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Schedule New</span>
-              <span className="sm:hidden">New Appointment</span>
+              <span className="hidden sm:inline">Schedule Now</span>
+              <span className="sm:hidden">Schedule Now</span>
             </button>
           </div>
           <div className="space-y-3 sm:space-y-4">
-            {upcomingAppointments.map((appointment, idx) => (
-              <div key={idx} className="p-4 sm:p-6 border border-gray-200 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-3">
-                      <h4 className="text-lg sm:text-xl font-semibold text-gray-900">{appointment.type}</h4>
-                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium w-fit ${getStatusColor(appointment.status)}`}>
-                        {appointment.status}
-                      </span>
+            {upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((appointment) => (
+                <div key={appointment.id} className="p-4 sm:p-6 border border-gray-200 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-3">
+                        <h4 className="text-lg sm:text-xl font-semibold text-gray-900">{appointment.type}</h4>
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium w-fit ${getStatusColor(appointment.status)}`}>
+                          {appointment.status}
+                        </span>
+                      </div>
+                      <div className="space-y-1 sm:space-y-2 text-gray-600 text-sm sm:text-base">
+                        <p className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          {appointment.date} at {appointment.time}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4" />
+                          {appointment.provider} - {appointment.department}
+                        </p>
+                      </div>
                     </div>
-                    <div className="space-y-1 sm:space-y-2 text-gray-600 text-sm sm:text-base">
-                      <p className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {appointment.date} at {appointment.time}
-                      </p>
-                      <p className="flex items-center gap-2">
-                        <Stethoscope className="w-4 h-4" />
-                        {appointment.provider} - {appointment.department}
-                      </p>
-                    </div>
+                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                      <MoreVertical className="w-5 h-5 text-gray-400" />
+                    </button>
                   </div>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg">
-                    <MoreVertical className="w-5 h-5 text-gray-400" />
-                  </button>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-semibold text-gray-600 mb-2">No Upcoming Appointments</h4>
+                <p className="text-gray-500 mb-6">Schedule your next appointment to get started.</p>
+                <button 
+                  onClick={() => setShowScheduleModal(true)}
+                  className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-400 transition-colors font-medium"
+                >
+                  Schedule Your First Appointment
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
 
-      {activeTab === 'documents' && (
-        <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-4 sm:mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
-              <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-purple-500" />
-              Medical Documents
-            </h3>
-            <button className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-purple-500 text-white rounded-lg sm:rounded-xl hover:bg-purple-400 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto justify-center">
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Upload Document</span>
-              <span className="sm:hidden">Upload</span>
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {documents.map((doc) => {
-              const IconComponent = getDocumentIcon(doc.format);
-              return (
-                <div key={doc.id} className="p-4 sm:p-6 border border-gray-200 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                    <div className="p-2 sm:p-3 bg-purple-50 rounded-lg">
-                      <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 truncate">{doc.name}</h4>
-                      <p className="text-xs sm:text-sm text-gray-500">{doc.type}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-                    <p className="flex justify-between">
-                      <span>Date:</span>
-                      <span>{doc.date}</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>Size:</span>
-                      <span>{doc.size}</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>Provider:</span>
-                      <span className="truncate ml-2">{doc.provider}</span>
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span>Status:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
-                        {doc.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs sm:text-sm">
-                      <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Download
-                    </button>
-                    <button className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
-                      <Share className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Edit Profile Modal */}
+      {/* Modals */}
       <EditProfileModal
         patient={patientData}
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveProfile}
+      />
+
+      <ScheduleAppointmentModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSchedule={handleScheduleAppointment}
+        patientName={`${patientData.firstName} ${patientData.lastName}`}
       />
     </div>
   );

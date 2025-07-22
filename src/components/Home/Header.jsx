@@ -1,28 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
+<<<<<<< HEAD
 import { LogIn, Menu, X, ChevronDown } from "lucide-react";
 
 const Header = ({ onLoginClick }) => {
+=======
+import { LogIn, LogOut, User } from "lucide-react";
+
+const Header = () => {
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
-  const [activeTab, setActiveTab] = useState("#hero");
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
   const departments = [
     { name: "Cardiology", link: "/departments/cardiology" },
     { name: "Neurology", link: "/departments/neurology" },
-    { name: "Hepatology", link: "#hepatology" },
-    { name: "Pediatrics", link: "#pediatrics" },
-    { name: "Eye Care", link: "#eye-care" },
-    { name: "Dental Care", link: "#dental-care" },
+    { name: "Hepatology", link: "/departments/hepatology" },
+    { name: "Pediatrics", link: "/departments/pediatrics" },
+    { name: "Eye Care", link: "/departments/Eyecare" },
+    { name: "Dental", link: "/departments/Dental" },
+    { name: "Fertility", link: "/departments/fertility" },
+    { name: "Psychology", link: "/departments/psychology" },
   ];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setIsDepartmentsOpen(false);
+        setProfileDropdownOpen(false);
       }
       if (
         mobileMenuRef.current &&
@@ -40,6 +48,7 @@ const Header = ({ onLoginClick }) => {
     };
   }, [departmentsTimeout]);
 
+<<<<<<< HEAD
   // Close mobile menu when window resizes to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -51,14 +60,19 @@ const Header = ({ onLoginClick }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+=======
+  const handleLoginClick = () => {
+    setIsLoggedIn(true);
+    setProfileDropdownOpen(false);
+  };
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
 
-  const navLinkClass = (href) =>
-    `relative px-2 py-1 text-blue-100 hover:text-white transition duration-200
-     after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-[2px]
-     after:bg-white after:w-full after:origin-left after:scale-x-0
-     after:transition-transform after:duration-300 hover:after:scale-x-100
-     ${activeTab === href ? "after:scale-x-100 text-white" : ""}`;
+  const handleLogoutClick = () => {
+    setIsLoggedIn(false);
+    setProfileDropdownOpen(false);
+  };
 
+<<<<<<< HEAD
   const mobileNavLinkClass = (href) =>
     `block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 transition duration-200
      ${activeTab === href ? "bg-blue-700 border-l-4 border-l-white" : ""}`;
@@ -67,6 +81,10 @@ const Header = ({ onLoginClick }) => {
     setActiveTab(href);
     setIsMobileMenuOpen(false);
   };
+=======
+  const navLinkClass =
+    "text-blue-100 hover:text-white hover:bg-blue-700 rounded-md px-2 py-1 transition duration-200";
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
@@ -74,6 +92,7 @@ const Header = ({ onLoginClick }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
+<<<<<<< HEAD
             <div className="flex-shrink-0">
               <h1 className="text-xl sm:text-2xl font-bold text-white">
                 MediTrack
@@ -105,6 +124,17 @@ const Header = ({ onLoginClick }) => {
               </a>
 
               {/* Desktop Departments dropdown */}
+=======
+            <h1 className="text-2xl font-bold text-white">MediTrack</h1>
+
+            {/* Navbar links */}
+            <div className="flex items-center space-x-6">
+              <a href="/#hero" className={navLinkClass}>Home</a>
+              <a href="/#about" className={navLinkClass}>About</a>
+              <a href="/#services" className={navLinkClass}>Services</a>
+
+              {/* Departments Dropdown */}
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
               <div
                 className="relative"
                 ref={profileRef}
@@ -119,6 +149,7 @@ const Header = ({ onLoginClick }) => {
                   setDepartmentsTimeout(timeout);
                 }}
               >
+<<<<<<< HEAD
                 <a
                   href="#departments"
                   onClick={() => setActiveTab("#departments")}
@@ -126,12 +157,14 @@ const Header = ({ onLoginClick }) => {
                     "#departments"
                   )} flex items-center`}
                 >
+=======
+                <a href="#departments" className={navLinkClass}>
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
                   Departments
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </a>
-
                 {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md z-10">
+                  <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 shadow-lg rounded-md z-10 transition-all duration-200 ease-in-out p-2 grid grid-cols-2 gap-1">
                     {departments.map((dept, idx) => (
                       <a
                         key={idx}
@@ -145,6 +178,7 @@ const Header = ({ onLoginClick }) => {
                 )}
               </div>
 
+<<<<<<< HEAD
               <a
                 href="#doctors"
                 onClick={() => setActiveTab("#doctors")}
@@ -163,11 +197,19 @@ const Header = ({ onLoginClick }) => {
                 href="#appointment"
                 onClick={() => setActiveTab("#appointment")}
                 className={`${navLinkClass("#appointment")} hidden lg:block`}
+=======
+              <a href="/#doctors" className={navLinkClass}>Doctors</a>
+              <a href="/#contact" className={navLinkClass}>Contact</a>
+              <a
+                href="/#appointment"
+                className="text-white font-medium hover:text-gray-100 hover:underline transition duration-200"
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
               >
                 Appointment
               </a>
             </div>
 
+<<<<<<< HEAD
             {/* Desktop Login Button */}
             <div className="hidden md:flex items-center">
               <button
@@ -201,6 +243,40 @@ const Header = ({ onLoginClick }) => {
                   <Menu className="w-6 h-6" />
                 )}
               </button>
+=======
+            {/* Login / Profile button */}
+            <div className="relative" ref={profileRef}>
+              {isLoggedIn ? (
+                <div>
+                  <button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </button>
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
+                      <button
+                        onClick={handleLogoutClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <LogOut className="w-4 h-4 inline mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleLoginClick}
+                  className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </button>
+              )}
+>>>>>>> 3d3e55c54cf5ce068e1e951c24c7379021e134f0
             </div>
           </div>
 

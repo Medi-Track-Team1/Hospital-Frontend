@@ -3,6 +3,7 @@ import { Brain, Phone, Mail, X } from "lucide-react";
 import psychology from "../../assets/psychology.jpg";
 import dr from "../../assets/dr.jpg";
 import poovu from "../../assets/poovu.png";
+import AppointmentModal from "./AppointModal";
 
 const Psychology = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -162,28 +163,9 @@ const Psychology = () => {
           </div>
         ))}
       </div>
-
-      {/* Popup Modal */}
       {showPopup && selectedDoctor && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative animate-fade-in-up">
-            <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600" onClick={closePopup}>
-              <X />
-            </button>
-            <h2 className="text-xl font-bold text-center text-blue-700 mb-4">Appointment with {selectedDoctor.name}</h2>
-            <form className="space-y-4">
-              <input type="text" placeholder="Patient Name" className="w-full border px-4 py-2 rounded-lg" />
-              <input type="number" placeholder="Age" className="w-full border px-4 py-2 rounded-lg" />
-              <input type="tel" placeholder="Phone Number" className="w-full border px-4 py-2 rounded-lg" />
-              <textarea placeholder="Symptoms / Concerns" className="w-full border px-4 py-2 rounded-lg"></textarea>
-              <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-800 transition">
-                Confirm Appointment
-              </button>
-            </form>
-          </div>
-        </div>
+        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
       )}
-
       <div className="h-[40px]"></div>
     </div>
   );

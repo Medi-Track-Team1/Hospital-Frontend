@@ -1,13 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { Smile, Phone, Mail } from "lucide-react";
 import dcare from "../../assets/dcare.jpeg";
 import cdr from "../../assets/cdr.png";
 import Mahesh from "../../assets/Mahesh.png";
+import AppointmentModal from "./AppointModal";
 
 const Dental = () => {
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleBookClick = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedDoctor(null);
+  };
+
+  const doctors = [
+    {
+      id: 201,
+      name: "Dr. Dravid",
+      education: "SmileCare Dental College",
+      experience: "10 years",
+      specialization: ["Braces", "Aligners", "Smile Design"],
+      email: "dravid@medilab.com",
+      phone: "+91 98765 11100",
+      languages: ["English", "Tamil", "Telugu"],
+      image: Mahesh,
+    },
+    {
+      id: 202,
+      name: "Dr. Chandru",
+      education: "BrightSmile Dental University",
+      experience: "12 years",
+      specialization: ["Teeth Whitening", "Veneers", "Cosmetic Fillings"],
+      email: "chandru@medilab.com",
+      phone: "+91 98765 22200",
+      languages: ["English", "Tamil"],
+      image: cdr,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
-      {/* Header */}
       <div className="relative overflow-hidden rounded-lg px-8 py-6 flex justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
         <div className="relative z-10 flex items-center space-x-4 animate-fade-in-down">
           <Smile className="w-10 h-10 text-blue-600" />
@@ -30,7 +68,6 @@ const Dental = () => {
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
-      {/* Department Info */}
       <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-6 mb-10 w-full max-w-6xl items-center">
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
@@ -63,7 +100,6 @@ const Dental = () => {
 
       <div className="h-[90px]"></div>
 
-      {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
         Find Your <span className="text-blue-600">Dentist</span>
       </h1>
@@ -72,31 +108,8 @@ const Dental = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {[
-          {
-            id: 201,
-            name: "Dr. Dravid",
-            education: "SmileCare Dental College",
-            experience: "10 years",
-            specialization: ["Braces", "Aligners", "Smile Design"],
-            email: "dravid@medilab.com",
-            phone: "+91 98765 11100",
-            languages: ["English", "Tamil", "Telugu"],
-            image: Mahesh,
-          },
-          {
-            id: 202,
-            name: "Dr. Chandru",
-            education: "BrightSmile Dental University",
-            experience: "12 years",
-            specialization: ["Teeth Whitening", "Veneers", "Cosmetic Fillings"],
-            email: "chandru@medilab.com",
-            phone: "+91 98765 22200",
-            languages: ["English", "Tamil"],
-            image: cdr,
-          },
-        ].map((doc) => (
-          <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-[520px] flex flex-col items-center animate-fade-in-up">
+        {doctors.map((doc) => (
+          <div key={doc.id} className="bg-white p-4 rounded-xl shadow-md w-[450px] h-auto flex flex-col items-center animate-fade-in-up">
             <div className="w-32 h-32 overflow-hidden rounded-full bg-white">
               <img src={doc.image} alt={doc.name} className="w-full h-full object-cover object-top rounded-full" />
             </div>
@@ -114,7 +127,7 @@ const Dental = () => {
               <p><strong>Experience:</strong> {doc.experience}</p>
               <p><strong>Education:</strong> {doc.education}</p>
               <p><strong>Languages:</strong> {doc.languages.join(", ")}</p>
-               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
 
@@ -128,13 +141,24 @@ const Dental = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+              <button
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                onClick={() => handleBookClick(doc)}
+              >
                 Book Appointment
               </button>
             </div>
           </div>
         ))}
       </div>
+        
+      {showModal && selectedDoctor && (
+        <AppointmentModal
+          doctor={selectedDoctor}
+
+          onClose={closeModal}
+        />
+      )}
 
       <div className="h-[40px]"></div>
     </div>

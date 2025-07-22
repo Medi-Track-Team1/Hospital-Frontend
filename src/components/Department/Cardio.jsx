@@ -1,11 +1,24 @@
 // ... same imports
-import React from "react";
+import React, {useState} from "react";
 import { Heart, Phone, Mail } from "lucide-react";
 import cardio from "../../assets/Cardio.jpg";
 import Boo from "../../assets/boo.png";
 import Mahesh from "../../assets/Mahesh.png";
+import AppointmentModal from "./AppointModal";
 
 const Cardio = () => {
+   const [showPopup, setShowPopup] = useState(false);
+      const [selectedDoctor, setSelectedDoctor] = useState(null);
+    
+      const handleBookClick = (doc) => {
+        setSelectedDoctor(doc);
+        setShowPopup(true);
+      };
+    
+      const closePopup = () => {
+        setShowPopup(false);
+        setSelectedDoctor(null);
+      };
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-6 flex flex-col items-center">
       {/* Header */}
@@ -119,13 +132,19 @@ const Cardio = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+             <button
+                onClick={() => handleBookClick(doc)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
                 Book Appointment
               </button>
             </div>
           </div>
         ))}
       </div>
+      {showPopup && selectedDoctor && (
+        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+      )}
 
       <div className="h-[40px]"></div>
     </div>

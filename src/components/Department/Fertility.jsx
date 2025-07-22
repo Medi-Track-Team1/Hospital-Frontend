@@ -1,10 +1,23 @@
-import React from "react";
+import React, {useState} from "react";
 import { Baby , Phone, Mail} from "lucide-react";
 import fertility from "../../assets/fertility.jpeg";
 import dkr from "../../assets/dkr.jpg";
 import xyz from "../../assets/xyz.png";
+import AppointmentModal from "./AppointModal";
 
 const Fertility = () => {
+  const [showPopup, setShowPopup] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState(null);
+  
+    const handleBookClick = (doctor) => {
+      setSelectedDoctor(doctor);
+      setShowPopup(true);
+    };
+  
+    const closePopup = () => {
+      setShowPopup(false);
+      setSelectedDoctor(null);
+    };
   const doctors = [
     {
       id: 401,
@@ -133,14 +146,20 @@ const Fertility = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+              <button
+                onClick={() => handleBookClick(doc)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
                 Book Appointment
               </button>
             </div>
-            {/* <p className="text-center text-xs text-gray-500 mt-2">Next available: {doc.nextAvailable}</p> */}
           </div>
         ))}
       </div>
+
+      {showPopup && selectedDoctor && (
+        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+      )}
 
       <div className="h-[40px]" />
     </div>

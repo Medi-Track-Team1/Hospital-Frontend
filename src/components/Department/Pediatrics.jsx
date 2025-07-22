@@ -1,10 +1,23 @@
-import React from "react";
+import React, {useState} from "react";
 import { Droplet, Phone, Mail } from "lucide-react";
 import Pedia from "../../assets/Pedia.png";
 import Sunil from "../../assets/Sunil.jpeg";
 import Naveen from "../../assets/Naveen.png";
+import AppointmentModal from "./AppointModal";
 
 const Pediatrics = () => {
+  const [showPopup, setShowPopup] = useState(false);
+        const [selectedDoctor, setSelectedDoctor] = useState(null);
+      
+        const handleBookClick = (doc) => {
+          setSelectedDoctor(doc);
+          setShowPopup(true);
+        };
+      
+        const closePopup = () => {
+          setShowPopup(false);
+          setSelectedDoctor(null);
+        };
   const doctors = [
     {
       id: 701,
@@ -12,6 +25,7 @@ const Pediatrics = () => {
       education: "Namakkal Medical College",
       experience: "12 years",
       specialization: ["Neonatal Care", "Child Nutrition", "Immunizations"],
+      
       email: "naveen@medilab.com",
       phone: "+91 98765 43210",
       languages: ["English", "Tamil"],
@@ -124,14 +138,19 @@ const Pediatrics = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+              <button
+                onClick={() => handleBookClick(doc)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
                 Book Appointment
               </button>
             </div>
           </div>
         ))}
       </div>
-
+       {showPopup && selectedDoctor && (
+        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+      )}
       <div className="h-[40px]"></div>
     </div>
   );

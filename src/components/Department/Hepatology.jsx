@@ -1,10 +1,23 @@
-import React from "react";
+import React, {useState} from "react";
 import { Droplet, Phone, Mail } from "lucide-react";
 import hepatology from "../../assets/hepatology.jpeg";
 import seeni from "../../assets/seeni.png";
 import Sunil from "../../assets/Sunil.jpeg";
+import AppointmentModal from "./AppointModal";
 
 const Hepatology = () => {
+  const [showPopup, setShowPopup] = useState(false);
+      const [selectedDoctor, setSelectedDoctor] = useState(null);
+    
+      const handleBookClick = (doc) => {
+        setSelectedDoctor(doc);
+        setShowPopup(true);
+      };
+    
+      const closePopup = () => {
+        setShowPopup(false);
+        setSelectedDoctor(null);
+      };
   const doctors = [
     {
       id: 501,
@@ -122,14 +135,19 @@ const Hepatology = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+              <button
+                onClick={() => handleBookClick(doc)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+              >
                 Book Appointment
               </button>
             </div>
           </div>
         ))}
       </div>
-
+      {showPopup && selectedDoctor && (
+        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+      )}
       <div className="h-[40px]"></div>
     </div>
   );

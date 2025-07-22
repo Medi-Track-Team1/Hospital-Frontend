@@ -1,10 +1,22 @@
-import React from "react";
+import React ,{useState}from "react";
 import { Brain, Phone, Mail } from "lucide-react";
 import neurology from "../../assets/neuro.jpg";
 import Sunil from "../../assets/Sunil.jpeg";
 import athi from "../../assets/athi.png";
-
+import AppointmentModal from "./AppointModal";
 const Neuro = () => {
+   const [selectedDoctor, setSelectedDoctor] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+  
+    const handleBookClick = (doctor) => {
+      setSelectedDoctor(doctor);
+      setShowModal(true);
+    };
+  
+    const closeModal = () => {
+      setShowModal(false);
+      setSelectedDoctor(null);
+    };
   const doctors = [
     {
       id: 601,
@@ -121,13 +133,22 @@ const Neuro = () => {
             </div>
 
             <div className="mt-4 w-full px-6">
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition">
+             <button
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                onClick={() => handleBookClick(doc)}
+              >
                 Book Appointment
               </button>
             </div>
           </div>
         ))}
       </div>
+       {showModal && selectedDoctor && (
+        <AppointmentModal
+          doctor={selectedDoctor}
+          onClose={closeModal}
+        />
+      )}
 
       <div className="h-[40px]"></div>
     </div>

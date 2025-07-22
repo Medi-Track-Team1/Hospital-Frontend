@@ -27,7 +27,6 @@ const PatientProfile = ({ onBackToHome }) => {
     maritalStatus: "Married",
     occupation: "Software Engineer",
     preferredLanguage: "English",
-    profilePicture: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
     allergies: "Penicillin, Shellfish",
     currentMedications: "Metformin 500mg, Lisinopril 10mg",
     medicalHistory: "Type 2 Diabetes, Hypertension",
@@ -210,17 +209,6 @@ const PatientProfile = ({ onBackToHome }) => {
     },
     {
       id: 5,
-      name: "Insurance Card Copy",
-      type: "Insurance Document",
-      date: "Jan 1, 2024",
-      size: "0.5 MB",
-      format: "PDF",
-      category: "insurance",
-      provider: "Blue Cross Blue Shield",
-      status: "Active"
-    },
-    {
-      id: 6,
       name: "Emergency Contact Form",
       type: "Administrative",
       date: "Mar 15, 2024",
@@ -308,7 +296,7 @@ const PatientProfile = ({ onBackToHome }) => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'appointments', label: 'Appointments', icon: Calendar },
-    { id: 'documents', label: 'Documents', icon: FileText }
+    // { id: 'documents', label: 'Documents', icon: FileText }
   ];
 
   return (
@@ -322,7 +310,7 @@ const PatientProfile = ({ onBackToHome }) => {
               className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-3 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-lg sm:rounded-xl hover:bg-opacity-30 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="hidden sm:inline">Back to Home</span>
+              <span className="hidden sm:inline"></span>
               <span className="sm:hidden">Back</span>
             </button>
             <div>
@@ -389,11 +377,9 @@ const PatientProfile = ({ onBackToHome }) => {
           <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-start">
               <div className="relative">
-                <img
-                  src={patientData.profilePicture}
-                  alt="Profile"
-                  className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 rounded-2xl sm:rounded-3xl object-cover border-2 sm:border-4 border-blue-200 shadow-xl mx-auto lg:mx-0"
-                />
+                <div className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center border-2 sm:border-4 border-blue-200 shadow-xl mx-auto lg:mx-0">
+                  <User className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 text-white" />
+                </div>
                 <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 bg-green-500 text-white rounded-full p-2 sm:p-3 shadow-lg">
                   <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                 </div>

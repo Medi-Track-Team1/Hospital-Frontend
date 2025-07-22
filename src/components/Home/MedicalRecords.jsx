@@ -1,34 +1,33 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
+// Animation variant like Cardiology
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (custom) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, delay: custom * 0.2 },
+  }),
+};
+
 const MedicalRecords = () => {
   const navigate = useNavigate();
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: (i = 1) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.2,
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    }),
-  };
-
-  const cardHover = {
-    whileHover: {
-      scale: 1.03,
-      boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
-    },
-  };
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
-    <div className="bg-blue-50 min-h-screen text-blue-900 font-sans text-lg">
-      {/* ✅ Sticky Header */}
+    <motion.div
+      className="bg-blue-50 min-h-screen text-blue-900 font-sans text-lg"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      {/* Sticky Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="bg-blue-600 text-white px-6 py-4">
           <div className="flex items-center space-x-6">
@@ -39,42 +38,31 @@ const MedicalRecords = () => {
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-semibold">Medical Reports</h1>
-              <p className="text-blue-100 text-sm mt-1">
-                24/7 services available
-              </p>
+              <h1 className="text-xl font-semibold">Medical Records</h1>
+              <p className="text-blue-100 text-sm mt-1">24/7 access to health data</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Back Button + Heading */}
-     
-
-      {/* Image and Content */}
+      {/* Hero Section */}
       <motion.section
         className="bg-blue-50 py-10 px-6 md:flex items-center gap-8"
-        initial="hidden"
-        animate="visible"
         variants={fadeInUp}
-        custom={2}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        custom={1}
       >
-        <motion.div
+        <div
           className="md:w-1/2 min-h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
           style={{
             backgroundImage:
               "url('https://elitemedicalexperts.com/wp-content/uploads/2017/04/shutterstock_143828728-scaled.jpg')",
           }}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1 }}
-        ></motion.div>
+        ></div>
 
-        <motion.div
-          className="md:w-1/2 mt-6 md:mt-0 max-w-xl"
-          variants={fadeInUp}
-          custom={3}
-        >
+        <div className="md:w-1/2 mt-6 md:mt-0 max-w-xl">
           <h3 className="text-xl font-bold text-blue-900 mb-4">
             Digitally Secured and Organized
           </h3>
@@ -94,16 +82,17 @@ const MedicalRecords = () => {
             We simplify your healthcare journey by keeping your information safe
             and always accessible.
           </p>
-        </motion.div>
+        </div>
       </motion.section>
 
       {/* Benefits Section */}
       <motion.section
         className="py-10 px-6 bg-white text-center"
-        initial="hidden"
-        animate="visible"
         variants={fadeInUp}
-        custom={4}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        custom={2}
       >
         <h2 className="text-3xl font-bold text-blue-900 mb-8">
           Why Choose Our Medical Records System?
@@ -127,8 +116,7 @@ const MedicalRecords = () => {
               key={index}
               className="bg-blue-50 p-6 rounded-xl shadow-md"
               variants={fadeInUp}
-              custom={index + 5}
-              {...cardHover}
+              custom={index + 3}
             >
               <h4 className="text-xl font-semibold text-blue-800 mb-2">
                 {card.title}
@@ -142,9 +130,10 @@ const MedicalRecords = () => {
       {/* Extra Section */}
       <motion.section
         className="py-12 px-6 bg-blue-50 text-center"
-        initial="hidden"
-        animate="visible"
         variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
         custom={6}
       >
         <h2 className="text-3xl font-bold text-blue-900 mb-8">
@@ -174,7 +163,6 @@ const MedicalRecords = () => {
               className="bg-white p-6 rounded-xl shadow-lg"
               variants={fadeInUp}
               custom={index + 7}
-              {...cardHover}
             >
               <h4 className="text-xl font-semibold text-blue-800 mb-2">
                 {item.title}
@@ -184,8 +172,8 @@ const MedicalRecords = () => {
           ))}
         </div>
       </motion.section>
-    </div>
+    </motion.div>
   );
 };
 
-export default MedicalRecords;
+export default MedicalRecords;

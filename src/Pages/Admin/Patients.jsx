@@ -1,6 +1,23 @@
 import { useState } from 'react';
+import { 
+  HiUserCircle, 
+  HiPhone, 
+  HiMail,
+  HiHome,
+  HiClipboardList,
+  HiShieldExclamation,
+  HiUser,
+  HiCalendar,
+  HiHeart,
+  HiSearch,
+  HiTrash,
+  HiPencil,
+  HiEye
+} from 'react-icons/hi';
+import PatientCard from '../../components/Admin/PatientCard';
 import FormModal from '../../components/Admin/FormModal';
 import PatientProfileModal from '../../components/Admin/PatientProfileModal';
+import DeleteConfirmationModal from '../../components/Admin/DeleteConfirmationModal';
 
 const Patients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,6 +27,8 @@ const Patients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
   const [selectedBloodType, setSelectedBloodType] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState(null);
   
   const [patients, setPatients] = useState([
     { 
@@ -26,48 +45,6 @@ const Patients = () => {
       allergies: 'Penicillin, Peanuts',
       assignedDoctor: 'Dr. Sarah Johnson'
     },
-    { 
-      id: 2, 
-      name: 'Jane Smith', 
-      age: 32, 
-      gender: 'Female', 
-      bloodType: 'B-', 
-      lastVisit: '2023-06-22',
-      email: 'jane.smith@example.com',
-      phone: '(555) 234-5678',
-      address: '456 Oak Ave, Somewhere, USA',
-      medicalHistory: 'Asthma, Migraines',
-      allergies: 'None',
-      assignedDoctor: 'Dr. Michael Chen'
-    },
-    { 
-      id: 3, 
-      name: 'Robert Brown', 
-      age: 28, 
-      gender: 'Male', 
-      bloodType: 'O+', 
-      lastVisit: '2023-07-10',
-      email: 'robert.brown@example.com',
-      phone: '(555) 345-6789',
-      address: '789 Pine Rd, Nowhere, USA',
-      medicalHistory: 'None',
-      allergies: 'Shellfish',
-      assignedDoctor: 'Dr. Emily Wilson'
-    },
-    { 
-      id: 4, 
-      name: 'Emily Davis', 
-      age: 60, 
-      gender: 'Female', 
-      bloodType: 'AB+', 
-      lastVisit: '2023-06-05',
-      email: 'emily.davis@example.com',
-      phone: '(555) 456-7890',
-      address: '101 Elm Blvd, Anywhere, USA',
-      medicalHistory: 'Arthritis, Osteoporosis',
-      allergies: 'Latex, Iodine',
-      assignedDoctor: 'Dr. David Kim'
-    }
   ]);
 
   const handleAddPatient = (newPatient) => {
@@ -97,12 +74,20 @@ const Patients = () => {
   };
 
   const handleDeletePatient = (id) => {
-    setPatients(patients.filter(patient => patient.id !== id));
+    const patient = patients.find(p => p.id === id);
+    setPatientToDelete(patient);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeletePatient = () => {
+    setPatients(patients.filter(patient => patient.id !== patientToDelete.id));
+    setDeleteModalOpen(false);
+    setPatientToDelete(null);
   };
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         patient.assignedDoctor.toLowerCase().includes(searchTerm.toLowerCase());
+                         patient.assignedDoctor?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGender = selectedGender ? patient.gender.toLowerCase() === selectedGender.toLowerCase() : true;
     const matchesBloodType = selectedBloodType ? patient.bloodType.toLowerCase() === selectedBloodType.toLowerCase() : true;
     
@@ -110,16 +95,16 @@ const Patients = () => {
   });
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Patients Management</h1>
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800">Patients Management</h1>
         <button
           onClick={() => {
             setIsEditMode(false);
             setSelectedPatient(null);
             setIsModalOpen(true);
           }}
-          className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+          className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center w-full sm:w-auto justify-center"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -133,13 +118,16 @@ const Patients = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-            <input
-              type="text"
-              placeholder="Search patients..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="relative">
+              <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search patients..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
@@ -175,9 +163,57 @@ const Patients = () => {
         </div>
       </div>
 
-      {/* Patients List */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="grid grid-cols-12 bg-gray-50 p-4 border-b border-gray-200 font-medium text-gray-700">
+      {/* Mobile View */}
+      <div className="md:hidden space-y-4">
+        {filteredPatients.map((patient) => (
+          <div key={patient.id} className="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <div className="flex items-center space-x-3">
+              <HiUserCircle className="w-10 h-10 text-gray-400" />
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <h3 className="font-medium">{patient.name}</h3>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    patient.gender === 'Male' ? 'bg-blue-100 text-blue-800' : 
+                    'bg-pink-100 text-pink-800'
+                  }`}>
+                    {patient.gender}
+                </span>
+                </div>
+                <div className="flex justify-between mt-1 text-sm text-gray-600">
+                  <span>Age: {patient.age}</span>
+                  <span>Blood: {patient.bloodType}</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex justify-between">
+              <button 
+                onClick={() => handleViewProfile(patient)}
+                className="text-blue-600 text-sm font-medium"
+              >
+                View Details
+              </button>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => handleEditPatient(patient)}
+                  className="text-gray-600 text-sm"
+                >
+                  Edit
+                </button>
+                <button 
+                  onClick={() => handleDeletePatient(patient.id)}
+                  className="text-red-600 text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="grid grid-cols-12 bg-gray-50 p-4 border-b border-gray-200 font-medium text-gray-700 text-sm">
           <div className="col-span-3">Name</div>
           <div className="col-span-2">Age</div>
           <div className="col-span-2">Gender</div>
@@ -185,58 +221,45 @@ const Patients = () => {
           <div className="col-span-3 text-right">Actions</div>
         </div>
         
-        {filteredPatients.length > 0 ? (
-          filteredPatients.map((patient) => (
-            <div key={patient.id} className="grid grid-cols-12 p-4 border-b border-gray-200 items-center hover:bg-gray-50">
-              <div className="col-span-3 font-medium">{patient.name}</div>
-              <div className="col-span-2 text-gray-600">{patient.age}</div>
-              <div className="col-span-2">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  patient.gender === 'Male' ? 'bg-blue-100 text-blue-800' :
-                  patient.gender === 'Female' ? 'bg-pink-100 text-pink-800' :
-                  'bg-purple-100 text-purple-800'
-                }`}>
-                  {patient.gender}
-                </span>
-              </div>
-              <div className="col-span-2 text-gray-600">{patient.bloodType}</div>
-              <div className="col-span-3 flex justify-end space-x-2">
-                <button 
-                  onClick={() => handleViewProfile(patient)}
-                  className="p-1 text-blue-600 hover:text-blue-800"
-                  title="View Profile"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-                <button 
-                  onClick={() => handleEditPatient(patient)}
-                  className="p-1 text-blue-600 hover:text-blue-800"
-                  title="Edit"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button 
-                  onClick={() => handleDeletePatient(patient.id)}
-                  className="p-1 text-red-600 hover:text-red-800"
-                  title="Delete"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
+        {filteredPatients.map((patient) => (
+          <div key={patient.id} className="grid grid-cols-12 p-4 border-b border-gray-200 items-center hover:bg-gray-50 text-sm">
+            <div className="col-span-3 font-medium">{patient.name}</div>
+            <div className="col-span-2 text-gray-600">{patient.age}</div>
+            <div className="col-span-2">
+              <span className={`px-2 py-1 rounded-full text-xs ${
+                patient.gender === 'Male' ? 'bg-blue-100 text-blue-800' :
+                patient.gender === 'Female' ? 'bg-pink-100 text-pink-800' :
+                'bg-purple-100 text-purple-800'
+              }`}>
+                {patient.gender}
+              </span>
             </div>
-          ))
-        ) : (
-          <div className="p-8 text-center text-gray-500">
-            No patients found matching your criteria
+            <div className="col-span-2 text-gray-600">{patient.bloodType}</div>
+            <div className="col-span-3 flex justify-end space-x-2">
+              <button 
+                onClick={() => handleViewProfile(patient)}
+                className="p-1 text-blue-600 hover:text-blue-800"
+                title="View Profile"
+              >
+                <HiEye className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => handleEditPatient(patient)}
+                className="p-1 text-blue-600 hover:text-blue-800"
+                title="Edit"
+              >
+                <HiPencil className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => handleDeletePatient(patient.id)}
+                className="p-1 text-red-600 hover:text-red-800"
+                title="Delete"
+              >
+                <HiTrash className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Add/Edit Patient Modal */}
@@ -273,6 +296,15 @@ const Patients = () => {
           patient={selectedPatient}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDeletePatient}
+        itemType="patient"
+        itemName={patientToDelete?.name || ''}
+      />
     </div>
   );
 };

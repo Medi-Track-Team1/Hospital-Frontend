@@ -20,50 +20,21 @@ const Dashboard = () => {
       id: 1, 
       name: 'Dr. Sarah Johnson', 
       specialty: 'Cardiology', 
-      image: '', 
       availability: 'Available',
       email: 's.johnson@hospital.com',
       phone: '(555) 123-4567',
-      bio: 'Board-certified cardiologist with 10 years of experience specializing in interventional cardiology.',
-      education: 'MD from Harvard Medical School, Fellowship in Cardiology at Mayo Clinic',
-      experience: 'Chief of Cardiology at City Hospital (2015-2020), Senior Cardiologist at Metro Medical Center',
+      bio: 'Board-certified cardiologist with 10 years of experience.',
+      education: 'MD from Harvard Medical School',
+      experience: 'Chief of Cardiology at City Hospital',
       languages: ['English', 'Spanish'],
-      joinDate: '2012-05-15'
+      status: 'active'
     },
-    { 
-      id: 2, 
-      name: 'Dr. Michael Chen', 
-      specialty: 'Neurology', 
-      image: '', 
-      availability: 'On Leave',
-      email: 'm.chen@hospital.com',
-      phone: '(555) 234-5678',
-      bio: 'Neurology specialist focusing on movement disorders and neurodegenerative diseases.',
-      education: 'PhD in Neuroscience from Stanford University, MD from Johns Hopkins',
-      experience: 'Researcher at National Neurology Institute, Clinical Neurologist at Brain Health Center',
-      languages: ['English', 'Mandarin', 'Cantonese'],
-      joinDate: '2015-08-22'
-    },
-    { 
-      id: 3, 
-      name: 'Dr. Emily Wilson', 
-      specialty: 'Pediatrics', 
-      image: '', 
-      availability: 'Available',
-      email: 'e.wilson@hospital.com',
-      phone: '(555) 345-6789',
-      bio: 'Pediatrician dedicated to child wellness, development, and preventive care.',
-      education: 'MD from Johns Hopkins University, Residency at Boston Children\'s Hospital',
-      experience: 'Pediatric Resident at Children\'s Hospital, Private Practice at Kids Care Clinic',
-      languages: ['English', 'French', 'German'],
-      joinDate: '2018-03-10'
-    },
+    // ... other doctors
   ];
 
   const appointments = [
     { id: 1, patient: 'John Doe', doctor: 'Dr. Sarah Johnson', time: '10:00 AM', status: 'Confirmed' },
-    { id: 2, patient: 'Jane Smith', doctor: 'Dr. Michael Chen', time: '11:30 AM', status: 'Pending' },
-    { id: 3, patient: 'Robert Brown', doctor: 'Dr. Emily Wilson', time: '2:15 PM', status: 'Confirmed' },
+    // ... other appointments
   ];
 
   const handleViewProfile = (doctor) => {
@@ -72,20 +43,20 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
+    <div className="p-4 md:p-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">Dashboard Overview</h1>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         {stats.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
       </div>
       
       {/* Doctors and Appointments */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         {/* Top Doctors */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Top Doctors</h2>
             <button className="text-[#2563eb] hover:text-blue-700 text-sm font-medium">
@@ -104,7 +75,7 @@ const Dashboard = () => {
         </div>
         
         {/* Recent Appointments */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Recent Appointments</h2>
             <button className="text-[#2563eb] hover:text-blue-700 text-sm font-medium">

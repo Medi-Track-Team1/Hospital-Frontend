@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-
-import { LogIn } from "lucide-react";
+import { LogIn, Menu, X, ChevronDown } from "lucide-react";
 
 const Header = ({ onLoginClick }) => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
   const [activeTab, setActiveTab] = useState("#hero");
 
   const profileRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   const departments = [
     { name: "Cardiology", link: "/departments/cardiology" },
@@ -23,14 +24,33 @@ const Header = ({ onLoginClick }) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsDepartmentsOpen(false);
       }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       if (departmentsTimeout) clearTimeout(departmentsTimeout);
     };
   }, [departmentsTimeout]);
 
+  // Close mobile menu when window resizes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const navLinkClass = (href) =>
     `relative px-2 py-1 text-blue-100 hover:text-white transition duration-200
@@ -39,18 +59,29 @@ const Header = ({ onLoginClick }) => {
      after:transition-transform after:duration-300 hover:after:scale-x-100
      ${activeTab === href ? "after:scale-x-100 text-white" : ""}`;
 
+  const mobileNavLinkClass = (href) =>
+    `block px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 transition duration-200
+     ${activeTab === href ? "bg-blue-700 border-l-4 border-l-white" : ""}`;
+
+  const handleNavClick = (href) => {
+    setActiveTab(href);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 scroll-smooth">
       <nav className="bg-blue-600 shadow-md">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <h1 className="text-2xl font-bold text-white">MediTrack</h1>
+            <div className="flex-shrink-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
+                MediTrack
+              </h1>
+            </div>
 
-            {/* Navbar links */}
-            <div className="flex items-center space-x-6">
-
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
               <a
                 href="#hero"
                 onClick={() => setActiveTab("#hero")}
@@ -73,9 +104,10 @@ const Header = ({ onLoginClick }) => {
                 Services
               </a>
 
-              {/* Departments dropdown */}
+              {/* Desktop Departments dropdown */}
               <div
                 className="relative"
+                ref={profileRef}
                 onMouseEnter={() => {
                   if (departmentsTimeout) clearTimeout(departmentsTimeout);
                   setIsDepartmentsOpen(true);
@@ -87,13 +119,15 @@ const Header = ({ onLoginClick }) => {
                   setDepartmentsTimeout(timeout);
                 }}
               >
-
                 <a
                   href="#departments"
                   onClick={() => setActiveTab("#departments")}
-                  className={navLinkClass("#departments")}
+                  className={`${navLinkClass(
+                    "#departments"
+                  )} flex items-center`}
                 >
                   Departments
+                  <ChevronDown className="w-4 h-4 ml-1" />
                 </a>
 
                 {isDepartmentsOpen && (
@@ -111,13 +145,11 @@ const Header = ({ onLoginClick }) => {
                 )}
               </div>
 
-
               <a
                 href="#doctors"
                 onClick={() => setActiveTab("#doctors")}
                 className={navLinkClass("#doctors")}
               >
-
                 Doctors
               </a>
               <a
@@ -130,23 +162,130 @@ const Header = ({ onLoginClick }) => {
               <a
                 href="#appointment"
                 onClick={() => setActiveTab("#appointment")}
-                className={navLinkClass("#appointment")}
+                className={`${navLinkClass("#appointment")} hidden lg:block`}
               >
-                Make Appointment
+                Appointment
               </a>
             </div>
 
-            <div className="flex gap-2 items-center">
+            {/* Desktop Login Button */}
+            <div className="hidden md:flex items-center">
               <button
                 onClick={onLoginClick}
-                className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                className="px-3 py-2 lg:px-4 lg:py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200 text-sm lg:text-base"
               >
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
+                <LogIn className="w-4 h-4 mr-1 lg:mr-2" />
+                <span className="hidden sm:inline">Login</span>
+                <span className="sm:hidden">Login</span>
+              </button>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center space-x-2">
+              {/* Mobile Login Button */}
+              <button
+                onClick={onLoginClick}
+                className="px-2 py-1 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+              >
+                <LogIn className="w-4 h-4" />
               </button>
 
+              {/* Hamburger Menu */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-white hover:text-blue-100 transition duration-200"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
             </div>
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div
+              ref={mobileMenuRef}
+              className="md:hidden bg-blue-600 border-t border-blue-500"
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <a
+                  href="#hero"
+                  onClick={() => handleNavClick("#hero")}
+                  className={mobileNavLinkClass("#hero")}
+                >
+                  Home
+                </a>
+                <a
+                  href="#about"
+                  onClick={() => handleNavClick("#about")}
+                  className={mobileNavLinkClass("#about")}
+                >
+                  About
+                </a>
+                <a
+                  href="#services"
+                  onClick={() => handleNavClick("#services")}
+                  className={mobileNavLinkClass("#services")}
+                >
+                  Services
+                </a>
+
+                {/* Mobile Departments */}
+                <div>
+                  <button
+                    onClick={() => setIsDepartmentsOpen(!isDepartmentsOpen)}
+                    className="flex items-center justify-between w-full px-4 py-3 text-white hover:bg-blue-700 border-b border-blue-500 transition duration-200"
+                  >
+                    <span>Departments</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isDepartmentsOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isDepartmentsOpen && (
+                    <div className="bg-blue-700">
+                      {departments.map((dept, idx) => (
+                        <a
+                          key={idx}
+                          href={dept.link}
+                          className="block px-8 py-2 text-sm text-blue-100 hover:text-white hover:bg-blue-800 border-b border-blue-600 last:border-b-0"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {dept.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <a
+                  href="#doctors"
+                  onClick={() => handleNavClick("#doctors")}
+                  className={mobileNavLinkClass("#doctors")}
+                >
+                  Doctors
+                </a>
+                <a
+                  href="#contact"
+                  onClick={() => handleNavClick("#contact")}
+                  className={mobileNavLinkClass("#contact")}
+                >
+                  Contact
+                </a>
+                <a
+                  href="#appointment"
+                  onClick={() => handleNavClick("#appointment")}
+                  className={mobileNavLinkClass("#appointment")}
+                >
+                  Make Appointment
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
     </div>

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import EditProfileModal from './EditProfileModel';
-import ScheduleAppointmentModal from './ScheduleAppointmentModal.jsx';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar, Phone, Mail, MapPin, Heart, Activity, Thermometer, Scale, Pill, Edit, History, Users, FileText, CreditCard, ArrowLeft, Plus, MoreVertical, TestTube, Stethoscope, UserCheck } from 'lucide-react';
+import { User, Calendar, Phone, Mail, MapPin, Heart, Activity, Thermometer, Scale, Pill, Edit, History, Users, FileText, CreditCard, ArrowLeft, MoreVertical, TestTube, Stethoscope, UserCheck } from 'lucide-react';
 
 const PatientProfile = ({ onBackToHome }) => {
   const navigate = useNavigate();
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   
   const [patientData, setPatientData] = useState({
@@ -124,11 +122,6 @@ const PatientProfile = ({ onBackToHome }) => {
       ...updatedData
     }));
     setShowEditModal(false);
-  };
-
-  const handleScheduleAppointment = (newAppointment) => {
-    setUpcomingAppointments(prev => [newAppointment, ...prev]);
-    setShowScheduleModal(false);
   };
 
   const formatAddress = (address) => {
@@ -364,19 +357,11 @@ const PatientProfile = ({ onBackToHome }) => {
 
       {activeTab === 'appointments' && (
         <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-4 sm:mb-6">
+          <div className="mb-4 sm:mb-6">
             <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
               <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-green-500" />
               Upcoming Appointments
             </h3>
-            <button 
-              onClick={() => setShowScheduleModal(true)}
-              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-500 text-white rounded-lg sm:rounded-xl hover:bg-green-400 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto justify-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Schedule Now</span>
-              <span className="sm:hidden">Schedule Now</span>
-            </button>
           </div>
           <div className="space-y-3 sm:space-y-4">
             {upcomingAppointments.length > 0 ? (
@@ -411,13 +396,7 @@ const PatientProfile = ({ onBackToHome }) => {
               <div className="text-center py-12">
                 <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h4 className="text-lg font-semibold text-gray-600 mb-2">No Upcoming Appointments</h4>
-                <p className="text-gray-500 mb-6">Schedule your next appointment to get started.</p>
-                <button 
-                  onClick={() => setShowScheduleModal(true)}
-                  className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-400 transition-colors font-medium"
-                >
-                  Schedule Your First Appointment
-                </button>
+                <p className="text-gray-500">Contact your healthcare provider to schedule an appointment.</p>
               </div>
             )}
           </div>
@@ -430,13 +409,6 @@ const PatientProfile = ({ onBackToHome }) => {
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveProfile}
-      />
-
-      <ScheduleAppointmentModal
-        isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        onSchedule={handleScheduleAppointment}
-        patientName={`${patientData.firstName} ${patientData.lastName}`}
       />
     </div>
   );

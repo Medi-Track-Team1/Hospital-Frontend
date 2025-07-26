@@ -14,7 +14,7 @@ const Footer = () => {
             <p>Karpagam College of Engineering</p>
             <p>Coimbatore, Tamil Nadu, India, 606001</p>
             <p className="mt-4 font-semibold">
-              Phone: <span className="font-normal">+91 9999888852</span>
+              Phone: <span className="font-normal">‪+91 9999888852‬</span>
             </p>
             <p className="font-semibold">
               Email: <span className="font-normal">meditrack@example.com</span>
@@ -141,5 +141,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
-
+export default Footer;

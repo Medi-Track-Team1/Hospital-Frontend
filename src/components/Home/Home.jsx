@@ -15,6 +15,8 @@ import Footer from "./Footer";
 import Login from "../../Pages/Auth/Login";
 import Signup from "../../Pages/Auth/Signup";
 
+
+
 const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
@@ -37,7 +39,7 @@ const Home = () => {
     setIsLoginOpen(false);
     setIsSignupOpen(false);
   };
-
+  
   return (
     <>
 
@@ -72,8 +74,6 @@ const Home = () => {
         </section>
         <Footer />
       </div>
-
-
       {(isLoginOpen || isSignupOpen) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           {isLoginOpen && (

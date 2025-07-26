@@ -1,5 +1,6 @@
 import React from "react";
 import { Facebook, Instagram, Linkedin, X } from "lucide-react";
+import { Link } from "react-router-dom"; // ✅ Import Link here
 
 const Footer = () => {
   return (
@@ -10,10 +11,10 @@ const Footer = () => {
           {/* Medilab Info */}
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">MediTrack</h2>
-            <p>Karpagam college of engineering</p>
-            <p>Coimbatore, Tamil nadu,India ,606001</p>
+            <p>Karpagam College of Engineering</p>
+            <p>Coimbatore, Tamil Nadu, India, 606001</p>
             <p className="mt-4 font-semibold">
-              Phone: <span className="font-normal">+91 9999888852</span>
+              Phone: <span className="font-normal">‪+91 9999888852‬</span>
             </p>
             <p className="font-semibold">
               Email: <span className="font-normal">meditrack@example.com</span>
@@ -40,29 +41,19 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Useful Links</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#home" className="hover:text-blue-600">
-                  Home
-                </a>
+                <a href="#hero" className="hover:text-blue-600">Home</a>
               </li>
               <li>
-                <a href="#about" className="hover:text-blue-600">
-                  About us
-                </a>
+                <a href="#about" className="hover:text-blue-600">About us</a>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
-                  Services
-                </a>
+                <a href="#services" className="hover:text-blue-600">Services</a>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
-                  Terms of service
-                </a>
+                <Link to="/terms" className="hover:text-blue-600">Terms of Service</Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
-                  Privacy policy
-                </a>
+                <Link to="/privacy" className="hover:text-blue-600">Privacy Policy</Link>
               </li>
             </ul>
           </div>
@@ -71,92 +62,52 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Our Services</h3>
             <ul className="space-y-2">
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  cardiology
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Pharmacy services
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Patient care
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Genetic Testing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Rehabilation
-                </a>
-              </li>
+              <li><a href="/cardiology" className="hover:text-blue-600">Cardiology</a></li>
+              <li><a href="/pharmacy" className="hover:text-blue-600">Pharmacy Services</a></li>
+              <li><a href="/patient-care" className="hover:text-blue-600">Patient Care</a></li>
+              <li><a href="/genetic-testing" className="hover:text-blue-600">Genetic Testing</a></li>
+              <li><a href="/rehabilitation" className="hover:text-blue-600">Rehabilitation</a></li>
             </ul>
           </div>
 
-          {/* Hic solutastep */}
+          {/* Major Departments */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Major Departments</h3>
             <ul className="space-y-2">
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Departments
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Cancer Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Health check Program
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Fertility and Reproductive Medicine
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
-                  Pediatracks
-                </a>
-              </li>
+               <li><a href="#departments" className="hover:text-blue-600">Departments</a></li>
+              <li><Link to="/cancer-center" className="hover:text-blue-600">Cancer Center</Link></li>
+              <li><Link to="/health-check" className="hover:text-blue-600">Health Check Program</Link></li>
+              <li><Link to="/fertility" className="hover:text-blue-600">Fertility and Reproductive Medicine</Link></li>
+              <li><Link to="/pediatracks" className="hover:text-blue-600">PediaTracks</Link></li>
             </ul>
           </div>
 
-          {/* Nobis illum */}
+        {/* Nobis illum */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
+             <li>
+  <Link to="/Career" className="hover:text-blue-600">
+    Career
+  </Link>
+</li>
               <li>
-                <a href="#" className="hover:text-blue-600">
-                  career
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-blue-600">
+                <Link to="/feedback" className="hover:text-blue-600">
                   Feedback
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <a href="/Insurance" className="hover:text-blue-600">
                   Insurance
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <a href="/environmental-forms" className="hover:text-blue-600">
                   Environmental forms
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-blue-600">
+                <a href="/newsletter" className="hover:text-blue-600">
                   NewsLetter
                 </a>
               </li>
@@ -167,24 +118,12 @@ const Footer = () => {
         {/* Copyright */}
         <div className="py-6 flex flex-col lg:flex-row justify-between items-center text-sm text-gray-500">
           <p>
-            © Copyright <span className="font-bold text-gray-700">MediTrack and Team</span>
-            . All Rights Reserved
+            © Copyright <span className="font-bold text-gray-700">MediTrack and Team</span>. All Rights Reserved
           </p>
           <p>
             Designed by{" "}
-            <a
-              href="https://kce.ac.in/"
-              className="text-blue-600 hover:underline"
-            >
-              meditrack team 
-            </a>
-            &nbsp;| Distributed by{" "}
-            <a
-              href="https://kce.ac.in/"
-              className="text-blue-600 hover:underline"
-            >
-              Kceian
-            </a>
+            <a href="https://bootstrapmade.com/" className="text-blue-600 hover:underline">Full Stack Java</a> &nbsp;| Distributed by{" "}
+            <a href="https://themewagon.com/" className="text-blue-600 hover:underline">Kceian</a>
           </p>
         </div>
       </div>
@@ -202,4 +141,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default Footer;

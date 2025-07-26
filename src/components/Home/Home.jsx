@@ -5,7 +5,7 @@ import About from "./About";
 import Services from "./Services";
 import Departments from "./Departments";
 import Doctors from "./Doctors";
-import Appointment from "./Appointment";
+// import Appointment from "./Appointment";
 import Stats from "./Stats";
 import Gallery from "./Gallery";
 import FAQ from "./FAQ";
@@ -60,9 +60,7 @@ const Home = () => {
         <section id="doctors">
           <Doctors />
         </section>
-        <section id="appointment">
-          <Appointment />
-        </section>
+        
         <Stats />
         <Gallery />
         <FAQ />

@@ -179,12 +179,12 @@ const Header = ({ onLoginClick }) => {
               >
                 Contact
               </button>
-              <button
+              {/* <button
                 onClick={() => handleNavClick("#appointment")}
                 className={`${navLinkClass("#appointment")} hidden lg:block`}
               >
                 Appointment
-              </button>
+              </button> */}
             </div>
 
             {/* Login/Profile */}

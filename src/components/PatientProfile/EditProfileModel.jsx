@@ -256,59 +256,9 @@ const EditProfileModel = ({ patient, isOpen, onClose, onSave }) => {
             </div>
 
             {/* Insurance Information */}
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-purple-500" />
-                Insurance Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Insurance Provider</label>
-                  <input
-                    type="text"
-                    value={formData.insurance.provider}
-                    onChange={(e) => handleChange('insurance.provider', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                    placeholder="e.g., Blue Cross Blue Shield"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Plan Type</label>
-                  <select
-                    value={formData.insurance.planType}
-                    onChange={(e) => handleChange('insurance.planType', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                  >
-                    <option value="">Select Plan Type</option>
-                    <option value="PPO">PPO</option>
-                    <option value="HMO">HMO</option>
-                    <option value="EPO">EPO</option>
-                    <option value="POS">POS</option>
-                    <option value="HDHP">High Deductible Health Plan</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Policy Number</label>
-                  <input
-                    type="text"
-                    value={formData.insurance.policyNumber}
-                    onChange={(e) => handleChange('insurance.policyNumber', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                    placeholder="Policy number"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Group Number</label>
-                  <input
-                    type="text"
-                    value={formData.insurance.groupNumber}
-                    onChange={(e) => handleChange('insurance.groupNumber', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                    placeholder="Group number (if applicable)"
-                  />
-                </div>
-              </div>
-            </div>
+            
+               
+                
 
             {/* Emergency Contact */}
             <div>

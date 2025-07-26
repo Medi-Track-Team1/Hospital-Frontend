@@ -173,14 +173,14 @@ const Footer = () => {
           <p>
             Designed by{" "}
             <a
-              href="https://bootstrapmade.com/"
+              href="https://kce.ac.in/"
               className="text-blue-600 hover:underline"
             >
-              Full Stack Java 
+              meditrack team 
             </a>
             &nbsp;| Distributed by{" "}
             <a
-              href="https://themewagon.com/"
+              href="https://kce.ac.in/"
               className="text-blue-600 hover:underline"
             >
               Kceian

@@ -305,22 +305,25 @@ const Doctors = () => {
               </div>
 
               {/* Preferred Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preferred date <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    name="preferredDate"
-                    value={formData.preferredDate}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  />
-                  <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
+             
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Preferred date <span className="text-red-500">*</span>
+  </label>
+  <div className="relative">
+    <input
+      type="date"
+      name="preferredDate"
+      value={formData.preferredDate}
+      onChange={handleInputChange}
+      required
+      min={new Date().toISOString().split("T")[0]} // Set min to today
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+    />
+    <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+  </div>
+</div>
+
 
               {/* Other Details */}
               <div>

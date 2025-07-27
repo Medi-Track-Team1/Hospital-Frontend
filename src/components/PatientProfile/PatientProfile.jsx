@@ -456,7 +456,7 @@ const PatientProfile = ({ onBackToHome }) => {
                         {formatAddress(patientData.address)}
                       </p>
                       {/* <p><span className="font-semibold">Occupation:</span> {patientData.occupation}</p> */}
-                      <p><span className="font-semibold">Language:</span> {patientData.preferredLanguage}</p>
+                      {/* <p><span className="font-semibold">Language:</span> {patientData.preferredLanguage}</p> */}
                       <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                         {/* <Pill className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" /> */}
                         {/* <span className="font-semibold">Medications:</span> 

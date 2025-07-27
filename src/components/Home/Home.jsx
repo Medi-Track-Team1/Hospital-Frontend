@@ -5,7 +5,7 @@ import About from "./About";
 import Services from "./Services";
 import Departments from "./Departments";
 import Doctors from "./Doctors";
-import Appointment from "./Appointment";
+// import Appointment from "./Appointment";
 import Stats from "./Stats";
 import Gallery from "./Gallery";
 import FAQ from "./FAQ";
@@ -14,6 +14,8 @@ import Contact from "./Contact";
 import Footer from "./Footer";
 import Login from "../../Pages/Auth/Login";
 import Signup from "../../Pages/Auth/Signup";
+
+
 
 const Home = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -37,7 +39,7 @@ const Home = () => {
     setIsLoginOpen(false);
     setIsSignupOpen(false);
   };
-
+  
   return (
     <>
 
@@ -60,9 +62,7 @@ const Home = () => {
         <section id="doctors">
           <Doctors />
         </section>
-        <section id="appointment">
-          <Appointment />
-        </section>
+        
         <Stats />
         <Gallery />
         <FAQ />
@@ -72,8 +72,6 @@ const Home = () => {
         </section>
         <Footer />
       </div>
-
-
       {(isLoginOpen || isSignupOpen) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           {isLoginOpen && (

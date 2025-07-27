@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react"; // ✅ Import icon
+import { ArrowLeft } from "lucide-react";
 
 const Pharmacy = () => {
   const navigate = useNavigate();
 
+  // ✅ Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="bg-blue-50 min-h-screen text-blue-900">
 
-      {/* ✅ Updated Sticky Header */}
+      {/* ✅ Sticky Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="bg-blue-600 text-white px-6 py-4">
           <div className="flex items-center space-x-6">
@@ -29,7 +34,7 @@ const Pharmacy = () => {
         </div>
       </div>
 
-      {/* Image and Overview Section */}
+      {/* ✅ Image and Overview Section */}
       <motion.section
         className="md:flex items-center px-6 gap-10 mt-10"
         initial={{ opacity: 0 }}
@@ -37,7 +42,6 @@ const Pharmacy = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
       >
-        {/* Left - Image */}
         <motion.div
           className="md:w-1/2 h-[50vh] bg-cover bg-center rounded-xl shadow-lg"
           style={{
@@ -49,7 +53,6 @@ const Pharmacy = () => {
           transition={{ duration: 0.8 }}
         ></motion.div>
 
-        {/* Right - Text */}
         <motion.div
           className="md:w-1/2 mt-6 md:mt-0"
           initial={{ x: 50, opacity: 0 }}
@@ -67,7 +70,7 @@ const Pharmacy = () => {
         </motion.div>
       </motion.section>
 
-      {/* Highlights Section */}
+      {/* ✅ Highlights Section */}
       <motion.section
         className="py-12 px-6 mt-12 bg-white text-center"
         initial={{ opacity: 0 }}
@@ -108,7 +111,7 @@ const Pharmacy = () => {
         </div>
       </motion.section>
 
-      {/* Footer Note */}
+      {/* ✅ Footer Note */}
       <motion.div
         className="text-center text-sm text-blue-600 mt-12 pb-6"
         initial={{ opacity: 0 }}
@@ -122,4 +125,4 @@ const Pharmacy = () => {
   );
 };
 
-export default Pharmacy;
+export default Pharmacy;

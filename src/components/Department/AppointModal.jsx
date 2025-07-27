@@ -6,6 +6,9 @@ const AppointmentModal = ({ doctor, onClose }) => {
 
   if (!doctor) return null;
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-8 relative overflow-y-auto max-h-[90vh]">
@@ -53,22 +56,25 @@ const AppointmentModal = ({ doctor, onClose }) => {
             readOnly
             className="w-full border px-4 py-2 rounded-lg bg-gray-100"
           />
-            <input
-            type="text"
-            placeholder="Specialty"
-            value={doctor.timing}
-            readOnly
-            className="w-full border px-4 py-2 rounded-lg bg-gray-100"
-          />
 
+          {/* Date input */}
           <input
             type="date"
             name="preferredDate"
             required
-            min="2025-07-26"
+            min={today}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
-        
+
+          {/* Time input (may show AM/PM depending on system settings) */}
+          <input
+            type="time"
+            name="preferredTime"
+            required
+            step="900" // 15 minute intervals
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+
           <textarea
             placeholder="Other Details"
             className="w-full border px-4 py-2 rounded-lg"

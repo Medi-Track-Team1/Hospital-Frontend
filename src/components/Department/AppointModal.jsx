@@ -53,35 +53,22 @@ const AppointmentModal = ({ doctor, onClose }) => {
             readOnly
             className="w-full border px-4 py-2 rounded-lg bg-gray-100"
           />
-
-          <div className="flex items-center justify-between px-2">
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="patientType"
-                value="New Patient"
-                onChange={(e) => setPatientType(e.target.value)}
-              />
-              <span>New Patient</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="patientType"
-                value="Review Patient"
-                onChange={(e) => setPatientType(e.target.value)}
-              />
-              <span>Review Patient</span>
-            </label>
-          </div>
+            <input
+            type="text"
+            placeholder="Specialty"
+            value={doctor.timing}
+            readOnly
+            className="w-full border px-4 py-2 rounded-lg bg-gray-100"
+          />
 
           <input
             type="date"
-            placeholder="Preferred date"
+            name="preferredDate"
             required
-            className="w-full border px-4 py-2 rounded-lg"
+            min="2025-07-26"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
-
+        
           <textarea
             placeholder="Other Details"
             className="w-full border px-4 py-2 rounded-lg"

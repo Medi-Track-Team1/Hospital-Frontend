@@ -1,9 +1,20 @@
 import React, { useState } from "react";
 import { Droplet, Phone, Mail } from "lucide-react";
+import { motion } from "framer-motion"; // ✅ Import Framer Motion
 import Pedia from "../../assets/Pedia.png";
 import Sunil from "../../assets/Sunil.jpeg";
 import Naveen from "../../assets/Naveen.png";
 import AppointmentModal from "./AppointModal";
+
+// Animation variant
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.2, duration: 0.6, ease: "easeOut" },
+  }),
+};
 
 const Pediatrics = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -33,6 +44,8 @@ const Pediatrics = () => {
       image: Naveen,
       rating: 4.8,
       available: "Tomorrow, 10:00 AM",
+             timing: "Mon - Fri: 9:00 AM - 1:00 PM",
+
     },
     {
       id: 702,
@@ -47,34 +60,47 @@ const Pediatrics = () => {
       image: Sunil,
       rating: 4.3,
       available: "Tomorrow, 3:00 PM",
+      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
     },
   ];
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-lg px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md">
-        <div className="flex items-center space-x-4 animate-fade-in-down mb-4 sm:mb-0">
-          <Droplet className="w-10 h-10 text-blue-500" />
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="rounded-lg px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md"
+      >
+        <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+          <Droplet className="w-10 h-10 text-red-500" />
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-black">Pediatrics</h2>
-            <p className="text-lg sm:text-xl font-bold text-gray-500">Care for Your Child</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-black">Neurology</h2>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">Expert Care for Brain & Nerves</p>
           </div>
         </div>
-        <button
-          onClick={() =>
-            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" })
-          }
-          className="bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold transition"
-        >
-          Find a Doctor
-        </button>
-      </div>
+        <div>
+          <button
+            onClick={() => {
+              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
+          >
+            Find a Doctor
+          </button>
+        </div>
+      </motion.div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
       {/* Department Info */}
-      <div className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center">
+      <motion.div
+        className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center"
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <img
             src={Pedia}
@@ -83,42 +109,49 @@ const Pediatrics = () => {
           />
         </div>
         <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
+          <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Pediatrics
-          </h2>
-          <p className="animate-fade-in-up">
-            Our Pediatrics department offers comprehensive healthcare services for infants, children, and adolescents.
-          </p>
-          <p className="animate-fade-in-up">
-            We specialize in preventive care, immunizations, growth monitoring, and treatment of childhood illnesses.
-          </p>
-          <p className="animate-fade-in-up">
-            From newborn screenings to adolescent wellness, our team ensures personalized and compassionate care.
-          </p>
-          <p className="animate-fade-in-up">
-            Equipped with child-friendly facilities and experienced pediatricians, we focus on your child's health and development.
-          </p>
-          <p className="animate-fade-in-up">
-            Our mission is to nurture healthy children with expert guidance and supportive care at every stage.
-          </p>
+          </motion.h2>
+          {[
+            "Our Pediatrics department offers comprehensive healthcare services for infants, children, and adolescents.",
+            "We specialize in preventive care, immunizations, growth monitoring, and treatment of childhood illnesses.",
+            "From newborn screenings to adolescent wellness, our team ensures personalized and compassionate care.",
+            "Equipped with child-friendly facilities and experienced pediatricians, we focus on your child's health and development.",
+            "Our mission is to nurture healthy children with expert guidance and supportive care at every stage.",
+          ].map((text, i) => (
+            <motion.p key={i} custom={i} variants={fadeInUp} initial="hidden" animate="visible">
+              {text}
+            </motion.p>
+          ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="h-12 sm:h-[90px]"></div>
 
       {/* Doctor List */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+      <motion.h1
+        className="text-2xl sm:text-3xl font-bold text-black text-center scroll-mt-28"
+        id="Doctors"
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+      >
         Find Your <span className="text-blue-600">Specialist</span>
-      </h1>
-      <p className="text-sm sm:text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
+      </motion.h1>
+      <motion.p
+        className="text-sm sm:text-md text-gray-800 mt-2 mb-6 text-center max-w-xl"
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+      >
         Connect with top-rated pediatric specialists and book appointments with ease.
-      </p>
+      </motion.p>
 
       <div className="flex flex-wrap justify-center gap-6">
-        {doctors.map((doc) => (
-          <div
+        {doctors.map((doc, index) => (
+          <motion.div
             key={doc.id}
-            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center animate-fade-in-up"
+            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
@@ -167,7 +200,7 @@ const Pediatrics = () => {
                 Book Appointment
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 

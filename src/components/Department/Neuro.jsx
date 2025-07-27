@@ -4,6 +4,20 @@ import neurology from "../../assets/neuro.jpg";
 import Sunil from "../../assets/Sunil.jpeg";
 import athi from "../../assets/athi.png";
 import AppointmentModal from "./AppointModal";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (i = 1) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.2,
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  }),
+};
 
 const Neuro = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -32,6 +46,7 @@ const Neuro = () => {
       languages: ["English", "Hindi"],
       image: Sunil,
       rating: 4.2,
+       timing: "Mon - Fri: 9:00 AM - 1:00 PM",
     },
     {
       id: 602,
@@ -45,34 +60,49 @@ const Neuro = () => {
       languages: ["English", "Tamil"],
       image: athi,
       rating: 4.0,
+      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
+
+
     },
   ];
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
       {/* Header */}
-      <div className="w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white rounded-lg shadow-md px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 animate-fade-in-down">
-        <div className="flex items-center space-x-4">
-          <Brain className="w-10 h-10 text-purple-600" />
+       <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        className="rounded-lg px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md"
+      >
+        <div className="flex items-center space-x-4 mb-4 sm:mb-0">
+          <Brain className="w-10 h-10 text-red-500" />
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-black">Neurology</h2>
             <p className="text-lg sm:text-xl font-bold text-gray-500">Expert Care for Brain & Nerves</p>
           </div>
         </div>
-        <button
-          onClick={() =>
-            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" })
-          }
-          className="bg-blue-600 hover:bg-blue-800 text-white px-6 py-2 rounded-full font-semibold transition"
-        >
-          Find a Doctor
-        </button>
-      </div>
+        <div>
+          <button
+            onClick={() => {
+              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
+          >
+            Find a Doctor
+          </button>
+        </div>
+      </motion.div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
       {/* Department Info */}
-      <div className="flex flex-col lg:flex-row items-center lg:items-start bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl">
+      <motion.div
+        className="flex flex-col lg:flex-row items-center lg:items-start bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl"
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+      >
         <div className="w-full lg:w-1/2 mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
           <div className="relative w-full h-[240px] sm:h-[300px] lg:h-[320px] rounded-lg overflow-hidden shadow-lg">
             <img
@@ -83,48 +113,58 @@ const Neuro = () => {
           </div>
         </div>
         <div className="w-full lg:w-1/2 lg:pl-8 text-black space-y-4">
-          <h2 className="text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-            Department of Neurology
-          </h2>
-          <p className="animate-fade-in-up">
-            Our Neurology department offers advanced diagnostic and treatment services for a broad range of neurological disorders.
-          </p>
-          <p className="animate-fade-in-up">
-            We manage conditions like epilepsy, stroke, multiple sclerosis, Parkinson's disease, and migraines.
-          </p>
-          <p className="animate-fade-in-up">
-            Our expert neurologists collaborate with radiology, neuro-rehabilitation, and neurosurgery teams to provide holistic care.
-          </p>
-          <p className="animate-fade-in-up">
-            We are committed to clinical excellence, continuous innovation, and patient-centric approaches.
-          </p>
+        <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
+                    Department of Dental Care
+                  </motion.h2>
+          {[
+            "Our Neurology department offers advanced diagnostic and treatment services for a broad range of neurological disorders.",
+            "We manage conditions like epilepsy, stroke, multiple sclerosis, Parkinson's disease, and migraines.",
+            "Our expert neurologists collaborate with radiology, neuro-rehabilitation, and neurosurgery teams to provide holistic care.",
+            "We are committed to clinical excellence, continuous innovation, and patient-centric approaches.",
+          ].map((text, index) => (
+            <motion.p key={index} custom={index + 1} variants={fadeInUp} initial="hidden" animate="visible">
+              {text}
+            </motion.p>
+          ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="h-[60px] sm:h-[90px]"></div>
 
       {/* Doctor List */}
-      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+      <motion.h1
+        className="text-3xl font-bold text-black text-center scroll-mt-28"
+        id="Doctors"
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+      >
         Find Your <span className="text-blue-600">Specialist</span>
-      </h1>
-      <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
-        Connect with experienced neurologists and book your appointment with ease.
-      </p>
+      </motion.h1>
 
-      <div className="flex flex-wrap justify-center gap-6 ">
-        {doctors.map((doc) => (
-           <div
+      <motion.p
+        className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl"
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+      >
+        Connect with experienced neurologists and book your appointment with ease.
+      </motion.p>
+
+      <div className="flex flex-wrap justify-center gap-6">
+        {doctors.map((doc, idx) => (
+          <motion.div
             key={doc.id}
-            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center animate-fade-in-up"
+            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
+           
           >
-<div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
+            <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
                 src={doc.image}
                 alt={doc.name}
                 className="w-full h-full object-cover object-top"
               />
             </div>
-
 
             <div className="mt-4 text-center">
               <h2 className="text-xl font-semibold">{doc.name}</h2>
@@ -162,7 +202,7 @@ const Neuro = () => {
                 Book Appointment
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 

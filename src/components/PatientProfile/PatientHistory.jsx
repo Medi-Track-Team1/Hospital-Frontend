@@ -1691,60 +1691,7 @@ Generated on: ${new Date().toLocaleDateString("en-US")}
               </div>
             )}
 
-            {/* Pharmacy & Follow-up Information */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <Calendar className="text-orange-600" size={20} />
-                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                  Additional Information
-                </h3>
-              </div>
-              <div className="space-y-4">
-                {prescription.pharmacyName && (
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Dispensed By
-                    </p>
-                    <p className="font-bold text-gray-900">
-                      {prescription.pharmacyName}
-                    </p>
-                  </div>
-                )}
-
-                {prescription.dispensedDate && (
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Dispensed Date
-                    </p>
-                    <p className="font-semibold text-gray-900">
-                      {formatDate(prescription.dispensedDate)}
-                    </p>
-                  </div>
-                )}
-
-                {prescription.nextFollowUp && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                    <p className="text-xs text-orange-600 uppercase tracking-wide font-bold">
-                      Next Follow-up
-                    </p>
-                    <p className="font-bold text-orange-800 text-lg">
-                      {formatDate(prescription.nextFollowUp)}
-                    </p>
-                  </div>
-                )}
-
-                {prescription.totalAmount && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-xs text-green-600 uppercase tracking-wide font-bold">
-                      Total Amount
-                    </p>
-                    <p className="font-bold text-green-800 text-2xl">
-                      ${prescription.totalAmount.toFixed(2)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
+           
           </div>
         </div>
 
@@ -1959,16 +1906,26 @@ Generated on: ${new Date().toLocaleDateString("en-US")}
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-[#097DD1] text-white px-4 py-3 shadow-md">
+      <div className="bg-[#097DD1] text-blue px-4 py-3 shadow-md">
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-[#097DD1] text-black p-2 rounded-lg hover:bg-gray-200 transition"
-          >
-            <ArrowLeft size={20} />
-          </button>
+        
+         {/* <button
+                      onClick={() => navigate(-1)}
+                      className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+                    >
+                      <ArrowLeft size={20} />
+                    </button> */}
+                    <button
+  onClick={() => navigate(-1)}
+  className="flex items-center justify-center p-3 rounded-lg border border-transparent hover:border-blue-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600"
+>
+  <ArrowLeft size={20} color="white" />
+</button>
+
+
+
           <div>
-            <h1 className="text-lg font-semibold">Patient History & Billing</h1>
+            <h1 className="text-white font-semibold">Patient History & Billing</h1>
             <p className="text-sm text-white/80">
               Complete medical prescription records with billing management and
               advanced search

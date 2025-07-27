@@ -455,12 +455,12 @@ const PatientProfile = ({ onBackToHome }) => {
                         <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0 mt-0.5" />
                         {formatAddress(patientData.address)}
                       </p>
-                      <p><span className="font-semibold">Occupation:</span> {patientData.occupation}</p>
+                      {/* <p><span className="font-semibold">Occupation:</span> {patientData.occupation}</p> */}
                       <p><span className="font-semibold">Language:</span> {patientData.preferredLanguage}</p>
                       <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                        <Pill className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
-                        <span className="font-semibold">Medications:</span> 
-                        <span className="bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm">{patientData.currentMedications}</span>
+                        {/* <Pill className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" /> */}
+                        {/* <span className="font-semibold">Medications:</span> 
+                        <span className="bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm">{patientData.currentMedications}</span> */}
                       </p>
                     </div>
                   </div>

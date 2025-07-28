@@ -60,9 +60,9 @@ const Navbar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
             />
           </svg>
         </button>
-  <h1 className="font-bold text-blue-600 text-lg sm:text-xl md:text-2xl lg:text-3xl">
-  Admin Dashboard
-</h1>
+
+       <h1 className="font-bold text-blue-600 text-lg sm:text-xl md:text-2xl lg:text-3xl">MediTrack</h1>
+       
       </div>
       <div className="flex items-center space-x-3 md:space-x-4">
         {/* Notifications dropdown */}

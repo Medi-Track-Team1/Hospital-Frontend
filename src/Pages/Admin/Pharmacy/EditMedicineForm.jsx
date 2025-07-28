@@ -4,70 +4,71 @@ import { HiArrowLeft, HiSave } from 'react-icons/hi';
 import MedicineService from '../services/MedicineService';
 
 const EditMedicineForm = () => {
-  const { id } = useParams();
-  const [formData, setFormData] = useState({
-    name: '',
-    batch: '',
-    quantity: '',
-    price: '',
-    expiry: '',
-    supplier: ''
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const navigate = useNavigate();
+    const { id } = useParams();
+    const [formData, setFormData] = useState({
+        id: '', // Ensure ID is included in form data
+        name: '',
+        batch: '',
+        quantity: '',
+        price: '',
+        expiry: '',
+        supplier: ''
+    });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMedicine = async () => {
-      try {
-        const medicine = await MedicineService.getMedicineById(id);
-        setFormData({
-          name: medicine.name,
-          batch: medicine.batch,
-          quantity: medicine.quantity.toString(),
-          price: medicine.price.toString(),
-          expiry: medicine.expiry.split('T')[0],
-          supplier: medicine.supplier || ''
-        });
-        setFetching(false);
-      } catch (err) {
-        setError(err.message || 'Failed to fetch medicine');
-        setFetching(false);
-      }
+    useEffect(() => {
+        const fetchMedicine = async () => {
+            try {
+                const medicine = await MedicineService.getMedicineById(id);
+                setFormData({
+                    id: medicine.id, // Preserve the ID
+                    name: medicine.name,
+                    batch: medicine.batch,
+                    quantity: medicine.quantity.toString(),
+                    price: medicine.price.toString(),
+                    expiry: medicine.expiry.split('T')[0],
+                    supplier: medicine.supplier || ''
+                });
+                setFetching(false);
+            } catch (err) {
+                setError(err.message || 'Failed to fetch medicine');
+                setFetching(false);
+            }
+        };
+        fetchMedicine();
+    }, [id]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
-    fetchMedicine();
-  }, [id]);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+        try {
+            await MedicineService.updateMedicine(id, {
+                ...formData,
+                quantity: parseInt(formData.quantity),
+                price: parseFloat(formData.price)
+            });
+            navigate('/admin/pharmacy');
+        } catch (err) {
+            setError(err.message || 'Failed to update medicine');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      await MedicineService.updateMedicine(id, {
-        ...formData,
-        quantity: parseInt(formData.quantity),
-        price: parseFloat(formData.price)
-      });
-      navigate('/admin/pharmacy');
-    } catch (err) {
-      setError(err.message || 'Failed to update medicine');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (fetching) return <div className="p-4">Loading medicine details...</div>;
+    if (fetching) return <div className="p-4">Loading medicine details...</div>;
 
   return (
     <div className="p-4 max-w-4xl mx-auto">

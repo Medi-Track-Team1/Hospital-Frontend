@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ReceptionBilling = () => {
   const [patientId, setPatientId] = useState("");
@@ -41,12 +43,10 @@ const ReceptionBilling = () => {
       if (res.data && res.data.success && res.data.data) {
         const billing = res.data.data;
 
-        // If your backend returns patientName, use it. Else, fetch it.
         if (billing.patientName) setPatientName(billing.patientName);
         else fetchPatientName(enteredPatientId);
 
-        // Consultation fee likely needs to remain manual or configured elsewhere
-        setConsultancyFee(0); // Change if you want a default
+        setConsultancyFee(0);
 
         setMedicines(
           (billing.medicines || []).map((item) => ({
@@ -69,11 +69,11 @@ const ReceptionBilling = () => {
             : new Date().toISOString().split("T")[0]
         );
       } else {
-        alert("No billing found for this patient ID");
+        toast.info("No billing found for this patient ID");
         resetForm();
       }
     } catch (error) {
-      alert("Failed to fetch billing data!");
+      toast.error("Failed to fetch billing data!");
       resetForm();
     }
   };
@@ -127,8 +127,7 @@ const ReceptionBilling = () => {
       patientName,
       billDate,
       consultancyFee,
-     items: [...medicines, ...tests].filter((item) => item.name.trim() !== ""),
-
+      items: [...medicines, ...tests].filter((item) => item.name.trim() !== ""),
       discount,
       paymentMethod,
       notes,
@@ -144,19 +143,19 @@ const ReceptionBilling = () => {
     };
     setSavedBills([...savedBills, bill]);
     resetForm();
-    alert("Bill saved successfully!");
+    toast.success("Bill saved successfully!");
   };
 
   const processPayment = () => {
     if (!patientId || !patientName) {
-      alert("Please fill in patient details before processing payment!");
+      toast.error("Please fill in patient details before processing payment!");
       return;
     }
     if (total <= 0) {
-      alert("Total amount must be greater than 0!");
+      toast.error("Total amount must be greater than 0!");
       return;
     }
-    alert(
+    toast.success(
       `Payment of ₹${total.toFixed(
         2
       )} processed successfully via ${paymentMethod}!`
@@ -191,9 +190,9 @@ const ReceptionBilling = () => {
   };
 
   return (
-    <div>
+    <div style={styles.container}>
+      <ToastContainer />
       {/* Header */}
-
       {showHistory && (
         <div style={styles.historySection}>
           <h3 style={styles.sectionTitle}>📋 Billing History</h3>
@@ -249,6 +248,10 @@ const ReceptionBilling = () => {
                   e.target.style.borderColor = "#667eea";
                   e.target.style.boxShadow =
                     "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                }}
+                onBlurCapture={(e) => {
+                  e.target.style.borderColor = "#e5e7eb";
+                  e.target.style.boxShadow = "none";
                 }}
               />
             </div>
@@ -321,7 +324,7 @@ const ReceptionBilling = () => {
                         "linear-gradient(135deg, #10b981, #059669)";
                     }}
                   >
-                    {feeOption.label} (${feeOption.fee})
+                    {feeOption.label} (₹{feeOption.fee})
                   </button>
                 ))}
               </div>
@@ -354,7 +357,7 @@ const ReceptionBilling = () => {
           </div>
         </div>
 
-        {/* Quick Add Services */}
+        {/* Medicines Section */}
         <div style={styles.cardSection}>
           <h3 style={styles.sectionTitle}>💊 Medicines</h3>
           {medicines.map((item, index) => (
@@ -446,7 +449,7 @@ const ReceptionBilling = () => {
           </button>
         </div>
 
-        {/* Payment Details */}
+        {/* Payment Section */}
         <div style={styles.cardSection}>
           <h3 style={styles.sectionTitle}>💳 Payment Details</h3>
           <div style={styles.paymentGrid}>
@@ -1049,5 +1052,6 @@ const styles = {
     letterSpacing: "0.5px",
   },
 };
+
 
 export default ReceptionBilling;

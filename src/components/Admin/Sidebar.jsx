@@ -65,7 +65,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
                   <item.icon className="text-xl" />
                   {sidebarOpen && <span className="ml-3">{item.name}</span>}
                   {item.alert && (
-                    <span className="absolute right-3 top-3 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute right-3 top-3 w-2 h-2  rounded-full"></span>
                   )}
                 </NavLink>
               </li>

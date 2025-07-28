@@ -10,9 +10,7 @@ import Settings from '../../Pages/Admin/Settings';
 import PharmacyInventory from '../../Pages/Admin/Pharmacy/PharmacyInventory';
 import AddMedicineForm from '../../Pages/Admin/Pharmacy/AddMedicineForm';
 import EditMedicineForm from '../../Pages/Admin/Pharmacy/EditMedicineForm';
-import ReceiveStockForm from '../../Pages/Admin/Pharmacy/ReceiveStockForm';
-import DispatchMedicineForm from '../../Pages/Admin/Pharmacy/DispatchMedicineForm';
-import PrescriptionValidation from '../../Pages/Admin/Pharmacy/PrescriptionValidation';
+
 
 function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -65,9 +63,7 @@ function Admin() {
             <Route path="pharmacy" element={<PharmacyInventory />} />
             <Route path="pharmacy/add" element={<AddMedicineForm />} />
             <Route path="pharmacy/edit/:id" element={<EditMedicineForm />} />
-            <Route path="pharmacy/receive" element={<ReceiveStockForm />} />
-            <Route path="pharmacy/dispatch" element={<DispatchMedicineForm />} />
-            <Route path="pharmacy/prescriptions" element={<PrescriptionValidation />} />
+           
           </Routes>
         </main>
       </div>

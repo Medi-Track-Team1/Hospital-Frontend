@@ -84,24 +84,14 @@ const PharmacyInventory = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Pharmacy Inventory Management</h1>
         <div className="flex gap-2 w-full md:w-auto">
-          <button 
-            onClick={fetchMedicines}
-            className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg flex items-center gap-2"
-          >
-            <HiOutlineRefresh /> Refresh
-          </button>
+          
           <Link 
             to="/admin/pharmacy/add" 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <HiPlus /> Add Medicine
           </Link>
-          <Link 
-            to="/admin/pharmacy/dispatch" 
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <HiMinus /> Dispatch
-          </Link>
+         
         </div>
       </div>
 
@@ -233,51 +223,9 @@ const PharmacyInventory = () => {
         </table>
       </div>
 
-      {/* Stock Management Panel */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Incoming Stock */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Incoming Stock</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Pending Orders:</span>
-              <span className="font-medium">5</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Expected Today:</span>
-              <span className="font-medium">2</span>
-            </div>
-            <Link 
-              to="/admin/pharmacy/receive" 
-              className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-center"
-            >
-              Receive Stock
-            </Link>
-          </div>
-        </div>
+      
 
-        {/* Prescription Validation */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Prescription Validation</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Pending Validation:</span>
-              <span className="font-medium">8</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Ready for Dispatch:</span>
-              <span className="font-medium">3</span>
-            </div>
-            <Link 
-              to="/admin/pharmacy/prescriptions" 
-              className="block w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-center"
-            >
-              Validate Prescriptions
-            </Link>
-          </div>
         </div>
-      </div>
-    </div>
   );
 };
 

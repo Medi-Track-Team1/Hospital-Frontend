@@ -69,7 +69,20 @@ const AppointModal = ({ doctor, onClose }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <input name="name" required placeholder="Enter patient full name" value={form.name} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
               <input name="age" required placeholder="Enter age" value={form.age} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
-              <input name="phone" required placeholder="+91" value={form.phone} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+<input
+  name="phone"
+  required
+  type="tel"
+  placeholder="+91"
+  value={form.phone}
+  onChange={(e) => {
+    const numeric = e.target.value.replace(/\D/g, ""); // Remove non-numeric chars
+    setForm({ ...form, phone: numeric });
+  }}
+  pattern="[0-9]{10}"
+  maxLength={10}
+  className="w-full border px-4 py-2 rounded-lg"
+/>
               <input name="email" required type="email" placeholder="patient@email.com" value={form.email} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
             </div>
           </div>

@@ -1,117 +1,152 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Download, Calendar, TrendingUp, Users, DollarSign, FileText, ChevronDown, X, User, Pill } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import {
+  Search,
+  Filter,
+  Download,
+  ChevronDown,
+  X,
+  Loader,
+  DollarSign,
+  FileText,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
 function App() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [showFilters, setShowFilters] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedPatient, setSelectedPatient] = useState('');
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedBillDetails, setSelectedBillDetails] = useState(null);
 
-  const dummyBills = [
-    {
-      id: 1,
-      patientId: 'P001',
-      patientName: 'John Smith',
-      doctorName: 'Dr. Sarah Williams',
-      billDate: '2024-01-15',
-      items: [
-        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
-        { name: 'Paracetamol 500mg', quantity: 2, rate: 150, type: 'medicine' }
-      ],
-      total: 800,
-      status: 'paid'
-    },
-    {
-      id: 2,
-      patientId: 'P002',
-      patientName: 'Sarah Johnson',
-      doctorName: 'Dr. Michael Chen',
-      billDate: '2024-01-16',
-      items: [
-        { name: 'X-Ray', quantity: 1, rate: 800, type: 'service' }
-      ],
-      total: 800,
-      status: 'paid'
-    },
-    {
-      id: 3,
-      patientId: 'P003',
-      patientName: 'Michael Brown',
-      doctorName: 'Dr. Emily Rodriguez',
-      billDate: '2024-01-17',
-      items: [
-        { name: 'Blood Test', quantity: 1, rate: 300, type: 'service' },
-        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
-        { name: 'Amoxicillin 250mg', quantity: 1, rate: 200, type: 'medicine' }
-      ],
-      total: 1000,
-      status: 'pending'
-    },
-    {
-      id: 4,
-      patientId: 'P004',
-      patientName: 'Emily Davis',
-      doctorName: 'Dr. James Thompson',
-      billDate: '2024-01-18',
-      items: [
-        { name: 'Surgery', quantity: 1, rate: 5000, type: 'service' },
-        { name: 'Ibuprofen 400mg', quantity: 3, rate: 150, type: 'medicine' }
-      ],
-      total: 5450,
-      status: 'paid'
-    },
-    {
-      id: 5,
-      patientId: 'P005',
-      patientName: 'David Wilson',
-      doctorName: 'Dr. Lisa Anderson',
-      billDate: '2024-01-19',
-      items: [
-        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
-        { name: 'ECG', quantity: 1, rate: 400, type: 'service' }
-      ],
-      total: 900,
-      status: 'overdue'
-    }
-  ];
+  useEffect(() => {
+    const fetchBillingHistory = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        let url = "/api/billing/history";
+        if (selectedPatient) {
+          url += `?patientId=${encodeURIComponent(selectedPatient)}`;
+        }
+
+        const response = await axios.get(url);
+
+        console.log("API raw data:", response.data);
+
+        if (response.data && response.data.success && response.data.data) {
+          const normalizedBills = response.data.data.map((bill) => {
+            console.log("Processing bill:", bill);
+
+            const medicines = Array.isArray(bill.medicines)
+              ? bill.medicines
+              : [];
+            const tests = Array.isArray(bill.tests) ? bill.tests : [];
+
+            console.log("Medicines:", medicines);
+            console.log("Tests:", tests);
+
+            const items = [
+              ...medicines.map((item) => ({
+                name: item?.medicineName || "Unnamed Item",
+                medicineName: item?.medicineName || null,
+                quantity: item?.quantity || 0,
+                unitPrice: item?.unitPrice ?? 0,
+                totalPrice: item?.totalPrice ?? 0,
+                type: item?.medicineName?.toLowerCase().includes("injection")
+                  ? "injection"
+                  : "medicine",
+              })),
+              ...tests.map((item) => ({
+                name: item?.medicineName || "Unnamed Test",
+                medicineName: item?.medicineName || null,
+                quantity: item?.quantity || 0,
+                unitPrice: item?.unitPrice ?? 0,
+                totalPrice: item?.totalPrice ?? 0,
+                type: "test",
+              })),
+            ];
+
+            return {
+              id: `${bill.appointmentId || ""}-${bill.patientId || ""}-${
+                bill.createdAt || ""
+              }`,
+              appointmentId: bill.appointmentId || null,
+              patientId: bill.patientId || null,
+              patientName:
+                bill.patientName || `Patient ${bill.patientId || "Unknown"}`,
+              doctorName: bill.doctorName || "Unknown",
+              billDate: bill.createdAt
+                ? new Date(bill.createdAt).toISOString().split("T")[0]
+                : new Date().toISOString().split("T")[0],
+              createdAt: bill.createdAt || null,
+              items,
+              total: bill.totalAmount ?? 0,
+              totalAmount: bill.totalAmount ?? 0,
+              status: bill.status || "paid",
+            };
+          });
+
+          console.log("Normalized bills set to state:", normalizedBills);
+          setBills(normalizedBills);
+        } else {
+          setBills([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch billing history:", err);
+        setError("Failed to fetch billing history. Please try again.");
+        setBills([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBillingHistory();
+  }, [selectedPatient]);
 
   const filteredAndSortedBills = useMemo(() => {
-    let filtered = dummyBills.filter(bill => {
-      const matchesSearch = bill.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          bill.patientId.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesDateRange = (!dateRange.start || bill.billDate >= dateRange.start) &&
-                              (!dateRange.end || bill.billDate <= dateRange.end);
-      
-      const matchesPatient = !selectedPatient || bill.patientId === selectedPatient;
-      
+    let filtered = bills.filter((bill) => {
+      const matchesSearch =
+        bill.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bill.patientId || "").toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesDateRange =
+        (!dateRange.start || bill.billDate >= dateRange.start) &&
+        (!dateRange.end || bill.billDate <= dateRange.end);
+
+      const matchesPatient =
+        !selectedPatient || bill.patientId === selectedPatient;
+
       return matchesSearch && matchesDateRange && matchesPatient;
     });
 
     filtered.sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
-        case 'date':
-          aValue = new Date(a.billDate);
-          bValue = new Date(b.billDate);
+        case "date":
+          aValue = new Date(a.billDate || a.createdAt || "");
+          bValue = new Date(b.billDate || b.createdAt || "");
           break;
-        case 'amount':
-          aValue = a.total;
-          bValue = b.total;
+        case "amount":
+          aValue = a.total || a.totalAmount || 0;
+          bValue = b.total || b.totalAmount || 0;
           break;
-        case 'patient':
-          aValue = a.patientName.toLowerCase();
-          bValue = b.patientName.toLowerCase();
+        case "patient":
+          aValue = (a.patientName || "").toLowerCase();
+          bValue = (b.patientName || "").toLowerCase();
           break;
         default:
           return 0;
       }
 
-      if (sortOrder === 'asc') {
+      if (sortOrder === "asc") {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
@@ -119,52 +154,70 @@ function App() {
     });
 
     return filtered;
-  }, [searchTerm, sortBy, sortOrder, dateRange, selectedPatient]);
+  }, [bills, searchTerm, sortBy, sortOrder, dateRange, selectedPatient]);
 
-  const totalRevenue = filteredAndSortedBills.reduce((sum, bill) => sum + bill.total, 0);
-  const paidBills = filteredAndSortedBills.filter(bill => bill.status === 'paid');
-  const pendingBills = filteredAndSortedBills.filter(bill => bill.status === 'pending');
-  const overdueBills = filteredAndSortedBills.filter(bill => bill.status === 'overdue');
+  const totalRevenue = filteredAndSortedBills.reduce(
+    (sum, bill) => sum + (bill.total || bill.totalAmount || 0),
+    0
+  );
+  const paidBills = filteredAndSortedBills.filter(
+    (bill) => bill.status === "paid"
+  );
+  const pendingBills = filteredAndSortedBills.filter(
+    (bill) => bill.status === "pending"
+  );
+  const overdueBills = filteredAndSortedBills.filter(
+    (bill) => bill.status === "overdue"
+  );
 
   const exportData = () => {
     const csvContent = [
-      ['Patient Name', 'Patient ID', 'Date', 'Total', 'Status'],
-      ...filteredAndSortedBills.map(bill => [
-        bill.patientName,
+      ["Patient Name", "Patient ID", "Date", "Total", "Status", "Doctor"],
+      ...filteredAndSortedBills.map((bill) => [
+        bill.patientName || "",
         bill.patientId,
-        bill.billDate,
-        bill.total,
-        bill.status
-      ])
-    ].map(row => row.join(',')).join('\n');
+        bill.billDate ||
+          new Date(bill.createdAt || "").toISOString().split("T")[0],
+        bill.total || bill.totalAmount || 0,
+        bill.status || "paid",
+        bill.doctorName,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'billing-history.csv';
+    a.download = "billing-history.csv";
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'paid': return '#10B981';
-      case 'pending': return '#F59E0B';
-      case 'overdue': return '#EF4444';
-      default: return '#6B7280';
+      case "paid":
+        return "#10B981";
+      case "pending":
+        return "#F59E0B";
+      case "overdue":
+        return "#EF4444";
+      default:
+        return "#6B7280";
     }
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setDateRange({ start: '', end: '' });
-    setSelectedPatient('');
-    setSortBy('date');
-    setSortOrder('desc');
+    setSearchTerm("");
+    setDateRange({ start: "", end: "" });
+    setSelectedPatient("");
+    setSortBy("date");
+    setSortOrder("desc");
   };
 
   const handleBillClick = (bill) => {
+    console.log("Selected bill items:", bill.items);
     setSelectedBillDetails(bill);
   };
 
@@ -172,78 +225,303 @@ function App() {
     setSelectedBillDetails(null);
   };
 
+  const refreshData = () => {
+    setSelectedPatient((prev) => prev);
+  };
+
+  // Loading state - initial load
+  if (loading && bills.length === 0) {
+    return (
+      <div
+        style={{
+          padding: "20px",
+          backgroundColor: "#f8fafc",
+          minHeight: "100vh",
+          fontFamily:
+            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "60px 40px",
+            borderRadius: "16px",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+            textAlign: "center",
+            maxWidth: "400px",
+          }}
+        >
+          <Loader
+            size={48}
+            style={{
+              color: "#3B82F6",
+              marginBottom: "20px",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <h3
+            style={{
+              color: "#1F2937",
+              fontSize: "20px",
+              margin: "0 0 8px 0",
+              fontWeight: "600",
+            }}
+          >
+            Loading Billing History
+          </h3>
+          <p
+            style={{
+              color: "#6B7280",
+              fontSize: "14px",
+              margin: "0",
+            }}
+          >
+            Please wait while we fetch your data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: "20px",
+          backgroundColor: "#f8fafc",
+          minHeight: "100vh",
+          fontFamily:
+            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "60px 40px",
+            borderRadius: "16px",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+            textAlign: "center",
+            maxWidth: "500px",
+            border: "1px solid #FEE2E2",
+          }}
+        >
+          <div
+            style={{
+              width: "60px",
+              height: "60px",
+              backgroundColor: "#FEE2E2",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px",
+            }}
+          >
+            <X size={30} color="#DC2626" />
+          </div>
+          <h3
+            style={{
+              color: "#DC2626",
+              fontSize: "20px",
+              margin: "0 0 12px 0",
+              fontWeight: "600",
+            }}
+          >
+            Error Loading Data
+          </h3>
+          <p
+            style={{
+              color: "#6B7280",
+              fontSize: "14px",
+              margin: "0 0 20px 0",
+              lineHeight: "1.5",
+            }}
+          >
+            {error}
+          </p>
+          <button
+            onClick={refreshData}
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#3B82F6",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2563EB")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3B82F6")
+            }
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{
-      padding: '20px',
-      backgroundColor: '#f8fafc',
-      minHeight: '100vh',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    }}>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      {/* Loading overlay for subsequent loads */}
+      {loading && bills.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "30px",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <Loader
+              size={24}
+              style={{
+                color: "#3B82F6",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+            <span style={{ color: "#1F2937", fontWeight: "500" }}>
+              Updating data...
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Analytics Cards */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '20px',
-        marginBottom: '30px'
-      }}>
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "30px",
+        }}
+      >
         {[
-          { title: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: DollarSign, color: '#10B981', bg: '#ECFDF5' },
-          { title: 'Total Bills', value: filteredAndSortedBills.length, icon: FileText, color: '#3B82F6', bg: '#EFF6FF' },
-          { title: 'Paid Bills', value: paidBills.length, icon: TrendingUp, color: '#10B981', bg: '#ECFDF5' },
-          { title: 'Pending/Overdue', value: pendingBills.length + overdueBills.length, icon: Users, color: '#F59E0B', bg: '#FFFBEB' }
+          {
+            title: "Total Revenue",
+            value: `₹${totalRevenue.toLocaleString()}`,
+            icon: DollarSign,
+            color: "#10B981",
+            bg: "#ECFDF5",
+          },
+          {
+            title: "Total Bills",
+            value: filteredAndSortedBills.length,
+            icon: FileText,
+            color: "#3B82F6",
+            bg: "#EFF6FF",
+          },
+          {
+            title: "Paid Bills",
+            value: paidBills.length,
+            icon: TrendingUp,
+            color: "#10B981",
+            bg: "#ECFDF5",
+          },
+          {
+            title: "Pending/Overdue",
+            value: pendingBills.length + overdueBills.length,
+            icon: Users,
+            color: "#F59E0B",
+            bg: "#FFFBEB",
+          },
         ].map((stat, index) => {
           const IconComponent = stat.icon;
           return (
-            <div key={index} style={{
-              backgroundColor: 'white',
-              padding: '24px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              border: '1px solid #e5e7eb',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px'
-              }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '12px',
-                  backgroundColor: stat.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+            <div
+              key={index}
+              style={{
+                backgroundColor: "white",
+                padding: "24px",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                border: "1px solid #e5e7eb",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "16px" }}
+              >
+                <div
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "12px",
+                    backgroundColor: stat.bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <IconComponent size={24} color={stat.color} />
                 </div>
                 <div>
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#6B7280',
-                    margin: '0 0 4px 0',
-                    fontWeight: '500'
-                  }}>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      color: "#6B7280",
+                      margin: "0 0 4px 0",
+                      fontWeight: "500",
+                    }}
+                  >
                     {stat.title}
                   </p>
-                  <p style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: '#1F2937',
-                    margin: '0'
-                  }}>
+                  <p
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "700",
+                      color: "#1F2937",
+                      margin: "0",
+                    }}
+                  >
                     {stat.value}
                   </p>
                 </div>
@@ -254,64 +532,71 @@ function App() {
       </div>
 
       {/* Filters and Search */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        padding: '24px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        border: '1px solid #e5e7eb',
-        marginBottom: '30px'
-      }}>
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '16px',
-          alignItems: 'center',
-          marginBottom: '16px'
-        }}>
-          {/* Search */}
-          <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
-            <Search size={20} style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#6B7280'
-            }} />
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          backgroundColor: "white",
+          padding: "24px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          border: "1px solid #e5e7eb",
+          marginBottom: "30px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "16px",
+            alignItems: "center",
+            marginBottom: "16px",
+          }}
+        >
+          {/* Search input */}
+          <div style={{ position: "relative", flex: "1", minWidth: "250px" }}>
+            <Search
+              size={20}
+              style={{
+                position: "absolute",
+                left: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#6B7280",
+              }}
+            />
             <input
               type="text"
               placeholder="Search patients..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
-                width: '100%',
-                padding: '12px 12px 12px 40px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.2s ease',
-                boxSizing: 'border-box'
+                width: "100%",
+                padding: "12px 12px 12px 40px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                transition: "border-color 0.2s ease",
+                boxSizing: "border-box",
               }}
-              onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
-              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              onFocus={(e) => (e.target.style.borderColor = "#3B82F6")}
+              onBlur={(e) => (e.target.style.borderColor = "#d1d5db")}
             />
           </div>
 
-          {/* Sort */}
+          {/* Sort selectors */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             style={{
-              padding: '12px 16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '14px',
-              outline: 'none',
-              backgroundColor: 'white',
-              cursor: 'pointer'
+              padding: "12px 16px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              fontSize: "14px",
+              outline: "none",
+              backgroundColor: "white",
+              cursor: "pointer",
             }}
           >
             <option value="date">Sort by Date</option>
@@ -323,647 +608,571 @@ function App() {
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
             style={{
-              padding: '12px 16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '14px',
-              outline: 'none',
-              backgroundColor: 'white',
-              cursor: 'pointer'
+              padding: "12px 16px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              fontSize: "14px",
+              outline: "none",
+              backgroundColor: "white",
+              cursor: "pointer",
             }}
           >
             <option value="desc">Descending</option>
             <option value="asc">Ascending</option>
           </select>
 
-          {/* Filter Toggle */}
+          {/* Filter toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             style={{
-              padding: '12px 16px',
-              backgroundColor: showFilters ? '#3B82F6' : '#f3f4f6',
-              color: showFilters ? 'white' : '#374151',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease'
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              backgroundColor: "#3B82F6",
+              borderRadius: "8px",
+              border: "none",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "background-color 0.3s",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#2563EB")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#3B82F6")
+            }
+            aria-expanded={showFilters}
+            aria-controls="filter-section"
           >
             <Filter size={16} />
             Filters
-            <ChevronDown size={16} style={{
-              transform: showFilters ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease'
-            }} />
+            <ChevronDown
+              size={16}
+              style={{
+                transition: "transform 0.3s",
+                transform: showFilters ? "rotate(180deg)" : "rotate(0deg)",
+              }}
+            />
           </button>
 
-          {/* Export */}
+          {/* Export button */}
           <button
             onClick={exportData}
             style={{
-              padding: '12px 16px',
-              backgroundColor: '#10B981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'background-color 0.2s ease'
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              backgroundColor: "#10B981",
+              borderRadius: "8px",
+              border: "none",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10B981'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#059669")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#10B981")
+            }
           >
             <Download size={16} />
-            Export
+            Export CSV
+          </button>
+
+          {/* Clear filters button */}
+          <button
+            onClick={clearFilters}
+            style={{
+              padding: "12px 20px",
+              backgroundColor: "#EF4444",
+              borderRadius: "8px",
+              border: "none",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "background-color 0.3s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#DC2626")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#EF4444")
+            }
+          >
+            Clear Filters
           </button>
         </div>
 
-        {/* Advanced Filters */}
+        {/* Filters section */}
         {showFilters && (
-          <div style={{
-            borderTop: '1px solid #e5e7eb',
-            paddingTop: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px'
-          }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '4px'
-              }}>Start Date</label>
+          <div
+            id="filter-section"
+            style={{
+              display: "flex",
+              gap: "20px",
+              flexWrap: "wrap",
+              marginTop: "16px",
+            }}
+          >
+            {/* Date range filters */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label
+                htmlFor="start-date"
+                style={{ marginBottom: "4px", fontWeight: "600" }}
+              >
+                Start Date
+              </label>
               <input
+                id="start-date"
                 type="date"
                 value={dateRange.start}
-                onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, start: e.target.value }))
+                }
                 style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  outline: "none",
                 }}
               />
             </div>
 
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '4px'
-              }}>End Date</label>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label
+                htmlFor="end-date"
+                style={{ marginBottom: "4px", fontWeight: "600" }}
+              >
+                End Date
+              </label>
               <input
+                id="end-date"
                 type="date"
                 value={dateRange.end}
-                onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                onChange={(e) =>
+                  setDateRange((prev) => ({ ...prev, end: e.target.value }))
+                }
                 style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box'
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  outline: "none",
                 }}
               />
             </div>
 
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151',
-                marginBottom: '4px'
-              }}>Patient</label>
-              <select
+            {/* Patient ID filter */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                minWidth: "200px",
+              }}
+            >
+              <label
+                htmlFor="patient-id"
+                style={{ marginBottom: "4px", fontWeight: "600" }}
+              >
+                Patient ID
+              </label>
+              <input
+                id="patient-id"
+                type="text"
+                placeholder="Enter patient ID"
                 value={selectedPatient}
                 onChange={(e) => setSelectedPatient(e.target.value)}
                 style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  backgroundColor: 'white',
-                  cursor: 'pointer',
-                  boxSizing: 'border-box'
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  outline: "none",
                 }}
-              >
-                <option value="">All Patients</option>
-                {Array.from(new Set(dummyBills.map(bill => bill.patientId))).map(patientId => {
-                  const patient = dummyBills.find(bill => bill.patientId === patientId);
-                  return (
-                    <option key={patientId} value={patientId}>
-                      {patient?.patientName} ({patientId})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'end' }}>
-              <button
-                onClick={clearFilters}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-              >
-                <X size={16} />
-                Clear
-              </button>
+              />
             </div>
           </div>
         )}
       </div>
 
-      {/* Bills List */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
-        {filteredAndSortedBills.length === 0 ? (
-          <div style={{
-            backgroundColor: 'white',
-            padding: '60px 20px',
-            borderRadius: '12px',
-            textAlign: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <FileText size={48} style={{ color: '#9CA3AF', marginBottom: '16px' }} />
-            <h3 style={{ color: '#6B7280', fontSize: '18px', margin: '0 0 8px 0' }}>
-              No bills found
-            </h3>
-            <p style={{ color: '#9CA3AF', fontSize: '14px', margin: '0' }}>
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gap: '20px'
-          }}>
-            {filteredAndSortedBills.map((bill) => (
-              <div key={bill.id} style={{
-                backgroundColor: 'white',
-                padding: '24px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                border: '1px solid #e5e7eb',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onClick={() => handleBillClick(bill)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  flexWrap: 'wrap',
-                  gap: '16px',
-                  marginBottom: '16px'
-                }}>
-                  <div>
-                    <h3 style={{
-                      fontSize: '20px',
-                      fontWeight: '600',
-                      color: '#1F2937',
-                      margin: '0 0 8px 0'
-                    }}>
-                      {bill.patientName}
-                    </h3>
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#6B7280',
-                      margin: '0 0 4px 0'
-                    }}>
-                      Patient ID: <span style={{ fontWeight: '500' }}>{bill.patientId}</span>
-                    </p>
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#6B7280',
-                      margin: '0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <Calendar size={14} />
-                      {new Date(bill.billDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{
-                      fontSize: '24px',
-                      fontWeight: '700',
-                      color: '#1F2937',
-                      margin: '0 0 8px 0'
-                    }}>
-                      ₹{bill.total.toLocaleString()}
-                    </p>
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      backgroundColor: `${getStatusColor(bill.status)}20`,
-                      color: getStatusColor(bill.status)
-                    }}>
-                      {bill.status}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{
-                  borderTop: '1px solid #e5e7eb',
-                  paddingTop: '16px'
-                }}>
-                  <h4 style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#374151',
-                    margin: '0 0 12px 0'
-                  }}>
-                    Bill Items
-                  </h4>
-                  <div style={{
-                    display: 'grid',
-                    gap: '8px'
-                  }}>
-                    {bill.items.map((item, index) => (
-                      <div key={index} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '8px 12px',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '6px',
-                        border: '1px solid #e5e7eb'
-                      }}>
-                        <div>
-                          <span style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#374151'
-                          }}>
-                            {item.name}
-                          </span>
-                          <span style={{
-                            fontSize: '12px',
-                            color: '#6B7280',
-                            marginLeft: '8px'
-                          }}>
-                            Qty: {item.quantity}
-                          </span>
-                        </div>
-                        <div style={{
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#1F2937'
-                        }}>
-                          ₹{(item.quantity * item.rate).toLocaleString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Patient Details Modal */}
-      {selectedBillDetails && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
+      {/* Billing History Table */}
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          backgroundColor: "white",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          border: "1px solid #e5e7eb",
+          overflowX: "auto",
         }}
-        onClick={closeModal}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-          }}
-          onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div style={{
-              padding: '24px',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h2 style={{
-                fontSize: '24px',
-                fontWeight: '700',
-                color: '#1F2937',
-                margin: '0'
-              }}>
-                Patient Details
-              </h2>
-              <button
-                onClick={closeModal}
+      >
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th
                 style={{
-                  padding: '8px',
-                  backgroundColor: '#f3f4f6',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  textAlign: "left",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "140px",
                 }}
               >
-                <X size={20} color="#6B7280" />
-              </button>
-            </div>
+                Patient
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "170px",
+                }}
+              >
+                Doctor
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "110px",
+                }}
+              >
+                Date
+              </th>
+              <th
+                style={{
+                  textAlign: "right",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "110px",
+                }}
+              >
+                Amount
+              </th>
+              <th
+                style={{
+                  textAlign: "center",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "120px",
+                }}
+              >
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAndSortedBills.length === 0 && (
+              <tr>
+                <td
+                  colSpan={5}
+                  style={{
+                    textAlign: "center",
+                    padding: "16px",
+                    color: "#9CA3AF",
+                    fontWeight: "500",
+                  }}
+                >
+                  No billing records found.
+                </td>
+              </tr>
+            )}
+            {filteredAndSortedBills.map((bill) => (
+              <tr
+                key={bill.id}
+                style={{
+                  cursor: "pointer",
+                  borderBottom: "1px solid #e5e7eb",
+                  transition: "background-color 0.2s ease",
+                }}
+                onClick={() => handleBillClick(bill)}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#F3F4F6")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    handleBillClick(bill);
+                  }
+                }}
+                aria-label={`View details for bill of ${
+                  bill.patientName
+                }, date ${bill.billDate}, amount ₹${
+                  bill.total || bill.totalAmount
+                }`}
+              >
+                <td style={{ padding: "12px 16px" }}>
+                  <div style={{ fontWeight: "600", color: "#1F2937" }}>
+                    {bill.patientName}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#6B7280" }}>
+                    {bill.patientId}
+                  </div>
+                </td>
+                <td style={{ padding: "12px 16px", color: "#374151" }}>
+                  {bill.doctorName}
+                </td>
+                <td style={{ padding: "12px 16px", color: "#374151" }}>
+                  {bill.billDate}
+                </td>
+                <td
+                  style={{
+                    padding: "12px 16px",
+                    textAlign: "right",
+                    fontWeight: "600",
+                  }}
+                >
+                  ₹{(bill.total || bill.totalAmount || 0).toLocaleString()}
+                </td>
+                <td style={{ padding: "12px 16px", textAlign: "center" }}>
+                  <span
+                    style={{
+                      color: "white",
+                      backgroundColor: getStatusColor(bill.status),
+                      borderRadius: "9999px",
+                      padding: "4px 12px",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      textTransform: "capitalize",
+                      display: "inline-block",
+                      minWidth: "70px",
+                    }}
+                    aria-label={`Status: ${bill.status}`}
+                  >
+                    {bill.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-            {/* Modal Content */}
-            <div style={{ padding: '24px' }}>
-              {/* Patient Info */}
-              <div style={{
-                backgroundColor: '#f8fafc',
-                padding: '20px',
-                borderRadius: '12px',
-                marginBottom: '24px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '16px'
-                }}>
-                  <User size={24} color="#3B82F6" />
-                  <h3 style={{
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: '#1F2937',
-                    margin: '0'
-                  }}>
-                    {selectedBillDetails.patientName}
-                  </h3>
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '12px'
-                }}>
-                  <div>
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#6B7280',
-                      margin: '0 0 4px 0',
-                      textTransform: 'uppercase',
-                      fontWeight: '600'
-                    }}>Patient ID</p>
-                    <p style={{
-                      fontSize: '16px',
-                      color: '#374151',
-                      margin: '0',
-                      fontWeight: '500'
-                    }}>{selectedBillDetails.patientId}</p>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#6B7280',
-                      margin: '0 0 4px 0',
-                      textTransform: 'uppercase',
-                      fontWeight: '600'
-                    }}>Doctor</p>
-                    <p style={{
-                      fontSize: '16px',
-                      color: '#374151',
-                      margin: '0',
-                      fontWeight: '500'
-                    }}>{selectedBillDetails.doctorName}</p>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#6B7280',
-                      margin: '0 0 4px 0',
-                      textTransform: 'uppercase',
-                      fontWeight: '600'
-                    }}>Date</p>
-                    <p style={{
-                      fontSize: '16px',
-                      color: '#374151',
-                      margin: '0',
-                      fontWeight: '500'
-                    }}>{new Date(selectedBillDetails.billDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</p>
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#6B7280',
-                      margin: '0 0 4px 0',
-                      textTransform: 'uppercase',
-                      fontWeight: '600'
-                    }}>Total Amount</p>
-                    <p style={{
-                      fontSize: '20px',
-                      color: '#1F2937',
-                      margin: '0',
-                      fontWeight: '700'
-                    }}>₹{selectedBillDetails.total.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
+      {/* Billing Details Modal */}
+      {selectedBillDetails && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bill-details-title"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 3000,
+            padding: "20px",
+          }}
+          onClick={closeModal}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              maxWidth: "600px",
+              width: "100%",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              padding: "24px",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeModal}
+              aria-label="Close bill details"
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#6B7280",
+                fontSize: "20px",
+              }}
+            >
+              <X size={24} />
+            </button>
 
-              {/* Medicines Section */}
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginBottom: '16px'
-                }}>
-                  <Pill size={20} color="#10B981" />
-                  <h4 style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#1F2937',
-                    margin: '0'
-                  }}>
-                    Medicines Purchased
-                  </h4>
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gap: '8px'
-                }}>
-                  {selectedBillDetails.items.filter(item => item.type === 'medicine').length > 0 ? (
-                    selectedBillDetails.items
-                      .filter(item => item.type === 'medicine')
-                      .map((medicine, index) => (
-                        <div key={index} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '12px 16px',
-                          backgroundColor: '#ECFDF5',
-                          borderRadius: '8px',
-                          border: '1px solid #A7F3D0'
-                        }}>
-                          <div>
-                            <span style={{
-                              fontSize: '16px',
-                              fontWeight: '600',
-                              color: '#065F46'
-                            }}>
-                              {medicine.name}
-                            </span>
-                            <span style={{
-                              fontSize: '14px',
-                              color: '#047857',
-                              marginLeft: '12px',
-                              backgroundColor: '#A7F3D0',
-                              padding: '2px 8px',
-                              borderRadius: '12px'
-                            }}>
-                              Qty: {medicine.quantity}
-                            </span>
-                          </div>
-                          <div style={{
-                            fontSize: '16px',
-                            fontWeight: '700',
-                            color: '#065F46'
-                          }}>
-                            ₹{(medicine.quantity * medicine.rate).toLocaleString()}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '24px',
-                      color: '#6B7280',
-                      fontStyle: 'italic'
-                    }}>
-                      No medicines purchased in this visit
-                    </div>
-                  )}
-                </div>
-              </div>
+            <h2
+              id="bill-details-title"
+              style={{
+                marginBottom: "16px",
+                fontWeight: "700",
+                fontSize: "20px",
+                color: "#1F2937",
+              }}
+            >
+              Billing Details - {selectedBillDetails.patientName}
+            </h2>
 
-              {/* All Services */}
-              <div>
-                <h4 style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: '#1F2937',
-                  margin: '0 0 16px 0'
-                }}>
-                  All Services
-                </h4>
-                <div style={{
-                  display: 'grid',
-                  gap: '8px'
-                }}>
-                  {selectedBillDetails.items.map((item, index) => (
-                    <div key={index} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '12px 16px',
-                      backgroundColor: item.type === 'medicine' ? '#ECFDF5' : '#f3f4f6',
-                      borderRadius: '8px',
-                      border: `1px solid ${item.type === 'medicine' ? '#A7F3D0' : '#d1d5db'}`
-                    }}>
-                      <div>
-                        <span style={{
-                          fontSize: '16px',
-                          fontWeight: '500',
-                          color: '#374151'
-                        }}>
-                          {item.name}
-                        </span>
-                        <span style={{
-                          fontSize: '14px',
-                          color: '#6B7280',
-                          marginLeft: '12px',
-                          backgroundColor: item.type === 'medicine' ? '#A7F3D0' : '#e5e7eb',
-                          padding: '2px 8px',
-                          borderRadius: '12px'
-                        }}>
-                          Qty: {item.quantity} | {item.type === 'medicine' ? 'Medicine' : 'Service'}
-                        </span>
-                      </div>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: '#1F2937'
-                      }}>
-                        ₹{(item.quantity * item.rate).toLocaleString()}
-                      </div>
-                    </div>
+            <p>
+              <strong>Patient ID:</strong> {selectedBillDetails.patientId}
+            </p>
+            <p>
+              <strong>Doctor:</strong> {selectedBillDetails.doctorName}
+            </p>
+            <p>
+              <strong>Date:</strong> {selectedBillDetails.billDate}
+            </p>
+
+            <h3 style={{ marginTop: "24px", fontWeight: "600" }}>
+              Items (Medicines & Tests)
+            </h3>
+
+            {selectedBillDetails.items.length === 0 ? (
+              <p>No items found for this bill.</p>
+            ) : (
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginTop: "12px",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "8px",
+                        borderBottom: "1px solid #e5e7eb",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Name
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "right",
+                        padding: "8px",
+                        borderBottom: "1px solid #e5e7eb",
+                        fontWeight: "600",
+                        width: "80px",
+                      }}
+                    >
+                      Qty
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "right",
+                        padding: "8px",
+                        borderBottom: "1px solid #e5e7eb",
+                        fontWeight: "600",
+                        width: "100px",
+                      }}
+                    >
+                      Unit Price
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "right",
+                        padding: "8px",
+                        borderBottom: "1px solid #e5e7eb",
+                        fontWeight: "600",
+                        width: "120px",
+                      }}
+                    >
+                      Total Price
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        padding: "8px",
+                        borderBottom: "1px solid #e5e7eb",
+                        fontWeight: "600",
+                        width: "100px",
+                      }}
+                    >
+                      Type
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedBillDetails.items.map((item, idx) => (
+                    <tr key={`${item.medicineName || item.name}-${idx}`}>
+                      <td style={{ padding: "8px", color: "#374151" }}>
+                        {item.name}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        {item.quantity || "-"}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        ₹{item.unitPrice?.toLocaleString() || "-"}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        ₹{item.totalPrice?.toLocaleString() || "-"}
+                      </td>
+                      <td
+                        style={{
+                          padding: "8px",
+                          textAlign: "center",
+                          textTransform: "capitalize",
+                          color:
+                            item.type === "medicine"
+                              ? "#10B981"
+                              : item.type === "test"
+                              ? "#3B82F6"
+                              : item.type === "injection"
+                              ? "#F59E0B"
+                              : "#6B7280",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.type}
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
-            </div>
+                </tbody>
+              </table>
+            )}
+
+            <h3
+              style={{
+                marginTop: "24px",
+                fontWeight: "700",
+                fontSize: "18px",
+                textAlign: "right",
+              }}
+            >
+              Total: ₹
+              {(
+                selectedBillDetails.total ||
+                selectedBillDetails.totalAmount ||
+                0
+              ).toLocaleString()}
+            </h3>
           </div>
         </div>
       )}

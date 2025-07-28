@@ -179,12 +179,12 @@ const Header = ({ onLoginClick }) => {
               >
                 Contact
               </button>
-              <button
+              {/* <button
                 onClick={() => handleNavClick("#appointment")}
                 className={`${navLinkClass("#appointment")} hidden lg:block`}
               >
                 Appointment
-              </button>
+              </button> */}
             </div>
 
             {/* Login/Profile */}
@@ -220,7 +220,6 @@ const Header = ({ onLoginClick }) => {
                 </button>
               )}
             </div>
-
             {/* Mobile menu */}
             <div className="md:hidden flex items-center space-x-2">
               <button

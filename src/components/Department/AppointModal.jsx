@@ -6,6 +6,9 @@ const AppointmentModal = ({ doctor, onClose }) => {
 
   if (!doctor) return null;
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-8 relative overflow-y-auto max-h-[90vh]">
@@ -54,32 +57,13 @@ const AppointmentModal = ({ doctor, onClose }) => {
             className="w-full border px-4 py-2 rounded-lg bg-gray-100"
           />
 
-          <div className="flex items-center justify-between px-2">
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="patientType"
-                value="New Patient"
-                onChange={(e) => setPatientType(e.target.value)}
-              />
-              <span>New Patient</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="patientType"
-                value="Review Patient"
-                onChange={(e) => setPatientType(e.target.value)}
-              />
-              <span>Review Patient</span>
-            </label>
-          </div>
-
+          {/* Date & Time input combined */}
           <input
-            type="date"
-            placeholder="Preferred date"
+            type="datetime-local"
+            name="preferredDateTime"
             required
-            className="w-full border px-4 py-2 rounded-lg"
+            min={`${today}T00:00`}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
 
           <textarea

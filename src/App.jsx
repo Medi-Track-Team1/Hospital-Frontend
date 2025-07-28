@@ -10,6 +10,8 @@ import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
 import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
 
+
+
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
@@ -36,7 +38,7 @@ function App() {
         <Route path="/patient/*" element={<Patient />} />
         <Route path="/doctor-panel/patienthistory" element={<CompletedTreatments/>}/>
         <Route path="/reception/*" element={<Reception />} />
-        <Route path="/admin/*" element={<Admin />} />
+        <Route path="/admin/*" element={<Admin/>}/>
       </Routes>
 
       {/* Show Login Popup */}

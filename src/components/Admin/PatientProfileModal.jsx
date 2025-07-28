@@ -6,9 +6,9 @@ const PatientProfileModal = ({ isOpen, onClose, patient }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Patient Profile</h2>
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-start mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Patient Profile</h2>
             <button 
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
@@ -19,15 +19,15 @@ const PatientProfileModal = ({ isOpen, onClose, patient }) => {
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-shrink-0">
-              <HiUserCircle className="w-32 h-32 text-gray-400" />
+          <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+            <div className="flex-shrink-0 mx-auto md:mx-0">
+              <HiUserCircle className="w-24 h-24 sm:w-32 sm:h-32 text-gray-400" />
             </div>
             
             <div className="flex-1">
               <div className="mb-4">
-                <h3 className="text-xl font-bold text-gray-900">{patient.name}</h3>
-                <div className="flex items-center mt-2 space-x-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900">{patient.name}</h3>
+                <div className="flex flex-wrap items-center mt-2 gap-2">
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     patient.gender === 'Male' ? 'bg-blue-100 text-blue-800' :
                     patient.gender === 'Female' ? 'bg-pink-100 text-pink-800' :
@@ -44,12 +44,12 @@ const PatientProfileModal = ({ isOpen, onClose, patient }) => {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start">
                   <HiMail className="mt-1 mr-3 text-blue-600 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-700">Email</p>
-                    <p className="text-gray-600">{patient.email}</p>
+                    <p className="text-gray-600 break-all">{patient.email}</p>
                   </div>
                 </div>
 

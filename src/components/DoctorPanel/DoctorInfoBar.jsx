@@ -2,7 +2,7 @@ import React from "react";
 
 const DoctorInfoBar = () => {
   return (
-    <div className="w-full bg-white border-t border-gray-200 shadow-sm py-6 px-4 md:px-8">
+    <div className="w-full bg-white shadow-sm py-6 px-4 md:px-8">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-6">
         <img
           src="/doctor.jpg"

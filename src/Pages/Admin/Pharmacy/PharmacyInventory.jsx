@@ -11,11 +11,13 @@ import {
 } from 'react-icons/hi';
 import MedicineService from '../services/MedicineService';
 import DeleteConfirmationModal from '../../../components/Admin/DeleteConfirmationModal';
+
 const PharmacyInventory = () => {
   const [medicines, setMedicines] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [lowStockThreshold, setLowStockThreshold] = useState(10);
+  const [lowStockMedicines, setLowStockMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -24,6 +26,7 @@ const PharmacyInventory = () => {
 
   useEffect(() => {
     fetchMedicines();
+    fetchLowStock();
   }, []);
 
   const fetchMedicines = async () => {
@@ -38,6 +41,15 @@ const PharmacyInventory = () => {
     }
   };
 
+  const fetchLowStock = async () => {
+    try {
+      const data = await MedicineService.checkLowStock(lowStockThreshold);
+      setLowStockMedicines(data);
+    } catch (err) {
+      console.error("Failed to fetch low stock medicines:", err);
+    }
+  };
+
   const handleDeleteClick = (medicine) => {
     setMedicineToDelete(medicine);
     setDeleteModalOpen(true);
@@ -49,6 +61,7 @@ const PharmacyInventory = () => {
     try {
       await MedicineService.deleteMedicine(medicineToDelete.id);
       fetchMedicines();
+      fetchLowStock();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -62,14 +75,22 @@ const PharmacyInventory = () => {
     setMedicineToDelete(null);
   };
 
-  // Filter medicines based on search term
-  const filteredMedicines = medicines.filter(medicine =>
-    medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    medicine.batch.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    try {
+      const results = await MedicineService.searchMedicines(searchTerm);
+      setMedicines(results);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-  // Sort medicines
-  const sortedMedicines = [...filteredMedicines].sort((a, b) => {
+  const resetSearch = async () => {
+    setSearchTerm('');
+    await fetchMedicines();
+  };
+
+  const sortedMedicines = [...medicines].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) {
       return sortConfig.direction === 'asc' ? -1 : 1;
     }
@@ -79,7 +100,6 @@ const PharmacyInventory = () => {
     return 0;
   });
 
-  // Handle sort request
   const requestSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -88,15 +108,11 @@ const PharmacyInventory = () => {
     setSortConfig({ key, direction });
   };
 
-  // Check for low stock
-  const lowStockMedicines = medicines.filter(medicine => medicine.quantity <= lowStockThreshold);
-
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
 
   return (
     <div className="p-4">
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={cancelDelete}
@@ -117,18 +133,34 @@ const PharmacyInventory = () => {
         </div>
       </div>
 
-      {/* Search and Alerts */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search medicines by name or batch..."
-            className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleSearch} className="relative flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search medicines by name or batch..."
+              className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button 
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          >
+            Search
+          </button>
+          {searchTerm && (
+            <button 
+              type="button"
+              onClick={resetSearch}
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 px-4 py-2"
+            >
+              <HiOutlineRefresh /> Reset
+            </button>
+          )}
+        </form>
         
         {lowStockMedicines.length > 0 && (
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-lg flex items-center gap-2">
@@ -138,7 +170,6 @@ const PharmacyInventory = () => {
         )}
       </div>
 
-      {/* Inventory Table */}
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -154,8 +185,16 @@ const PharmacyInventory = () => {
                   )}
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Batch Number
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort('batch')}
+              >
+                <div className="flex items-center gap-1">
+                  Batch Number
+                  {sortConfig.key === 'batch' && (
+                    sortConfig.direction === 'asc' ? <HiArrowUp /> : <HiArrowDown />
+                  )}
+                </div>
               </th>
               <th 
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
@@ -179,8 +218,16 @@ const PharmacyInventory = () => {
                   )}
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Expiry Date
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort('expiry')}
+              >
+                <div className="flex items-center gap-1">
+                  Expiry Date
+                  {sortConfig.key === 'expiry' && (
+                    sortConfig.direction === 'asc' ? <HiArrowUp /> : <HiArrowDown />
+                  )}
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions

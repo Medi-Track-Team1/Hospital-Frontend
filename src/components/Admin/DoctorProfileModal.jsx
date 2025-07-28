@@ -1,4 +1,4 @@
-import { HiUserCircle, HiPhone, HiMail, HiAcademicCap, HiBriefcase, HiGlobe } from 'react-icons/hi';
+import { HiUserCircle, HiPhone, HiMail, HiAcademicCap, HiBriefcase, HiGlobe, HiIdentification } from 'react-icons/hi';
 
 const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
   if (!isOpen || !doctor) return null;
@@ -38,6 +38,15 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
               </div>
 
               <div className="space-y-3 sm:space-y-4">
+                {/* Add Doctor ID field here */}
+                <div className="flex items-start">
+                  <HiIdentification className="mt-1 mr-3 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-gray-700">Doctor ID</p>
+                    <p className="text-gray-600">{doctor.doctorId}</p>
+                  </div>
+                </div>
+
                 <div className="flex items-start">
                   <HiMail className="mt-1 mr-3 text-blue-600 flex-shrink-0" />
                   <div>

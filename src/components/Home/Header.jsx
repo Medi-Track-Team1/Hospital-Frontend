@@ -220,7 +220,6 @@ const Header = ({ onLoginClick }) => {
                 </button>
               )}
             </div>
-
             {/* Mobile menu */}
             <div className="md:hidden flex items-center space-x-2">
               <button

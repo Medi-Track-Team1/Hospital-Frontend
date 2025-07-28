@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Download, Calendar, TrendingUp, Users, DollarSign, FileText, ChevronDown, X } from 'lucide-react';
+import { Search, Filter, Download, Calendar, TrendingUp, Users, DollarSign, FileText, ChevronDown, X, User, Pill } from 'lucide-react';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,16 +8,18 @@ function App() {
   const [showFilters, setShowFilters] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedPatient, setSelectedPatient] = useState('');
+  const [selectedBillDetails, setSelectedBillDetails] = useState(null);
 
   const dummyBills = [
     {
       id: 1,
       patientId: 'P001',
       patientName: 'John Smith',
+      doctorName: 'Dr. Sarah Williams',
       billDate: '2024-01-15',
       items: [
-        { name: 'Consultation', quantity: 1, rate: 500 },
-        { name: 'Medicine', quantity: 2, rate: 150 }
+        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
+        { name: 'Paracetamol 500mg', quantity: 2, rate: 150, type: 'medicine' }
       ],
       total: 800,
       status: 'paid'
@@ -26,9 +28,10 @@ function App() {
       id: 2,
       patientId: 'P002',
       patientName: 'Sarah Johnson',
+      doctorName: 'Dr. Michael Chen',
       billDate: '2024-01-16',
       items: [
-        { name: 'X-Ray', quantity: 1, rate: 800 }
+        { name: 'X-Ray', quantity: 1, rate: 800, type: 'service' }
       ],
       total: 800,
       status: 'paid'
@@ -37,11 +40,12 @@ function App() {
       id: 3,
       patientId: 'P003',
       patientName: 'Michael Brown',
+      doctorName: 'Dr. Emily Rodriguez',
       billDate: '2024-01-17',
       items: [
-        { name: 'Blood Test', quantity: 1, rate: 300 },
-        { name: 'Consultation', quantity: 1, rate: 500 },
-        { name: 'Medicine', quantity: 1, rate: 200 }
+        { name: 'Blood Test', quantity: 1, rate: 300, type: 'service' },
+        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
+        { name: 'Amoxicillin 250mg', quantity: 1, rate: 200, type: 'medicine' }
       ],
       total: 1000,
       status: 'pending'
@@ -50,10 +54,11 @@ function App() {
       id: 4,
       patientId: 'P004',
       patientName: 'Emily Davis',
+      doctorName: 'Dr. James Thompson',
       billDate: '2024-01-18',
       items: [
-        { name: 'Surgery', quantity: 1, rate: 5000 },
-        { name: 'Medicine', quantity: 3, rate: 150 }
+        { name: 'Surgery', quantity: 1, rate: 5000, type: 'service' },
+        { name: 'Ibuprofen 400mg', quantity: 3, rate: 150, type: 'medicine' }
       ],
       total: 5450,
       status: 'paid'
@@ -62,10 +67,11 @@ function App() {
       id: 5,
       patientId: 'P005',
       patientName: 'David Wilson',
+      doctorName: 'Dr. Lisa Anderson',
       billDate: '2024-01-19',
       items: [
-        { name: 'Consultation', quantity: 1, rate: 500 },
-        { name: 'ECG', quantity: 1, rate: 400 }
+        { name: 'Consultation', quantity: 1, rate: 500, type: 'service' },
+        { name: 'ECG', quantity: 1, rate: 400, type: 'service' }
       ],
       total: 900,
       status: 'overdue'
@@ -158,6 +164,14 @@ function App() {
     setSortOrder('desc');
   };
 
+  const handleBillClick = (bill) => {
+    setSelectedBillDetails(bill);
+  };
+
+  const closeModal = () => {
+    setSelectedBillDetails(null);
+  };
+
   return (
     <div style={{
       padding: '20px',
@@ -165,42 +179,6 @@ function App() {
       minHeight: '100vh',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
-      {/* Header */}
-      {/* <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        marginBottom: '30px'
-      }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '30px',
-          borderRadius: '16px',
-          color: 'white',
-          textAlign: 'center',
-          boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
-        }}>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            margin: '0 0 10px 0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px'
-          }}>
-            <FileText size={32} />
-            Billing History Dashboard
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            opacity: '0.9',
-            margin: '0'
-          }}>
-            Comprehensive billing management and analytics
-          </p>
-        </div>
-      </div> */}
-
       {/* Analytics Cards */}
       <div style={{
         maxWidth: '1200px',
@@ -566,6 +544,7 @@ function App() {
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 cursor: 'pointer'
               }}
+              onClick={() => handleBillClick(bill)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
@@ -697,6 +676,297 @@ function App() {
           </div>
         )}
       </div>
+
+      {/* Patient Details Modal */}
+      {selectedBillDetails && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}
+        onClick={closeModal}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+          }}
+          onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#1F2937',
+                margin: '0'
+              }}>
+                Patient Details
+              </h2>
+              <button
+                onClick={closeModal}
+                style={{
+                  padding: '8px',
+                  backgroundColor: '#f3f4f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <X size={20} color="#6B7280" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: '24px' }}>
+              {/* Patient Info */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '24px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '16px'
+                }}>
+                  <User size={24} color="#3B82F6" />
+                  <h3 style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: '#1F2937',
+                    margin: '0'
+                  }}>
+                    {selectedBillDetails.patientName}
+                  </h3>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '12px'
+                }}>
+                  <div>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6B7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}>Patient ID</p>
+                    <p style={{
+                      fontSize: '16px',
+                      color: '#374151',
+                      margin: '0',
+                      fontWeight: '500'
+                    }}>{selectedBillDetails.patientId}</p>
+                  </div>
+                  <div>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6B7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}>Doctor</p>
+                    <p style={{
+                      fontSize: '16px',
+                      color: '#374151',
+                      margin: '0',
+                      fontWeight: '500'
+                    }}>{selectedBillDetails.doctorName}</p>
+                  </div>
+                  <div>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6B7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}>Date</p>
+                    <p style={{
+                      fontSize: '16px',
+                      color: '#374151',
+                      margin: '0',
+                      fontWeight: '500'
+                    }}>{new Date(selectedBillDetails.billDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}</p>
+                  </div>
+                  <div>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#6B7280',
+                      margin: '0 0 4px 0',
+                      textTransform: 'uppercase',
+                      fontWeight: '600'
+                    }}>Total Amount</p>
+                    <p style={{
+                      fontSize: '20px',
+                      color: '#1F2937',
+                      margin: '0',
+                      fontWeight: '700'
+                    }}>₹{selectedBillDetails.total.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medicines Section */}
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '16px'
+                }}>
+                  <Pill size={20} color="#10B981" />
+                  <h4 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#1F2937',
+                    margin: '0'
+                  }}>
+                    Medicines Purchased
+                  </h4>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gap: '8px'
+                }}>
+                  {selectedBillDetails.items.filter(item => item.type === 'medicine').length > 0 ? (
+                    selectedBillDetails.items
+                      .filter(item => item.type === 'medicine')
+                      .map((medicine, index) => (
+                        <div key={index} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          backgroundColor: '#ECFDF5',
+                          borderRadius: '8px',
+                          border: '1px solid #A7F3D0'
+                        }}>
+                          <div>
+                            <span style={{
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              color: '#065F46'
+                            }}>
+                              {medicine.name}
+                            </span>
+                            <span style={{
+                              fontSize: '14px',
+                              color: '#047857',
+                              marginLeft: '12px',
+                              backgroundColor: '#A7F3D0',
+                              padding: '2px 8px',
+                              borderRadius: '12px'
+                            }}>
+                              Qty: {medicine.quantity}
+                            </span>
+                          </div>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            color: '#065F46'
+                          }}>
+                            ₹{(medicine.quantity * medicine.rate).toLocaleString()}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '24px',
+                      color: '#6B7280',
+                      fontStyle: 'italic'
+                    }}>
+                      No medicines purchased in this visit
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* All Services */}
+              <div>
+                <h4 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#1F2937',
+                  margin: '0 0 16px 0'
+                }}>
+                  All Services
+                </h4>
+                <div style={{
+                  display: 'grid',
+                  gap: '8px'
+                }}>
+                  {selectedBillDetails.items.map((item, index) => (
+                    <div key={index} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      backgroundColor: item.type === 'medicine' ? '#ECFDF5' : '#f3f4f6',
+                      borderRadius: '8px',
+                      border: `1px solid ${item.type === 'medicine' ? '#A7F3D0' : '#d1d5db'}`
+                    }}>
+                      <div>
+                        <span style={{
+                          fontSize: '16px',
+                          fontWeight: '500',
+                          color: '#374151'
+                        }}>
+                          {item.name}
+                        </span>
+                        <span style={{
+                          fontSize: '14px',
+                          color: '#6B7280',
+                          marginLeft: '12px',
+                          backgroundColor: item.type === 'medicine' ? '#A7F3D0' : '#e5e7eb',
+                          padding: '2px 8px',
+                          borderRadius: '12px'
+                        }}>
+                          Qty: {item.quantity} | {item.type === 'medicine' ? 'Medicine' : 'Service'}
+                        </span>
+                      </div>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: '#1F2937'
+                      }}>
+                        ₹{(item.quantity * item.rate).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

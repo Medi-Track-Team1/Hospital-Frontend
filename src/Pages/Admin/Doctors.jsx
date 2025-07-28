@@ -28,20 +28,77 @@ const Doctors = () => {
   const [doctorToDelete, setDoctorToDelete] = useState(null);
   
   const [doctors, setDoctors] = useState([
-    { 
-      id: 1, 
-      name: 'Dr. Sarah Johnson', 
-      specialty: 'Cardiology', 
-      availability: 'Available',
-      email: 's.johnson@hospital.com',
-      phone: '(555) 123-4567',
-      bio: 'Board-certified cardiologist with 10 years of experience.',
-      education: 'MD from Harvard Medical School',
-      experience: 'Chief of Cardiology at City Hospital',
-      languages: ['English', 'Spanish'],
-      status: 'active'
-    },
-  ]);
+  { 
+    id: 1, 
+    name: 'Dr. Subeer', 
+    specialty: 'Cardiology', 
+    availability: 'Available',
+    doctorId: 'DOC-98403',
+    email: 's.johnson@hospital.com',
+    phone: '(555) 123-4567',
+    bio: 'Board-certified cardiologist with 10 years of experience. Specializes in interventional cardiology.',
+    education: 'MD from Harvard Medical School',
+    experience: 'Chief of Cardiology at City Hospital (2015-Present)',
+    languages: ['English', 'Spanish'],
+    status: 'active'
+  },
+  { 
+    id: 2, 
+    name: 'Dr. Darshan', 
+    specialty: 'Neurology', 
+    availability: 'Available',
+    doctorId: 'DOC-78251',
+    email: 'm.chen@hospital.com',
+    phone: '(555) 234-5678',
+    bio: 'Neurologist specializing in movement disorders and neurodegenerative diseases.',
+    education: 'MD from Johns Hopkins University, Fellowship in Movement Disorders',
+    experience: '15 years at NeuroCare Center',
+    languages: ['English', 'Mandarin'],
+    status: 'active'
+  },
+  { 
+    id: 3, 
+    name: 'Dr. Guna', 
+    specialty: 'Pediatrics', 
+    availability: 'On Leave',
+    doctorId: 'DOC-63942',
+    email: 'p.patel@hospital.com',
+    phone: '(555) 345-6789',
+    bio: 'Pediatrician with special interest in childhood immunology and allergies.',
+    education: 'MD from Stanford University, Pediatric Residency at Boston Children\'s',
+    experience: '8 years in pediatric practice',
+    languages: ['English', 'Hindi', 'Gujarati'],
+    status: 'on leave'
+  },
+  { 
+    id: 4, 
+    name: 'Dr. Pojith', 
+    specialty: 'Orthopedics', 
+    availability: 'Busy',
+    doctorId: 'DOC-45781',
+    email: 'r.williams@hospital.com',
+    phone: '(555) 456-7890',
+    bio: 'Orthopedic surgeon specializing in sports medicine and joint replacements.',
+    education: 'MD from Duke University, Orthopedic Surgery Residency at Mayo Clinic',
+    experience: '12 years in orthopedic surgery',
+    languages: ['English', 'French'],
+    status: 'active'
+  },
+  { 
+    id: 5, 
+    name: 'Dr. Lisa Rodriguez', 
+    specialty: 'Dermatology', 
+    availability: 'Available',
+    doctorId: 'DOC-56823',
+    email: 'l.rodriguez@hospital.com',
+    phone: '(555) 567-8901',
+    bio: 'Cosmetic dermatologist with expertise in laser treatments and skin rejuvenation.',
+    education: 'MD from UCLA, Dermatology Residency at NYU Langone',
+    experience: '7 years in dermatology practice',
+    languages: ['English', 'Spanish', 'Portuguese'],
+    status: 'active'
+  }
+]);
 
   const handleAddDoctor = (newDoctor) => {
     const newId = doctors.length > 0 ? Math.max(...doctors.map(d => d.id)) + 1 : 1;
@@ -206,57 +263,77 @@ const Doctors = () => {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="grid grid-cols-12 bg-gray-50 p-4 border-b border-gray-200 font-medium text-gray-700 text-sm">
-          <div className="col-span-3">Name</div>
-          <div className="col-span-2">Specialty</div>
-          <div className="col-span-2">Contact</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-3 text-right">Actions</div>
-        </div>
-        
-        {filteredDoctors.map((doctor) => (
-          <div key={doctor.id} className="grid grid-cols-12 p-4 border-b border-gray-200 items-center hover:bg-gray-50 text-sm">
-            <div className="col-span-3 font-medium">{doctor.name}</div>
-            <div className="col-span-2 text-gray-600">{doctor.specialty}</div>
-            <div className="col-span-2">
-              <div className="text-gray-600">{doctor.email}</div>
-              <div className="text-sm text-gray-500">{doctor.phone}</div>
-            </div>
-            <div className="col-span-2">
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                doctor.status === 'active' ? 'bg-green-100 text-green-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {doctor.status}
-              </span>
-            </div>
-            <div className="col-span-3 flex justify-end space-x-2">
-              <button 
-                onClick={() => handleViewProfile(doctor)}
-                className="p-1 text-blue-600 hover:text-blue-800"
-                title="View Profile"
-              >
-                <HiEye className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => handleEditDoctor(doctor)}
-                className="p-1 text-blue-600 hover:text-blue-800"
-                title="Edit"
-              >
-                <HiPencil className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => handleDeleteDoctor(doctor.id)}
-                className="p-1 text-red-600 hover:text-red-800"
-                title="Delete"
-              >
-                <HiTrash className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        ))}
+<div className="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
+  <div className="grid grid-cols-12 bg-gray-50 p-4 border-b border-gray-200 font-medium text-gray-700 text-sm">
+    <div className="col-span-3">Name</div>
+    <div className="col-span-2">DoctorID</div>
+    <div className="col-span-2">Specialty</div>
+    <div className="col-span-3">Contact</div>
+    <div className="col-span-1 text-left">Status</div> {/* text-left explicitly */}
+    <div className="col-span-1 text-right">Actions</div>
+  </div>
+
+  {filteredDoctors.map((doctor) => (
+    <div
+      key={doctor.id}
+      className="grid grid-cols-12 p-4 border-b border-gray-200 items-center hover:bg-gray-50 text-sm"
+    >
+      {/* Name */}
+      <div className="col-span-3 font-medium truncate">{doctor.name}</div>
+
+      {/* Doctor ID */}
+      <div className="col-span-2 text-gray-600 truncate">{doctor.doctorId}</div>
+
+      {/* Specialty */}
+      <div className="col-span-2 text-gray-600 truncate">{doctor.specialty}</div>
+
+      {/* Email and Phone */}
+      <div className="col-span-3">
+        <div className="text-gray-600 truncate">{doctor.email}</div>
+        <div className="text-sm text-gray-500 truncate">{doctor.phone}</div>
       </div>
+
+      {/* Status */}
+      <div className="col-span-1 text-left">
+        <span
+          className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${
+            doctor.status === "active"
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {doctor.status}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="col-span-1 flex justify-end space-x-2">
+        <button
+          onClick={() => handleViewProfile(doctor)}
+          className="p-1 text-blue-600 hover:text-blue-800"
+          title="View Profile"
+        >
+          <HiEye className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => handleEditDoctor(doctor)}
+          className="p-1 text-blue-600 hover:text-blue-800"
+          title="Edit"
+        >
+          <HiPencil className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => handleDeleteDoctor(doctor.id)}
+          className="p-1 text-red-600 hover:text-red-800"
+          title="Delete"
+        >
+          <HiTrash className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
 
      {/* Add/Edit Doctor Modal */}
       <FormModal
@@ -274,10 +351,12 @@ const Doctors = () => {
             options: ['Cardiology', 'Neurology', 'Pediatrics', 'General Medicine', 'Orthopedics', 'Dermatology', 'Oncology'], 
             required: true 
           },
-          { name: 'status', label: 'Status', type: 'select', 
-            options: ['active', 'on leave'], 
-            required: true 
-          },
+          {
+            name: 'doctorId',
+            label: 'Doctor ID',
+            type: 'text',
+            readonly: true,
+            required: true,},
           { name: 'email', label: 'Email', type: 'email', required: true },
           { name: 'phone', label: 'Phone', type: 'tel', required: true },
           { name: 'bio', label: 'Bio', type: 'textarea', required: false },

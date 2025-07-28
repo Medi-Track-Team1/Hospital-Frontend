@@ -60,14 +60,9 @@ const Navbar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
             />
           </svg>
         </button>
-        <div className="relative w-40 md:w-56">
-          <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
-          />
-        </div>
+
+       <h1 className="font-bold text-blue-600 text-lg sm:text-xl md:text-2xl lg:text-3xl">MediTrack</h1>
+       
       </div>
       <div className="flex items-center space-x-3 md:space-x-4">
         {/* Notifications dropdown */}

@@ -47,27 +47,10 @@ const Patients = () => {
     },
   ]);
 
-  const handleAddPatient = (newPatient) => {
-    const newId = patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1;
-    setPatients([...patients, { ...newPatient, id: newId }]);
-    setIsModalOpen(false);
-  };
+ 
+ 
 
-  const handleUpdatePatient = (updatedPatient) => {
-    setPatients(patients.map(patient => 
-      patient.id === updatedPatient.id ? updatedPatient : patient
-    ));
-    setIsModalOpen(false);
-    setIsEditMode(false);
-    setSelectedPatient(null);
-  };
-
-  const handleEditPatient = (patient) => {
-    setSelectedPatient(patient);
-    setIsEditMode(true);
-    setIsModalOpen(true);
-  };
-
+ 
   const handleViewProfile = (patient) => {
     setSelectedPatient(patient);
     setIsProfileModalOpen(true);
@@ -98,19 +81,7 @@ const Patients = () => {
     <div className="p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800">Patients Management</h1>
-        <button
-          onClick={() => {
-            setIsEditMode(false);
-            setSelectedPatient(null);
-            setIsModalOpen(true);
-          }}
-          className="bg-[#2563eb] hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center w-full sm:w-auto justify-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add Patient
-        </button>
+       
       </div>
 
       {/* Search and Filter */}
@@ -194,12 +165,6 @@ const Patients = () => {
               </button>
               <div className="flex space-x-3">
                 <button 
-                  onClick={() => handleEditPatient(patient)}
-                  className="text-gray-600 text-sm"
-                >
-                  Edit
-                </button>
-                <button 
                   onClick={() => handleDeletePatient(patient.id)}
                   className="text-red-600 text-sm"
                 >
@@ -244,13 +209,6 @@ const Patients = () => {
                 <HiEye className="w-5 h-5" />
               </button>
               <button 
-                onClick={() => handleEditPatient(patient)}
-                className="p-1 text-blue-600 hover:text-blue-800"
-                title="Edit"
-              >
-                <HiPencil className="w-5 h-5" />
-              </button>
-              <button 
                 onClick={() => handleDeletePatient(patient.id)}
                 className="p-1 text-red-600 hover:text-red-800"
                 title="Delete"
@@ -262,31 +220,7 @@ const Patients = () => {
         ))}
       </div>
 
-      {/* Add/Edit Patient Modal */}
-      <FormModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setIsEditMode(false);
-          setSelectedPatient(null);
-        }}
-        onSubmit={isEditMode ? handleUpdatePatient : handleAddPatient}
-        title={isEditMode ? "Edit Patient" : "Add New Patient"}
-        fields={[
-          { name: 'name', label: 'Full Name', type: 'text', required: true },
-          { name: 'age', label: 'Age', type: 'number', required: true },
-          { name: 'gender', label: 'Gender', type: 'select', options: ['Male', 'Female', 'Other'], required: true },
-          { name: 'bloodType', label: 'Blood Type', type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'], required: true },
-          { name: 'lastVisit', label: 'Last Visit', type: 'date', required: true },
-          { name: 'email', label: 'Email', type: 'email', required: true },
-          { name: 'phone', label: 'Phone', type: 'tel', required: true },
-          { name: 'address', label: 'Address', type: 'text', required: false },
-          { name: 'medicalHistory', label: 'Medical History', type: 'textarea', required: false },
-          { name: 'allergies', label: 'Allergies', type: 'textarea', required: false },
-          { name: 'assignedDoctor', label: 'Assigned Doctor', type: 'text', required: false },
-        ]}
-        initialData={isEditMode ? selectedPatient : {}}
-      />
+     
 
       {/* Patient Profile Modal */}
       {selectedPatient && (

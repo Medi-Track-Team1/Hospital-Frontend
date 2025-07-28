@@ -38,6 +38,7 @@ function App() {
         <Route path="/patient/*" element={<Patient />} />
         <Route path="/doctor-panel/patienthistory" element={<CompletedTreatments/>}/>
         <Route path="/reception/*" element={<Reception />} />
+        <Route path="/admin/*" element={<Admin/>}/>
       </Routes>
 
       {/* Show Login Popup */}

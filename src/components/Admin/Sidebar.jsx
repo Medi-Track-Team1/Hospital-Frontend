@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { HiHome, HiUserGroup, HiUsers, HiCalendar, HiCog } from 'react-icons/hi';
+import { HiHome, HiUserGroup, HiUsers, HiCalendar, HiCog, HiArchive, HiExclamation } from 'react-icons/hi';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
   const navItems = [
@@ -7,6 +7,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
     { name: 'Doctors', icon: HiUserGroup, path: '/admin/doctors' },
     { name: 'Patients', icon: HiUsers, path: '/admin/patients' },
     { name: 'Appointments', icon: HiCalendar, path: '/admin/appointments' },
+    { 
+      name: 'Pharmacy', 
+      icon: HiArchive, 
+      path: '/admin/pharmacy',
+      alert: true // This could indicate low stock items
+    },
     { name: 'Settings', icon: HiCog, path: '/admin/settings' },
   ];
 
@@ -49,7 +55,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
                   to={item.path}
                   end
                   className={({ isActive }) =>
-                    `flex items-center p-3 rounded-lg transition-colors duration-200 ${
+                    `flex items-center p-3 rounded-lg transition-colors duration-200 relative ${
                       isActive
                         ? 'bg-blue-900 text-white'
                         : 'hover:bg-white hover:text-blue-900'
@@ -58,6 +64,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
                 >
                   <item.icon className="text-xl" />
                   {sidebarOpen && <span className="ml-3">{item.name}</span>}
+                  {item.alert && (
+                    <span className="absolute right-3 top-3 w-2 h-2 bg-red-500 rounded-full"></span>
+                  )}
                 </NavLink>
               </li>
             ))}

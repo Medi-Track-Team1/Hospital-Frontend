@@ -20,7 +20,7 @@ export default function Reception() {
        <Routes>
   <Route index element={<Registration />} />
   <Route path="registration" element={<Registration />} />
-  <Route path="management" element={<PatientManagement />} />  {/* this shows PatientManagement */}
+  <Route path="management" element={<PatientManagement />} />  
   <Route path="appointment" element={<Appointment />} />
   <Route path="generate-bill" element={<Billing />} />
   <Route path="bill-history" element={<History />} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Edit, Eye, Trash2, Phone, Mail, MapPin, X } from 'lucide-react';
+import { Search, Filter, Edit, Eye, Trash2, Phone, Mail, MapPin, X, Save, User, Calendar, Heart } from 'lucide-react';
 
 const mockPatients = [
   {
@@ -65,7 +65,9 @@ const PatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isViewPatientOpen, setIsViewPatientOpen] = useState(false);
+  const [isEditPatientOpen, setIsEditPatientOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,6 +93,54 @@ const PatientManagement = () => {
   const handleViewPatient = (patient) => {
     setSelectedPatient(patient);
     setIsViewPatientOpen(true);
+  };
+
+  const handleEditPatient = (patient) => {
+    setSelectedPatient(patient);
+    setEditFormData({ ...patient });
+    setIsEditPatientOpen(true);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSavePatient = () => {
+    if (validateForm()) {
+      setPatients(patients.map(p => 
+        p.id === editFormData.id ? editFormData : p
+      ));
+      setIsEditPatientOpen(false);
+      alert('Patient information updated successfully!');
+    }
+  };
+
+  const validateForm = () => {
+    const requiredFields = ['name', 'age', 'gender', 'phone', 'email', 'address', 'bloodGroup', 'emergencyContact', 'status'];
+    for (let field of requiredFields) {
+      if (!editFormData[field] || editFormData[field].toString().trim() === '') {
+        alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field.`);
+        return false;
+      }
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editFormData.email)) {
+      alert('Please enter a valid email address.');
+      return false;
+    }
+    
+    // Age validation
+    if (editFormData.age < 0 || editFormData.age > 150) {
+      alert('Please enter a valid age between 0 and 150.');
+      return false;
+    }
+    
+    return true;
   };
 
   const handleDeletePatient = (patientId) => {
@@ -248,15 +298,21 @@ const PatientManagement = () => {
                         <button
                           onClick={() => handleViewPatient(patient)}
                           className="text-blue-600 hover:text-blue-900 p-1"
+                          title="View Patient"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900 p-1">
+                        <button 
+                          onClick={() => handleEditPatient(patient)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                          title="Edit Patient"
+                        >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeletePatient(patient.id)}
                           className="text-red-600 hover:text-red-900 p-1"
+                          title="Delete Patient"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -264,12 +320,260 @@ const PatientManagement = () => {
                     </td>
                   </tr>
                 ))}
+                {filteredPatients.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center">
+                        <User className="h-12 w-12 text-gray-300 mb-2" />
+                        <p>No patients found matching your search criteria.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Patient Details Modal */}
+        {/* Edit Patient Modal */}
+        {isEditPatientOpen && editFormData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              {/* Header */}
+              <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Edit className="h-6 w-6" />
+                  <div>
+                    <h2 className="text-xl font-bold">Edit Patient Information</h2>
+                    <p className="text-blue-100 text-sm">Update patient medical record</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsEditPatientOpen(false)}
+                  className="text-white hover:bg-blue-700 rounded-lg p-2 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {/* Patient Header */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <User className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Patient ID: {editFormData.id}</h3>
+                      <p className="text-gray-600">Edit patient information below</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Form */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Personal Information */}
+                  <div className="bg-white border border-gray-200 rounded-lg">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <User className="h-5 w-5 text-gray-600" />
+                        Personal Information
+                      </h4>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                        <input
+                          type="text"
+                          value={editFormData.name || ''}
+                          onChange={(e) => handleEditFormChange('name', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter full name"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                          <input
+                            type="number"
+                            value={editFormData.age || ''}
+                            onChange={(e) => handleEditFormChange('age', parseInt(e.target.value) || '')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Age"
+                            min="0"
+                            max="150"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                          <select
+                            value={editFormData.gender || ''}
+                            onChange={(e) => handleEditFormChange('gender', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                        <select
+                          value={editFormData.status || ''}
+                          onChange={(e) => handleEditFormChange('status', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="Active">Active</option>
+                          <option value="Critical">Critical</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Blood Group *</label>
+                        <select
+                          value={editFormData.bloodGroup || ''}
+                          onChange={(e) => handleEditFormChange('bloodGroup', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Select Blood Group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information */}
+                  <div className="bg-white border border-gray-200 rounded-lg">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Phone className="h-5 w-5 text-gray-600" />
+                        Contact Information
+                      </h4>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                        <input
+                          type="tel"
+                          value={editFormData.phone || ''}
+                          onChange={(e) => handleEditFormChange('phone', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="+1 234-567-8900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                        <input
+                          type="email"
+                          value={editFormData.email || ''}
+                          onChange={(e) => handleEditFormChange('email', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="patient@email.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Home Address *</label>
+                        <textarea
+                          value={editFormData.address || ''}
+                          onChange={(e) => handleEditFormChange('address', e.target.value)}
+                          rows="3"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter complete address"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact *</label>
+                        <input
+                          type="tel"
+                          value={editFormData.emergencyContact || ''}
+                          onChange={(e) => handleEditFormChange('emergencyContact', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="+1 234-567-8900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medical Dates */}
+                <div className="mt-6 bg-white border border-gray-200 rounded-lg">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-gray-600" />
+                      Medical History Dates
+                    </h4>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                        <input
+                          type="date"
+                          value={editFormData.registrationDate || ''}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 cursor-not-allowed"
+                          readOnly
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Registration date cannot be changed</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Visit Date</label>
+                        <input
+                          type="date"
+                          value={editFormData.lastVisit || ''}
+                          onChange={(e) => handleEditFormChange('lastVisit', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Note */}
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <svg className="h-5 w-5 text-yellow-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-yellow-800">
+                        <span className="font-medium">Note:</span> Fields marked with * are required. Please ensure all information is accurate before saving changes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  <button 
+                    onClick={() => setIsEditPatientOpen(false)}
+                    className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSavePatient}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Patient Details Modal (View) */}
         {isViewPatientOpen && selectedPatient && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -286,7 +590,7 @@ const PatientManagement = () => {
                 </div>
                 <button
                   onClick={() => setIsViewPatientOpen(false)}
-                  className="text-white hover:bg-blue-700 rounded-lg p-2 transition-colors bg-blue-700"
+                  className="text-white hover:bg-blue-700 rounded-lg p-2 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -407,9 +711,7 @@ const PatientManagement = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
-                          <svg className="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
+                          <Heart className="h-4 w-4 text-red-500" />
                           <div>
                             <p className="text-xs font-medium text-gray-500 uppercase">Blood Group</p>
                             <p className="text-sm font-semibold text-red-600">{selectedPatient.bloodGroup}</p>
@@ -425,7 +727,13 @@ const PatientManagement = () => {
                   <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                     Print Record
                   </button>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={() => {
+                      setIsViewPatientOpen(false);
+                      handleEditPatient(selectedPatient);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
                     Edit Patient
                   </button>
                   <button 

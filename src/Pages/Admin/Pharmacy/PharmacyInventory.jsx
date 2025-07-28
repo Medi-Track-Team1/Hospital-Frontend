@@ -10,7 +10,7 @@ import {
   HiOutlineRefresh
 } from 'react-icons/hi';
 import MedicineService from '../services/MedicineService';
-
+import DeleteConfirmationModal from '../../../components/Admin/DeleteConfirmationModal';
 const PharmacyInventory = () => {
   const [medicines, setMedicines] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +18,8 @@ const PharmacyInventory = () => {
   const [lowStockThreshold, setLowStockThreshold] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [medicineToDelete, setMedicineToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,15 +38,28 @@ const PharmacyInventory = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this medicine?')) {
-      try {
-        await MedicineService.deleteMedicine(id);
-        fetchMedicines();
-      } catch (err) {
-        setError(err.message);
-      }
+  const handleDeleteClick = (medicine) => {
+    setMedicineToDelete(medicine);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!medicineToDelete) return;
+    
+    try {
+      await MedicineService.deleteMedicine(medicineToDelete.id);
+      fetchMedicines();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeleteModalOpen(false);
+      setMedicineToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setMedicineToDelete(null);
   };
 
   // Filter medicines based on search term
@@ -81,17 +96,24 @@ const PharmacyInventory = () => {
 
   return (
     <div className="p-4">
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        itemType="medicine"
+        itemName={medicineToDelete?.name || ''}
+      />
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Pharmacy Inventory Management</h1>
         <div className="flex gap-2 w-full md:w-auto">
-          
           <Link 
             to="/admin/pharmacy/add" 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <HiPlus /> Add Medicine
           </Link>
-         
         </div>
       </div>
 
@@ -204,7 +226,7 @@ const PharmacyInventory = () => {
                       Edit
                     </button>
                     <button 
-                      onClick={() => handleDelete(medicine.id)}
+                      onClick={() => handleDeleteClick(medicine)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
@@ -222,10 +244,7 @@ const PharmacyInventory = () => {
           </tbody>
         </table>
       </div>
-
-      
-
-        </div>
+    </div>
   );
 };
 

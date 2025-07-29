@@ -11,6 +11,7 @@ const PatientRegistrationForm = () => {
     states: "",
     zipCode: "",
     contactNumber: "",
+    email: "",
     address: "",
   });
 
@@ -61,6 +62,7 @@ const PatientRegistrationForm = () => {
       states: "",
       zipCode: "",
       contactNumber: "",
+      email: "",
       address: "",
     });
     setEmergencyContacts([
@@ -203,6 +205,12 @@ const PatientRegistrationForm = () => {
     color: "#1e40af",
   };
 
+  const requiredStyle = {
+    color: "#ef4444",
+    marginLeft: "4px",
+    fontSize: "16px",
+  };
+
   return (
     <div style={containerStyle}>
       <div style={sectionStyle}>
@@ -212,20 +220,22 @@ const PatientRegistrationForm = () => {
             <input
               type="text"
               name="patientName"
-              placeholder="Patient Name"
+              placeholder="Patient Name *"
               value={formData.patientName}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
             <input
               type="number"
               name="age"
-              placeholder="Age"
+              placeholder="Age *"
               value={formData.age}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
         </div>
@@ -236,8 +246,9 @@ const PatientRegistrationForm = () => {
               value={formData.bloodGroup}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             >
-              <option value="">Blood Group</option>
+              <option value="">Blood Group *</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -254,8 +265,9 @@ const PatientRegistrationForm = () => {
               value={formData.gender}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             >
-              <option value="">Gender</option>
+              <option value="">Gender *</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
@@ -281,20 +293,22 @@ const PatientRegistrationForm = () => {
             <input
               type="text"
               name="city"
-              placeholder="City"
+              placeholder="City *"
               value={formData.city}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
             <input
               type="text"
               name="states"
-              placeholder="States"
+              placeholder="States *"
               value={formData.states}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
@@ -308,23 +322,38 @@ const PatientRegistrationForm = () => {
             />
           </div>
         </div>
-        <div style={fullWidthStyle}>
-          <input
-            type="tel"
-            name="contactNumber"
-            placeholder="Contact Number"
-            value={formData.contactNumber}
-            onChange={handleInputChange}
-            style={inputStyle}
-          />
+        <div style={rowStyle}>
+          <div style={columnStyle}>
+            <input
+              type="tel"
+              name="contactNumber"
+              placeholder="Contact Number *"
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={columnStyle}>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address *"
+              value={formData.email}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
         </div>
         <div style={fullWidthStyle}>
           <textarea
             name="address"
-            placeholder="Address"
+            placeholder="Address *"
             value={formData.address}
             onChange={handleInputChange}
             style={textareaStyle}
+            required
           />
         </div>
       </div>

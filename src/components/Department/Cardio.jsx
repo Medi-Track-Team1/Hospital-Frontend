@@ -4,9 +4,8 @@ import cardio from "../../assets/Cardio.jpg";
 import Boo from "../../assets/boo.png";
 import Mahesh from "../../assets/Mahesh.png";
 import { motion } from "framer-motion";
-import AppointmentModal from "./AppointModal";
+import AppointmentModal from "./AppointModal"; // Make sure it's styled as per second image
 
-// Animation Variant
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: (i = 0) => ({
@@ -30,8 +29,8 @@ const Cardio = () => {
   };
 
   const closePopup = () => {
-    setShowPopup(false);
     setSelectedDoctor(null);
+    setShowPopup(false);
   };
 
   const doctors = [
@@ -48,9 +47,7 @@ const Cardio = () => {
       email: "mahesh@hospital.com",
       phone: "+91 98765 12345",
       languages: ["English", "Hindi", "Tamil"],
-             timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-
-
+      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
     },
     {
       id: 202,
@@ -65,8 +62,7 @@ const Cardio = () => {
       email: "bhoopathi@hospital.com",
       phone: "+91 98765 67890",
       languages: ["English", "Tamil"],
-                   timing: "Mon - Fri: 1:00 AM - 9:00 AM",
-
+      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
     },
   ];
 
@@ -86,16 +82,14 @@ const Cardio = () => {
             <p className="text-lg sm:text-xl font-bold text-gray-500">Care for Your Heart</p>
           </div>
         </div>
-        <div>
-          <button
-            onClick={() => {
-              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
-          >
-            Find a Doctor
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
+        >
+          Find a Doctor
+        </button>
       </motion.div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
@@ -117,8 +111,8 @@ const Cardio = () => {
         </div>
         <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-                      Department of Cardiology
-                    </motion.h2>
+            Department of Cardiology
+          </motion.h2>
           {[
             "Our Cardiology department offers expert care for heart conditions by a team of skilled cardiologists.",
             "We provide diagnosis, treatment, and prevention for heart disease, arrhythmias, and heart failure.",
@@ -139,8 +133,6 @@ const Cardio = () => {
           ))}
         </div>
       </motion.div>
-
-      <div className="h-[60px]" />
 
       {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
@@ -180,7 +172,7 @@ const Cardio = () => {
               <p><strong>Education:</strong> {doctor.education}</p>
               <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" />  {doctor.email}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
             </div>
             <div className="mt-4 w-full px-4">
               <p className="font-semibold text-sm mb-1">Specializations</p>
@@ -204,8 +196,9 @@ const Cardio = () => {
         ))}
       </div>
 
+      {/* Modal Component */}
       {showPopup && selectedDoctor && (
-        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
+        <AppointmentModal isOpen={showPopup} doctor={selectedDoctor} onClose={closePopup} />
       )}
 
       <div className="h-[40px]" />

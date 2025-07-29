@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api/medicines';
+const API_BASE_URL = 'https://pharmacy-backend-23sh.onrender.com/api/medicines';
 
 const MedicineService = {
   getAllMedicines: async () => {

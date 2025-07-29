@@ -190,7 +190,7 @@ const ReceptionBilling = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div>
       <ToastContainer />
       {/* Header */}
       {showHistory && (

@@ -17,7 +17,7 @@ const Footer = () => {
               Phone: <span className="font-normal">‪+91 9999888852‬</span>
             </p>
             <p className="font-semibold">
-              Email: <span className="font-normal">meditrack@example.com</span>
+              Email: <span className="font-normal">meditrackhealthinfo@gmail.com</span>
             </p>
 
             <div className="flex space-x-4 mt-4">
@@ -122,7 +122,7 @@ const Footer = () => {
           </p>
           <p>
             Designed by{" "}
-            <a href="https://bootstrapmade.com/" className="text-blue-600 hover:underline">Full Stack Java</a> &nbsp;| Distributed by{" "}
+            <a href="https://bootstrapmade.com/" className="text-blue-600 hover:underline">Medi Track </a> &nbsp;| Distributed by{" "}
             <a href="https://themewagon.com/" className="text-blue-600 hover:underline">Kceian</a>
           </p>
         </div>

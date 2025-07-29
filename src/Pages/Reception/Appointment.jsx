@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, Clock, User, Phone, Mail, Search, Filter, Plus, 
+import {
+  Calendar, Clock, User, Phone, Mail, Search, Filter, Plus,
   Edit3, Trash2, CheckCircle, XCircle, AlertCircle, Eye,
   Users, Activity, TrendingUp, Bell, Settings, LogOut,
   ChevronDown, ChevronRight, MapPin, Stethoscope, Heart,
@@ -9,13 +9,13 @@ import {
 
 const Appointment = () => {
   const [appointments, setAppointments] = useState([
-    { 
-      id: 1, 
-      patientName: 'John Doe', 
-      doctor: 'Dr. Sarah Smith', 
-      date: '2025-01-20', 
-      time: '10:00 AM', 
-      status: 'Confirmed', 
+    {
+      id: 1,
+      patientName: 'John Doe',
+      doctor: 'Dr. Sarah Smith',
+      date: '2025-01-20',
+      time: '10:00 AM',
+      status: 'Confirmed',
       department: 'Cardiology',
       phone: '+1 (555) 123-4567',
       email: 'john.doe@email.com',
@@ -24,13 +24,13 @@ const Appointment = () => {
       isEmergency: false,
       insurance: 'Blue Cross'
     },
-    { 
-      id: 2, 
-      patientName: 'Jane Wilson', 
-      doctor: 'Dr. Michael Johnson', 
-      date: '2025-01-20', 
-      time: '02:30 PM', 
-      status: 'Pending', 
+    {
+      id: 2,
+      patientName: 'Jane Wilson',
+      doctor: 'Dr. Michael Johnson',
+      date: '2025-01-20',
+      time: '02:30 PM',
+      status: 'Pending',
       department: 'Neurology',
       phone: '+1 (555) 987-6543',
       email: 'jane.wilson@email.com',
@@ -39,13 +39,13 @@ const Appointment = () => {
       isEmergency: false,
       insurance: 'Aetna'
     },
-    { 
-      id: 3, 
-      patientName: 'Mike Davis', 
-      doctor: 'Dr. Emily Brown', 
-      date: '2025-01-20', 
-      time: '09:00 AM', 
-      status: 'Emergency', 
+    {
+      id: 3,
+      patientName: 'Mike Davis',
+      doctor: 'Dr. Emily Brown',
+      date: '2025-01-20',
+      time: '09:00 AM',
+      status: 'Emergency',
       department: 'Emergency',
       phone: '+1 (555) 456-7890',
       email: 'mike.davis@email.com',
@@ -54,13 +54,13 @@ const Appointment = () => {
       isEmergency: true,
       insurance: 'Medicare'
     },
-    { 
-      id: 4, 
-      patientName: 'Sarah Johnson', 
-      doctor: 'Dr. Robert Lee', 
-      date: '2025-01-21', 
-      time: '11:30 AM', 
-      status: 'Confirmed', 
+    {
+      id: 4,
+      patientName: 'Sarah Johnson',
+      doctor: 'Dr. Robert Lee',
+      date: '2025-01-21',
+      time: '11:30 AM',
+      status: 'Confirmed',
       department: 'Pediatrics',
       phone: '+1 (555) 321-0987',
       email: 'sarah.johnson@email.com',
@@ -106,7 +106,7 @@ const Appointment = () => {
 
   const doctors = [
     'Dr. Sarah Smith',
-    'Dr. Michael Johnson', 
+    'Dr. Michael Johnson',
     'Dr. Emily Brown',
     'Dr. Robert Lee',
     'Dr. Jessica Chen',
@@ -151,13 +151,13 @@ const Appointment = () => {
                          appointment.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'All' || appointment.status === filterStatus;
     const matchesDate = !filterDate || appointment.date === filterDate;
-    
+   
     return matchesSearch && matchesStatus && matchesDate;
   });
 
   const validateForm = () => {
     const errors = {};
-    
+   
     if (!newAppointment.patientName.trim()) errors.patientName = 'Patient name is required';
     if (!newAppointment.doctor) errors.doctor = 'Doctor selection is required';
     if (!newAppointment.date) errors.date = 'Date is required';
@@ -216,7 +216,7 @@ const Appointment = () => {
   };
 
   const updateAppointmentStatus = (id, newStatus) => {
-    setAppointments(prev => prev.map(app => 
+    setAppointments(prev => prev.map(app =>
       app.id === id ? { ...app, status: newStatus } : app
     ));
   };
@@ -259,7 +259,7 @@ const Appointment = () => {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
           50% { transform: translateY(-20px) rotate(180deg); }
         }
-        
+       
         @keyframes modalSlideIn {
           from {
             opacity: 0;
@@ -270,20 +270,20 @@ const Appointment = () => {
             transform: translateY(0) scale(1);
           }
         }
-        
+       
         .responsive-container {
           max-width: 1400px;
           margin: 0 auto;
           padding: 15px;
         }
-        
+       
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
           margin-bottom: 30px;
         }
-        
+       
         .controls-container {
           background: white;
           padding: 20px;
@@ -292,7 +292,7 @@ const Appointment = () => {
           margin-bottom: 25px;
           border: 1px solid rgba(59, 130, 246, 0.1);
         }
-        
+       
         .controls-wrapper {
           display: flex;
           flex-wrap: wrap;
@@ -300,7 +300,7 @@ const Appointment = () => {
           align-items: center;
           justify-content: space-between;
         }
-        
+       
         .search-filters {
           display: flex;
           flex: 1;
@@ -308,57 +308,57 @@ const Appointment = () => {
           align-items: center;
           min-width: 300px;
         }
-        
+       
         .search-container {
           position: relative;
           flex: 1;
           min-width: 250px;
         }
-        
+       
         .appointments-grid {
           display: grid;
           gap: 1px;
           background: #e2e8f0;
         }
-        
+       
         .appointment-card {
           background: white;
           padding: 20px;
           transition: all 0.3s ease;
           cursor: pointer;
         }
-        
+       
         .appointment-content {
           display: grid;
           grid-template-columns: 1fr auto;
           gap: 15px;
           align-items: flex-start;
         }
-        
+       
         .appointment-info {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 25px;
         }
-        
+       
         .patient-section, .appointment-section, .symptoms-section {
           display: flex;
           flex-direction: column;
           gap: 10px;
         }
-        
+       
         .actions-container {
           display: flex;
           align-items: flex-start;
           gap: 15px;
           flex-shrink: 0;
         }
-        
+       
         .action-buttons {
           display: flex;
           gap: 8px;
         }
-        
+       
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -374,7 +374,7 @@ const Appointment = () => {
           padding: 15px;
           box-sizing: border-box;
         }
-        
+       
         .modal-content {
           background: rgba(255, 255, 255, 0.98);
           border-radius: 24px;
@@ -387,132 +387,132 @@ const Appointment = () => {
           border: 1px solid rgba(255, 255, 255, 0.3);
           backdrop-filter: blur(20px);
         }
-        
+       
         .form-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
         }
-        
+       
         .form-section {
           background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
           border-radius: 16px;
           padding: 20px;
           margin-bottom: 20px;
         }
-        
+       
         /* Mobile Responsive Styles */
         @media (max-width: 1200px) {
           .appointment-info {
             grid-template-columns: 1fr;
             gap: 20px;
           }
-          
+         
           .appointment-content {
             grid-template-columns: 1fr;
             gap: 20px;
           }
-          
+         
           .actions-container {
             justify-content: center;
             width: 100%;
           }
         }
-        
+       
         @media (max-width: 768px) {
           .responsive-container {
             padding: 10px;
           }
-          
+         
           .stats-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 20px;
           }
-          
+         
           .controls-container {
             padding: 15px;
           }
-          
+         
           .controls-wrapper {
             flex-direction: column;
             align-items: stretch;
             gap: 15px;
           }
-          
+         
           .search-filters {
             flex-direction: column;
             min-width: auto;
           }
-          
+         
           .search-container {
             min-width: auto;
           }
-          
+         
           .appointment-card {
             padding: 15px;
           }
-          
+         
           .patient-section, .appointment-section, .symptoms-section {
             gap: 8px;
           }
-          
+         
           .action-buttons {
             flex-wrap: wrap;
             justify-content: center;
           }
-          
+         
           .modal-content {
             padding: 20px;
             margin: 10px;
             border-radius: 16px;
           }
-          
+         
           .form-grid {
             grid-template-columns: 1fr;
             gap: 15px;
           }
-          
+         
           .form-section {
             padding: 15px;
             margin-bottom: 15px;
           }
         }
-        
+       
         @media (max-width: 480px) {
           .stats-grid {
             grid-template-columns: 1fr;
           }
-          
+         
           .appointment-info {
             gap: 15px;
           }
-          
+         
           .actions-container {
             flex-direction: column;
             align-items: center;
             gap: 10px;
           }
-          
+         
           .modal-content {
             padding: 15px;
             max-height: calc(100vh - 20px);
           }
         }
-        
+       
         /* Touch-friendly buttons on mobile */
         @media (hover: none) and (pointer: coarse) {
           button {
             min-height: 44px;
             min-width: 44px;
           }
-          
+         
           input, select, textarea {
             min-height: 44px;
           }
         }
       `}</style>
-      
+     
       <div style={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
@@ -522,31 +522,31 @@ const Appointment = () => {
           {/* Stats Cards */}
           <div className="stats-grid">
             {[
-              { 
-                title: 'Today\'s Appointments', 
-                value: todayAppointments.length, 
-                icon: Calendar, 
+              {
+                title: 'Today\'s Appointments',
+                value: todayAppointments.length,
+                icon: Calendar,
                 color: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                 bgColor: 'rgba(59, 130, 246, 0.1)'
               },
-              { 
-                title: 'Emergency Cases', 
-                value: emergencyCount, 
-                icon: AlertCircle, 
+              {
+                title: 'Emergency Cases',
+                value: emergencyCount,
+                icon: AlertCircle,
                 color: 'linear-gradient(135deg, #ef4444, #dc2626)',
                 bgColor: 'rgba(239, 68, 68, 0.1)'
               },
-              { 
-                title: 'Confirmed', 
-                value: confirmedCount, 
-                icon: CheckCircle, 
+              {
+                title: 'Confirmed',
+                value: confirmedCount,
+                icon: CheckCircle,
                 color: 'linear-gradient(135deg, #10b981, #059669)',
                 bgColor: 'rgba(16, 185, 129, 0.1)'
               },
-              { 
-                title: 'Pending', 
-                value: pendingCount, 
-                icon: Clock, 
+              {
+                title: 'Pending',
+                value: pendingCount,
+                icon: Clock,
                 color: 'linear-gradient(135deg, #f59e0b, #d97706)',
                 bgColor: 'rgba(245, 158, 11, 0.1)'
               }
@@ -609,8 +609,8 @@ const Appointment = () => {
             <div className="controls-wrapper">
               <div className="search-filters">
                 <div className="search-container">
-                  <Search 
-                    size={18} 
+                  <Search
+                    size={18}
                     style={{
                       position: 'absolute',
                       left: '15px',
@@ -792,7 +792,7 @@ const Appointment = () => {
                           <div className="patient-section">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                               <div style={{
-                                background: appointment.isEmergency 
+                                background: appointment.isEmergency
                                   ? 'linear-gradient(135deg, #ef4444, #dc2626)'
                                   : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                                 padding: '10px',
@@ -1091,7 +1091,7 @@ const Appointment = () => {
                     <User size={18} />
                     Patient Information
                   </h3>
-                  
+                 
                   <div className="form-grid">
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <label style={{
@@ -1221,45 +1221,7 @@ const Appointment = () => {
                       )}
                     </div>
 
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gridColumn: window.innerWidth <= 768 ? 'span 1' : 'span 2'
-                    }}>
-                      <label style={{
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '6px',
-                      }}>Insurance Provider *</label>
-                      <select
-                        value={newAppointment.insurance}
-                        onChange={(e) => setNewAppointment(prev => ({ ...prev, insurance: e.target.value }))}
-                        style={{
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: `2px solid ${formErrors.insurance ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                          fontSize: '1rem',
-                          transition: 'all 0.3s ease',
-                          outline: 'none',
-                          background: 'rgba(255, 255, 255, 0.8)',
-                          fontFamily: 'inherit',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option value="">Select Insurance Provider</option>
-                        {insuranceOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                      {formErrors.insurance && (
-                        <span style={{
-                          color: '#ef4444',
-                          fontSize: '0.8rem',
-                          marginTop: '4px',
-                        }}>{formErrors.insurance}</span>
-                      )}
-                    </div>
+                   
                   </div>
                 </div>
 
@@ -1277,7 +1239,7 @@ const Appointment = () => {
                     <Calendar size={18} />
                     Appointment Details
                   </h3>
-                  
+                 
                   <div className="form-grid">
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <label style={{
@@ -1289,8 +1251,8 @@ const Appointment = () => {
                       <select
                         value={newAppointment.department}
                         onChange={(e) => {
-                          setNewAppointment(prev => ({ 
-                            ...prev, 
+                          setNewAppointment(prev => ({
+                            ...prev,
                             department: e.target.value,
                             doctor: ''
                           }));
@@ -1463,7 +1425,7 @@ const Appointment = () => {
                     <Heart size={18} />
                     Medical Information
                   </h3>
-                  
+                 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <label style={{
@@ -1792,7 +1754,7 @@ const Appointment = () => {
                           setSelectedAppointment({ ...selectedAppointment, status });
                         }}
                         style={{
-                          background: selectedAppointment.status === status 
+                          background: selectedAppointment.status === status
                             ? getStatusColor(status)
                             : 'white',
                           color: selectedAppointment.status === status ? 'white' : '#64748b',

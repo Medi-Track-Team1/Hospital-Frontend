@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
+import { User, Phone, Mail, MapPin, Plus, X, Loader2 } from "lucide-react";
 
 function Registration() {
   const [emergencyContacts, setEmergencyContacts] = useState([
@@ -17,6 +17,9 @@ function Registration() {
     zipCode: "",
     address: "",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
 
   const addEmergencyContact = () => {
     const newContact = {
@@ -47,6 +50,8 @@ function Registration() {
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear any previous status when user starts typing
+    if (submitStatus) setSubmitStatus(null);
   };
 
   const clearForm = () => {
@@ -64,12 +69,80 @@ function Registration() {
     setEmergencyContacts([
       { id: 1, name: "", phone: "", relation: "", email: "" },
     ]);
+    setSubmitStatus(null);
   };
 
-  const handleSubmit = () => {
-    console.log("Form Data:", formData);
-    console.log("Emergency Contacts:", emergencyContacts);
-    alert("Patient registered successfully!");
+  const validateForm = () => {
+    const requiredFields = ['patientName', 'age', 'gender', 'bloodGroup', 'city', 'state', 'zipCode', 'address'];
+    const missingFields = requiredFields.filter(field => {
+      const value = formData[field];
+      return !value || (typeof value === 'string' && !value.trim());
+    });
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in required fields: ${missingFields.join(', ')}`);
+      return false;
+    }
+
+    // Validate emergency contacts
+    const invalidContacts = emergencyContacts.filter(contact => 
+      !contact.name.trim() || !contact.phone.trim() || !contact.relation.trim()
+    );
+
+    if (invalidContacts.length > 0) {
+      alert('Please fill in all required emergency contact fields (Name, Phone, Relation)');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setSubmitStatus(null);
+
+    try {
+      // Prepare data for API
+      const submissionData = {
+        ...formData,
+        age: parseInt(formData.age), // Convert age to number
+        emergencyContacts: emergencyContacts.map(contact => ({
+          name: contact.name,
+          phone: contact.phone,
+          relation: contact.relation,
+          email: contact.email || null // Set empty email to null
+        }))
+      };
+
+      const response = await fetch('http://localhost:8080/api/patient/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Registration successful:', result);
+        setSubmitStatus('success');
+        // Optionally clear form after successful submission
+        // clearForm();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Registration failed:', errorData);
+        setSubmitStatus('error');
+        alert(`Registration failed: ${errorData.message || 'Please try again'}`);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      setSubmitStatus('error');
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputStyle = {
@@ -111,9 +184,14 @@ function Registration() {
 
   const primaryButtonStyle = {
     ...buttonStyle,
-    backgroundColor: "#2563eb",
+    backgroundColor: isLoading ? "#9ca3af" : "#2563eb",
     color: "#ffffff",
     boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)",
+    cursor: isLoading ? "not-allowed" : "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    justifyContent: "center",
   };
 
   const secondaryButtonStyle = {
@@ -121,6 +199,8 @@ function Registration() {
     backgroundColor: "#f3f4f6",
     color: "#374151",
     border: "1px solid #d1d5db",
+    cursor: isLoading ? "not-allowed" : "pointer",
+    opacity: isLoading ? 0.6 : 1,
   };
 
   const addButtonStyle = {
@@ -153,6 +233,28 @@ function Registration() {
     gap: "8px",
   };
 
+  const statusMessageStyle = {
+    padding: "12px 16px",
+    borderRadius: "8px",
+    marginBottom: "16px",
+    fontSize: "14px",
+    fontWeight: "500",
+  };
+
+  const successMessageStyle = {
+    ...statusMessageStyle,
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    border: "1px solid #a7f3d0",
+  };
+
+  const errorMessageStyle = {
+    ...statusMessageStyle,
+    backgroundColor: "#fee2e2",
+    color: "#991b1b",
+    border: "1px solid #fca5a5",
+  };
+
   return (
     <div
       style={{
@@ -172,9 +274,19 @@ function Registration() {
           overflow: "hidden",
         }}
       >
-        
-
         <div style={{ padding: "32px" }}>
+          {/* Status Messages */}
+          {submitStatus === 'success' && (
+            <div style={successMessageStyle}>
+              ✅ Patient registered successfully!
+            </div>
+          )}
+          {submitStatus === 'error' && (
+            <div style={errorMessageStyle}>
+              ❌ Registration failed. Please try again.
+            </div>
+          )}
+
           {/* Personal Details Section */}
           <div style={sectionStyle}>
             <h2 style={sectionHeaderStyle}>
@@ -211,6 +323,7 @@ function Registration() {
                       handleInputChange("patientName", e.target.value)
                     }
                     style={inputStyle}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -231,6 +344,7 @@ function Registration() {
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e.target.value)}
                     style={inputStyle}
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -253,7 +367,7 @@ function Registration() {
                       color: "#374151",
                     }}
                   >
-                    Blood Group
+                    Blood Group *
                   </label>
                   <select
                     value={formData.bloodGroup}
@@ -261,6 +375,7 @@ function Registration() {
                       handleInputChange("bloodGroup", e.target.value)
                     }
                     style={selectStyle}
+                    disabled={isLoading}
                   >
                     <option value="">Select blood group</option>
                     <option value="A+">A+</option>
@@ -291,6 +406,7 @@ function Registration() {
                       handleInputChange("gender", e.target.value)
                     }
                     style={selectStyle}
+                    disabled={isLoading}
                   >
                     <option value="">Select gender</option>
                     <option value="Male">Male</option>
@@ -316,6 +432,7 @@ function Registration() {
                       handleInputChange("maritalStatus", e.target.value)
                     }
                     style={selectStyle}
+                    disabled={isLoading}
                   >
                     <option value="">Select status</option>
                     <option value="Single">Single</option>
@@ -352,6 +469,7 @@ function Registration() {
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
                     style={inputStyle}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -372,6 +490,7 @@ function Registration() {
                     value={formData.state}
                     onChange={(e) => handleInputChange("state", e.target.value)}
                     style={inputStyle}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -394,6 +513,7 @@ function Registration() {
                       handleInputChange("zipCode", e.target.value)
                     }
                     style={inputStyle}
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -421,6 +541,7 @@ function Registration() {
                     resize: "vertical",
                     minHeight: "80px",
                   }}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -471,6 +592,7 @@ function Registration() {
                         padding: "8px",
                         borderRadius: "6px",
                       }}
+                      disabled={isLoading}
                     >
                       <X size={16} />
                     </button>
@@ -510,6 +632,7 @@ function Registration() {
                           )
                         }
                         style={inputStyle}
+                        disabled={isLoading}
                       />
                     </div>
                     <div>
@@ -536,6 +659,7 @@ function Registration() {
                           )
                         }
                         style={inputStyle}
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -570,6 +694,7 @@ function Registration() {
                           )
                         }
                         style={selectStyle}
+                        disabled={isLoading}
                       >
                         <option value="">Select relation</option>
                         <option value="Spouse">Spouse</option>
@@ -604,6 +729,7 @@ function Registration() {
                           )
                         }
                         style={inputStyle}
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -612,7 +738,11 @@ function Registration() {
             ))}
 
             <div style={{ marginTop: "24px", textAlign: "center" }}>
-              <button onClick={addEmergencyContact} style={addButtonStyle}>
+              <button 
+                onClick={addEmergencyContact} 
+                style={addButtonStyle}
+                disabled={isLoading}
+              >
                 <Plus size={16} />
                 Add Another Contact
               </button>
@@ -629,11 +759,26 @@ function Registration() {
               borderTop: "1px solid #e5e7eb",
             }}
           >
-            <button onClick={clearForm} style={secondaryButtonStyle}>
+            <button 
+              onClick={clearForm} 
+              style={secondaryButtonStyle}
+              disabled={isLoading}
+            >
               Clear Form
             </button>
-            <button onClick={handleSubmit} style={primaryButtonStyle}>
-              REGISTER PATIENT
+            <button 
+              onClick={handleSubmit} 
+              style={primaryButtonStyle}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  Registering...
+                </>
+              ) : (
+                'REGISTER PATIENT'
+              )}
             </button>
           </div>
         </div>

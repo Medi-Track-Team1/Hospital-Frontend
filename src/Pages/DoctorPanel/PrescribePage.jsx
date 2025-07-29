@@ -36,6 +36,20 @@ const PrescriptionForm = () => {
   const [showInjectionSuggestions, setShowInjectionSuggestions] = useState(false);
   const [foodPlan, setFoodPlan] = useState("");
   const [tests, setTests] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: "" });
+
+  const showToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => {
+      setToast({ show: false, message: "" });
+    }, 3000);
+  };
+
+  const handleSavePrescription = () => {
+    // Here you can add logic to save the prescription data
+    // For now, we'll just show the toast message
+    showToast("Prescription saved successfully!");
+  };
 
   const filteredSuggestions = availableMeds.filter((med) =>
     med.name.toLowerCase().includes(search.trim().toLowerCase())
@@ -124,6 +138,16 @@ const PrescriptionForm = () => {
 
   return (
     <div className="p-6 relative">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          {toast.message}
+        </div>
+      )}
+
       <h2 className="text-2xl font-semibold mb-4">Prescribe Medicines</h2>
 
       {/* Medicine Search */}
@@ -413,7 +437,10 @@ const PrescriptionForm = () => {
 
       {/* Buttons */}
       <div className="flex gap-4">
-        <button className="bg-blue-600 text-white px-5 py-2 rounded">
+        <button 
+          onClick={handleSavePrescription}
+          className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700"
+        >
           Save Prescription
         </button>
       </div>

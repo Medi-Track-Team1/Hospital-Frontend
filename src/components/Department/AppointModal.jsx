@@ -141,7 +141,7 @@ const AppointModal = ({ doctor, onClose }) => {
       {showConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-[90%] max-w-md text-center">
-            <h3 className="text-xl font-bold mb-4 text-green-700">✅ Appointment Confirmed!</h3>
+            <h3 className="text-xl font-bold mb-4 text-green-700">✅ Mail will be sent shortly!,</h3>
             <p className="mb-2"><strong>Patient:</strong> {form.name}</p>
             <p className="mb-2"><strong>Doctor:</strong> {form.doctor}</p>
             <p className="mb-2"><strong>Department:</strong> {form.specialty}</p>

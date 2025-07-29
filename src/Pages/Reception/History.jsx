@@ -38,19 +38,10 @@ function App() {
 
         const response = await axios.get(url);
 
-        console.log("API raw data:", response.data);
-
         if (response.data && response.data.success && response.data.data) {
           const normalizedBills = response.data.data.map((bill) => {
-            console.log("Processing bill:", bill);
-
-            const medicines = Array.isArray(bill.medicines)
-              ? bill.medicines
-              : [];
+            const medicines = Array.isArray(bill.medicines) ? bill.medicines : [];
             const tests = Array.isArray(bill.tests) ? bill.tests : [];
-
-            console.log("Medicines:", medicines);
-            console.log("Tests:", tests);
 
             const items = [
               ...medicines.map((item) => ({
@@ -74,26 +65,23 @@ function App() {
             ];
 
             return {
-              id: `${bill.appointmentId || ""}-${bill.patientId || ""}-${
-                bill.createdAt || ""
-              }`,
+              id: `${bill.appointmentId || ""}-${bill.patientId || ""}-${bill.createdAt || ""}`,
               appointmentId: bill.appointmentId || null,
               patientId: bill.patientId || null,
-              patientName:
-                bill.patientName || `Patient ${bill.patientId || "Unknown"}`,
+              patientName: bill.patientName || `Patient ${bill.patientId || "Unknown"}`,
               doctorName: bill.doctorName || "Unknown",
               billDate: bill.createdAt
                 ? new Date(bill.createdAt).toISOString().split("T")[0]
                 : new Date().toISOString().split("T")[0],
               createdAt: bill.createdAt || null,
               items,
+              consultancyFee: bill.consultancyFee ?? 0, // Added consultancyFee here
               total: bill.totalAmount ?? 0,
               totalAmount: bill.totalAmount ?? 0,
               status: bill.status || "paid",
             };
           });
 
-          console.log("Normalized bills set to state:", normalizedBills);
           setBills(normalizedBills);
         } else {
           setBills([]);
@@ -120,8 +108,7 @@ function App() {
         (!dateRange.start || bill.billDate >= dateRange.start) &&
         (!dateRange.end || bill.billDate <= dateRange.end);
 
-      const matchesPatient =
-        !selectedPatient || bill.patientId === selectedPatient;
+      const matchesPatient = !selectedPatient || bill.patientId === selectedPatient;
 
       return matchesSearch && matchesDateRange && matchesPatient;
     });
@@ -160,15 +147,9 @@ function App() {
     (sum, bill) => sum + (bill.total || bill.totalAmount || 0),
     0
   );
-  const paidBills = filteredAndSortedBills.filter(
-    (bill) => bill.status === "paid"
-  );
-  const pendingBills = filteredAndSortedBills.filter(
-    (bill) => bill.status === "pending"
-  );
-  const overdueBills = filteredAndSortedBills.filter(
-    (bill) => bill.status === "overdue"
-  );
+  const paidBills = filteredAndSortedBills.filter((bill) => bill.status === "paid");
+  const pendingBills = filteredAndSortedBills.filter((bill) => bill.status === "pending");
+  const overdueBills = filteredAndSortedBills.filter((bill) => bill.status === "overdue");
 
   const exportData = () => {
     const csvContent = [
@@ -176,8 +157,7 @@ function App() {
       ...filteredAndSortedBills.map((bill) => [
         bill.patientName || "",
         bill.patientId,
-        bill.billDate ||
-          new Date(bill.createdAt || "").toISOString().split("T")[0],
+        bill.billDate || new Date(bill.createdAt || "").toISOString().split("T")[0],
         bill.total || bill.totalAmount || 0,
         bill.status || "paid",
         bill.doctorName,
@@ -217,7 +197,6 @@ function App() {
   };
 
   const handleBillClick = (bill) => {
-    console.log("Selected bill items:", bill.items);
     setSelectedBillDetails(bill);
   };
 
@@ -229,7 +208,6 @@ function App() {
     setSelectedPatient((prev) => prev);
   };
 
-  // Loading state - initial load
   if (loading && bills.length === 0) {
     return (
       <div
@@ -286,7 +264,6 @@ function App() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div
@@ -359,12 +336,8 @@ function App() {
               cursor: "pointer",
               transition: "background-color 0.2s ease",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#2563EB")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#3B82F6")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2563EB")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3B82F6")}
           >
             Try Again
           </button>
@@ -417,9 +390,7 @@ function App() {
                 animation: "spin 1s linear infinite",
               }}
             />
-            <span style={{ color: "#1F2937", fontWeight: "500" }}>
-              Updating data...
-            </span>
+            <span style={{ color: "#1F2937", fontWeight: "500" }}>Updating data...</span>
           </div>
         </div>
       )}
@@ -487,9 +458,7 @@ function App() {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
               }}
             >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "16px" }}
-              >
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <div
                   style={{
                     width: "50px",
@@ -638,12 +607,8 @@ function App() {
               cursor: "pointer",
               transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#2563EB")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#3B82F6")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2563EB")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3B82F6")}
             aria-expanded={showFilters}
             aria-controls="filter-section"
           >
@@ -675,12 +640,8 @@ function App() {
               cursor: "pointer",
               transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#059669")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#10B981")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#059669")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#10B981")}
           >
             <Download size={16} />
             Export CSV
@@ -700,12 +661,8 @@ function App() {
               cursor: "pointer",
               transition: "background-color 0.3s",
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#DC2626")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#EF4444")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#DC2626")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#EF4444")}
           >
             Clear Filters
           </button>
@@ -724,19 +681,14 @@ function App() {
           >
             {/* Date range filters */}
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <label
-                htmlFor="start-date"
-                style={{ marginBottom: "4px", fontWeight: "600" }}
-              >
+              <label htmlFor="start-date" style={{ marginBottom: "4px", fontWeight: "600" }}>
                 Start Date
               </label>
               <input
                 id="start-date"
                 type="date"
                 value={dateRange.start}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, start: e.target.value }))
-                }
+                onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
                 style={{
                   padding: "8px 12px",
                   borderRadius: "8px",
@@ -748,19 +700,14 @@ function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <label
-                htmlFor="end-date"
-                style={{ marginBottom: "4px", fontWeight: "600" }}
-              >
+              <label htmlFor="end-date" style={{ marginBottom: "4px", fontWeight: "600" }}>
                 End Date
               </label>
               <input
                 id="end-date"
                 type="date"
                 value={dateRange.end}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, end: e.target.value }))
-                }
+                onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
                 style={{
                   padding: "8px 12px",
                   borderRadius: "8px",
@@ -772,17 +719,8 @@ function App() {
             </div>
 
             {/* Patient ID filter */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                minWidth: "200px",
-              }}
-            >
-              <label
-                htmlFor="patient-id"
-                style={{ marginBottom: "4px", fontWeight: "600" }}
-              >
+            <div style={{ display: "flex", flexDirection: "column", minWidth: "200px" }}>
+              <label htmlFor="patient-id" style={{ marginBottom: "4px", fontWeight: "600" }}>
                 Patient ID
               </label>
               <input
@@ -858,6 +796,21 @@ function App() {
               >
                 Date
               </th>
+              {/* Added Consultancy Fee header */}
+              <th
+                style={{
+                  textAlign: "right",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
+                  minWidth: "130px",
+                }}
+              >
+                Consultancy Fee
+              </th>
+
               <th
                 style={{
                   textAlign: "right",
@@ -890,7 +843,7 @@ function App() {
             {filteredAndSortedBills.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   style={{
                     textAlign: "center",
                     padding: "16px",
@@ -911,45 +864,34 @@ function App() {
                   transition: "background-color 0.2s ease",
                 }}
                 onClick={() => handleBillClick(bill)}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#F3F4F6")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F3F4F6")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     handleBillClick(bill);
                   }
                 }}
-                aria-label={`View details for bill of ${
-                  bill.patientName
-                }, date ${bill.billDate}, amount ₹${
-                  bill.total || bill.totalAmount
-                }`}
+                aria-label={`View details for bill of ${bill.patientName}, date ${bill.billDate}, amount ₹${bill.total || bill.totalAmount}`}
               >
                 <td style={{ padding: "12px 16px" }}>
-                  <div style={{ fontWeight: "600", color: "#1F2937" }}>
-                    {bill.patientName}
-                  </div>
-                  <div style={{ fontSize: "12px", color: "#6B7280" }}>
-                    {bill.patientId}
-                  </div>
+                  <div style={{ fontWeight: "600", color: "#1F2937" }}>{bill.patientName}</div>
+                  <div style={{ fontSize: "12px", color: "#6B7280" }}>{bill.patientId}</div>
                 </td>
-                <td style={{ padding: "12px 16px", color: "#374151" }}>
-                  {bill.doctorName}
-                </td>
-                <td style={{ padding: "12px 16px", color: "#374151" }}>
-                  {bill.billDate}
-                </td>
+                <td style={{ padding: "12px 16px", color: "#374151" }}>{bill.doctorName}</td>
+                <td style={{ padding: "12px 16px", color: "#374151" }}>{bill.billDate}</td>
+                {/* Consultancy Fee cell */}
                 <td
                   style={{
                     padding: "12px 16px",
                     textAlign: "right",
                     fontWeight: "600",
+                    color: "#2563EB",
                   }}
                 >
+                  ₹{(bill.consultancyFee || 0).toLocaleString()}
+                </td>
+                <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: "600" }}>
                   ₹{(bill.total || bill.totalAmount || 0).toLocaleString()}
                 </td>
                 <td style={{ padding: "12px 16px", textAlign: "center" }}>
@@ -1046,10 +988,13 @@ function App() {
             <p>
               <strong>Date:</strong> {selectedBillDetails.billDate}
             </p>
+            {/* Consultancy Fee in Modal */}
+            <p>
+              <strong>Consultancy Fee:</strong> ₹
+              {(selectedBillDetails.consultancyFee || 0).toLocaleString()}
+            </p>
 
-            <h3 style={{ marginTop: "24px", fontWeight: "600" }}>
-              Items (Medicines & Tests)
-            </h3>
+            <h3 style={{ marginTop: "24px", fontWeight: "600" }}>Items (Medicines & Tests)</h3>
 
             {selectedBillDetails.items.length === 0 ? (
               <p>No items found for this bill.</p>
@@ -1122,9 +1067,7 @@ function App() {
                 <tbody>
                   {selectedBillDetails.items.map((item, idx) => (
                     <tr key={`${item.medicineName || item.name}-${idx}`}>
-                      <td style={{ padding: "8px", color: "#374151" }}>
-                        {item.name}
-                      </td>
+                      <td style={{ padding: "8px", color: "#374151" }}>{item.name}</td>
                       <td style={{ padding: "8px", textAlign: "right" }}>
                         {item.quantity || "-"}
                       </td>
@@ -1167,11 +1110,7 @@ function App() {
               }}
             >
               Total: ₹
-              {(
-                selectedBillDetails.total ||
-                selectedBillDetails.totalAmount ||
-                0
-              ).toLocaleString()}
+              {(selectedBillDetails.total || selectedBillDetails.totalAmount || 0).toLocaleString()}
             </h3>
           </div>
         </div>

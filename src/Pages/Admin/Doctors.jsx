@@ -226,6 +226,12 @@ const Doctors = () => {
               <option value="Cardiology">Cardiology</option>
               <option value="Neurology">Neurology</option>
               <option value="Pediatrics">Pediatrics</option>
+              <option value="Hepatology">Hepatology</option>
+              <option value="Psychology">Psychology</option>
+              <option value="Dental">Dental</option>
+              <option value="Eye Care">Eye Care</option>
+              <option value="Fertility">Fertility</option>
+              
             </select>
           </div>
           <div>
@@ -407,7 +413,7 @@ const Doctors = () => {
           },
           { name: 'name', label: 'Full Name', type: 'text', required: true },
           { name: 'specialty', label: 'Specialty', type: 'select', 
-            options: ['Cardiology', 'Neurology', 'Pediatrics', 'General Medicine', 'Orthopedics', 'Dermatology', 'Oncology'], 
+            options: ['Cardiology', 'Neurology', 'Pediatrics', 'Hepatology', 'Psychology', 'Dental', 'Eye Care','Fertility'], 
             required: true 
           },
           {

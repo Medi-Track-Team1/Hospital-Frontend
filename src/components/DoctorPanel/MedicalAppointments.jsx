@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 
 
@@ -23,7 +23,10 @@ import { PatientDetailsModal } from "./PatientDetailsModal";
 import { RescheduleModal } from "./RescheduleModal";
 import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
 import PrescribeModal from "./PrescribeModal";
-
+import {
+  listAppointmentsByDoctorId,
+  listCompletedAppointmentsByDoctorId,
+} from '../../services/DoctorPanel/AppointmentService';
 export const MedicalAppointments = () => {
   const { toast } = useToast();
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -34,231 +37,34 @@ export const MedicalAppointments = () => {
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   
-  const [appointments, setAppointments] = useState([
-    {
-      id: "1",
-      patient: {
-        name: "Sarah Johnson",
-        type: "in-person",
-        patientId: "P1-2024-001",
-        dateOfBirth: "March 15, 1990",
-        age: 34,
-        gender: "Female",
-        bloodType: "A+",
-        maritalStatus: "Married",
-        phone: "(555) 123-4567",
-        email: "sarah.johnson@email.com",
-        address: "123 Main Street, Springfield, IL 62701",
-        occupation: "Software Engineer",
-        language: "English"
-      },
-      dateTime: "Today 09:00 AM",
-      duration: "30 min",
-      type: "Consultation",
-      reason: "Hypertension follow-up",
-      priority: "high",
-      status: "pending",
-      isAccepted: false
-    },
-    {
-      id: "2",
-      patient: {
-        name: "Michael Chen",
-        type: "video-call",
-        patientId: "P1-2024-002",
-        dateOfBirth: "July 22, 1985",
-        age: 39,
-        gender: "Male",
-        bloodType: "B+",
-        maritalStatus: "Single",
-        phone: "(555) 234-5678",
-        email: "michael.chen@email.com",
-        address: "456 Oak Avenue, Springfield, IL 62702",
-        occupation: "Marketing Manager",
-        language: "English"
-      },
-      dateTime: "Today 10:30 AM",
-      duration: "45 min",
-      type: "Check-up",
-      reason: "Diabetes management",
-      priority: "medium",
-      status: "accepted",
-      isAccepted: true
-    },
-    {
-      id: "3",
-      patient: {
-        name: "Jennifer Wilson",
-        type: "video-call",
-        patientId: "P1-2024-003",
-        dateOfBirth: "November 8, 1992",
-        age: 32,
-        gender: "Female",
-        bloodType: "O-",
-        maritalStatus: "Married",
-        phone: "(555) 345-6789",
-        email: "jennifer.wilson@email.com",
-        address: "789 Pine Street, Springfield, IL 62703",
-        occupation: "Teacher",
-        language: "English"
-      },
-      dateTime: "Tomorrow 10:00 AM",
-      duration: "30 min",
-      type: "Consultation",
-      reason: "General checkup",
-      priority: "low",
-      status: "pending",
-      isAccepted: false
-    },
-    {
-      id: "4",
-      patient: {
-        name: "Robert Davis",
-        type: "in-person",
-        patientId: "P1-2024-004",
-        dateOfBirth: "April 12, 1978",
-        age: 46,
-        gender: "Male",
-        bloodType: "AB+",
-        maritalStatus: "Divorced",
-        phone: "(555) 456-7890",
-        email: "robert.davis@email.com",
-        address: "321 Elm Street, Springfield, IL 62704",
-        occupation: "Accountant",
-        language: "English"
-      },
-      dateTime: "Jan 25 11:30 AM",
-      duration: "60 min",
-      type: "Surgery Consultation",
-      reason: "Knee surgery consultation",
-      priority: "high",
-      status: "pending",
-      isAccepted: false
+  const [appointments, setAppointments] = useState([]);
+
+  const [appointmentHistory,setAppointmentHistory] = useState([]);
+const { id: doctorId } = useParams();
+
+  useEffect(() => {
+    if (doctorId) {
+      listAppointmentsByDoctorId(doctorId)
+        .then((res) => {
+          const data = res.data;
+          setAppointments(Array.isArray(data) ? data : data.appointments || []);
+        })
+        .catch(() => setAppointments([]));
+
+      listCompletedAppointmentsByDoctorId(doctorId)
+        .then((res) => {
+          const data = res.data;
+          setAppointmentHistory(Array.isArray(data) ? data : data.appointments || []);
+        })
+        .catch(() => setAppointmentHistory([]));
     }
-  ]);
+  }, [doctorId]);
+  
 
-  const [appointmentHistory] = useState([
-    {
-      id: "h1",
-      patient: {
-        name: "Emily Rodriguez",
-        type: "in-person",
-        patientId: "P1-2024-005",
-        dateOfBirth: "September 3, 1988",
-        age: 36,
-        gender: "Female",
-        bloodType: "A-",
-        maritalStatus: "Married",
-        phone: "(555) 567-8901",
-        email: "emily.rodriguez@email.com",
-        address: "654 Maple Drive, Springfield, IL 62705",
-        occupation: "Nurse",
-        language: "English"
-      },
-      dateTime: "Jan 15 02:00 PM",
-      duration: "60 min",
-      type: "Therapy",
-      reason: "Anxiety counseling",
-      priority: "medium",
-      status: "completed",
-      isAccepted: true
-    },
-    {
-      id: "h2",
-      patient: {
-        name: "David Thompson",
-        type: "in-person",
-        patientId: "P1-2024-006",
-        dateOfBirth: "December 17, 1975",
-        age: 49,
-        gender: "Male",
-        bloodType: "O+",
-        maritalStatus: "Married",
-        phone: "(555) 678-9012",
-        email: "david.thompson@email.com",
-        address: "987 Cedar Lane, Springfield, IL 62706",
-        occupation: "Engineer",
-        language: "English"
-      },
-      dateTime: "Jan 14 03:30 PM",
-      duration: "30 min",
-      type: "Follow-up",
-      reason: "Arthritis treatment review",
-      priority: "low",
-      status: "completed",
-      isAccepted: true
-    },
-    {
-      id: "h3",
-      patient: {
-        name: "Maria Garcia",
-        type: "video-call",
-        patientId: "P1-2024-007",
-        dateOfBirth: "May 25, 1993",
-        age: 31,
-        gender: "Female",
-        bloodType: "B-",
-        maritalStatus: "Single",
-        phone: "(555) 789-0123",
-        email: "maria.garcia@email.com",
-        address: "147 Birch Road, Springfield, IL 62707",
-        occupation: "Graphic Designer",
-        language: "Spanish"
-      },
-      dateTime: "Jan 12 07:00 PM",
-      duration: "45 min",
-      type: "Consultation",
-      reason: "Blood pressure monitoring",
-      priority: "medium",
-      status: "completed",
-      isAccepted: true
-    }
-  ]);
+  
+  
 
-  const handleAccept = (appointmentId) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === appointmentId
-          ? { ...apt, status: "accepted", isAccepted: true }
-          : apt
-      )
-    );
-
-    toast({
-      title: "Appointment Accepted",
-      description: "The appointment has been successfully accepted.",
-    });
-  };
-
-  const handleReschedule = (appointmentId) => {
-    const appointment = appointments.find((apt) => apt.id === appointmentId);
-    if (appointment) {
-      setRescheduleAppointment(appointment);
-    }
-  };
-
-  const handleRescheduleConfirm = (appointmentId, newDate, newTime) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === appointmentId
-          ? {
-              ...apt,
-              dateTime: `${format(newDate, "MMM dd")} ${newTime}`,
-              status: "pending",
-              isAccepted: false,
-            }
-          : apt
-      )
-    );
-
-    toast({
-      title: "Appointment Rescheduled",
-      description: `Appointment has been rescheduled to ${format(
-        newDate,
-        "MMM dd"
-      )} at ${newTime}.`,
-    });
-  };
+   
 
   
   const getStatusBadge = (status) => {
@@ -342,7 +148,7 @@ export const MedicalAppointments = () => {
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
                               </div>
                               <div>
-                                <p className="font-medium">{appointment.patient.name}</p>
+                                <p className="font-medium">{appointment.patientName}</p>
                                
                               </div>
                             </div>
@@ -351,8 +157,8 @@ export const MedicalAppointments = () => {
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="font-medium">{appointment.dateTime}</p>
-                               
+                                <p className="font-medium">{appointment.date}</p>
+                               <p className="font-medium">{appointment.time}</p>
                               </div>
                             </div>
                           </td>
@@ -437,7 +243,7 @@ export const MedicalAppointments = () => {
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
                               </div>
                               <div>
-                                <p className="font-medium">{appointment.patient.name}</p>
+                                <p className="font-medium">{appointment.patientName}</p>
                                 
                               </div>
                             </div>
@@ -446,8 +252,8 @@ export const MedicalAppointments = () => {
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="font-medium">{appointment.dateTime}</p>
-                                
+                                <p className="font-medium">{appointment.date}</p>
+                                <p className="font-medium">{appointment.time}</p>
                               </div>
                             </div>
                           </td>

@@ -1,193 +1,382 @@
 import React, { useState } from "react";
 
 const availableMeds = [
-  { name: "Paracetamol", type: "Tablet" },
-  { name: "Amoxicillin", type: "Capsule" },
-  { name: "Cough Syrup", type: "Syrup" },
-  { name: "Ibuprofen", type: "Tablet" },
-  { name: "Cetirizine", type: "Tablet" },
+  { name: "Paracetamol", type: "Tablet", dosage: "500mg" },
+  { name: "Amoxicillin", type: "Capsule", dosage: "250mg" },
+  { name: "Ibuprofen", type: "Syrup", dosage: "100mg/5ml" },
+  { name: "Loratadine", type: "Injection", dosage: "10mg/ml" },
+  { name: "Omeprazole", type: "Tablet", dosage: "20mg" }
 ];
 
-const PrescribePage = () => {
+const availableInjections = [
+  { name: "Insulin", dosage: "100 units/ml" },
+  { name: "Vitamin B12", dosage: "1000mcg/ml" },
+  { name: "Morphine", dosage: "10mg/ml" },
+  { name: "Diclofenac", dosage: "25mg/ml" },
+  { name: "Dexamethasone", dosage: "4mg/ml" },
+  { name: "Adrenaline", dosage: "1mg/ml" },
+  { name: "Furosemide", dosage: "10mg/ml" }
+];
+
+const testOptions = [
+  "Blood Test",
+  "ECG",
+  "Chest X-Ray",
+  "Urine Test",
+  "MRI Scan",
+  "CT Scan",
+];
+
+const PrescriptionForm = () => {
+  const [search, setSearch] = useState("");
   const [selectedMeds, setSelectedMeds] = useState([]);
   const [injections, setInjections] = useState([]);
-  const [foodPrescription, setFoodPrescription] = useState("");
-  const [recommendedTests, setRecommendedTests] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [injectionSearch, setInjectionSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showInjectionSuggestions, setShowInjectionSuggestions] = useState(false);
+  const [foodPlan, setFoodPlan] = useState("");
+  const [tests, setTests] = useState([]);
+
+  const filteredSuggestions = availableMeds.filter((med) =>
+    med.name.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
+  const filteredInjectionSuggestions = availableInjections.filter((inj) =>
+    inj.name.toLowerCase().includes(injectionSearch.trim().toLowerCase())
+  );
 
   const handleAddMedicine = (med) => {
-    if (!selectedMeds.find((m) => m.name === med.name)) {
+    const exists = selectedMeds.find(
+      (m) => m.name.toLowerCase() === med.name.toLowerCase()
+    );
+    if (!exists) {
       setSelectedMeds([
         ...selectedMeds,
-        { ...med, dosage: "", timing: [], duration: "" },
+        { ...med, timing: [], duration: "", quantity: "" },
       ]);
     }
-    setSearchTerm(""); // Clear input
+    setSearch("");
+    setShowSuggestions(false);
   };
 
-  const handleManualAdd = () => {
-    const trimmed = searchTerm.trim();
-    if (trimmed && !selectedMeds.find((m) => m.name === trimmed)) {
-      handleAddMedicine({ name: trimmed, type: "Custom" });
+  const handleAddInjectionFromSearch = (injection) => {
+    setInjections([
+      ...injections,
+      { 
+        name: injection.name, 
+        dosage: injection.dosage, 
+        schedule: "", 
+        notes: "",
+        quantity: ""
+      },
+    ]);
+    setInjectionSearch("");
+    setShowInjectionSuggestions(false);
+  };
+
+  const handleRemoveMedicine = (indexToRemove) => {
+    const updated = selectedMeds.filter((_, idx) => idx !== indexToRemove);
+    setSelectedMeds(updated);
+  };
+
+  const handleRemoveInjection = (indexToRemove) => {
+    const updated = injections.filter((_, idx) => idx !== indexToRemove);
+    setInjections(updated);
+  };
+
+  const handleTimingChange = (index, time) => {
+    const updated = [...selectedMeds];
+    const current = updated[index].timing;
+    if (current.includes(time)) {
+      updated[index].timing = current.filter((t) => t !== time);
+    } else {
+      updated[index].timing.push(time);
     }
+    setSelectedMeds(updated);
   };
 
-  const handleMedicineChange = (index, field, value) => {
+  const updateMedField = (index, field, value) => {
     const updated = [...selectedMeds];
     updated[index][field] = value;
     setSelectedMeds(updated);
   };
 
   const handleAddInjection = () => {
-    setInjections([...injections, { name: "", dosage: "", schedule: "", notes: "" }]);
+    setInjections([
+      ...injections,
+      { name: "", dosage: "", schedule: "", notes: "", quantity: "" },
+    ]);
   };
 
-  const handleInjectionChange = (index, field, value) => {
+  const updateInjection = (index, field, value) => {
     const updated = [...injections];
     updated[index][field] = value;
     setInjections(updated);
   };
 
-  const handleSave = () => {
-    const data = {
-      medicines: selectedMeds,
-      injections,
-      foodPrescription,
-      recommendedTests,
-    };
-    console.log("Prescription Saved:", data);
-    alert("Prescription Saved Successfully!");
+  const handleTestToggle = (testName) => {
+    setTests((prev) =>
+      prev.includes(testName)
+        ? prev.filter((t) => t !== testName)
+        : [...prev, testName]
+    );
   };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const filteredMeds = availableMeds.filter((med) =>
-    med.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="p-6 max-w-3xl mx-auto font-roboto text-black">
-      <h2 className="text-2xl mb-4">Prescribe Medicines</h2>
+    <div className="p-6 relative">
+      <h2 className="text-2xl font-semibold mb-4">Prescribe Medicines</h2>
 
-      {/* Search & Select Medicines */}
-      <div className="mb-4">
-        <h3 className="text-lg mb-2">Search & Add Medicines</h3>
-        <div className="flex items-center gap-2 mb-2">
-          <input
-            type="text"
-            placeholder="Search medicine..."
-            className="w-full px-3 py-2 border rounded"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button
-            onClick={handleManualAdd}
-            className="bg-[#2563eb] text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add
-          </button>
+      {/* Medicine Search */}
+      <div className="mb-6">
+        <h3 className="text-lg font-medium mb-2">Search & Add Medicines</h3>
+        <div className="relative">
+          <div className="flex gap-2">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search medicine..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                className="border px-3 py-2 pr-8 rounded w-full"
+              />
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg hover:text-gray-700"
+                  aria-label="Clear search"
+                  title="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                const found = availableMeds.find(
+                  (m) => m.name.toLowerCase() === search.trim().toLowerCase()
+                );
+                if (found) handleAddMedicine(found);
+                else alert("❌ Medicine not found");
+              }}
+              className="bg-blue-600 text-white px-4 rounded"
+            >
+              Add
+            </button>
+          </div>
+
+          {showSuggestions &&
+            search.trim() &&
+            filteredSuggestions.length > 0 && (
+              <ul className="absolute bg-white border w-full rounded mt-1 shadow z-50 max-h-48 overflow-auto">
+                {filteredSuggestions.map((med, idx) => (
+                  <li
+                    key={idx}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleAddMedicine(med)}
+                  >
+                    {med.name} ({med.type} - {med.dosage})
+                  </li>
+                ))}
+              </ul>
+            )}
         </div>
-
-        {/* Suggestions */}
-        {searchTerm && filteredMeds.length > 0 && (
-          <ul className="bg-white border rounded shadow-sm max-h-40 overflow-y-auto">
-            {filteredMeds.map((med, idx) => (
-              <li
-                key={idx}
-                className="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                onClick={() => handleAddMedicine(med)}
-              >
-                {med.name} ({med.type})
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       {/* Selected Medicines */}
       {selectedMeds.map((med, index) => (
-        <div key={index} className="border rounded p-3 mb-4 bg-gray-50">
-          <h4 className="text-[#2563eb] mb-1">{med.name}</h4>
-          <p className="text-sm text-gray-600 mb-2">{med.type}</p>
+        <div
+          key={index}
+          className="bg-gray-50 border rounded p-4 mb-4 shadow-sm relative"
+        >
+          {/* ❌ Close button - changed to black */}
+          <button
+            onClick={() => handleRemoveMedicine(index)}
+            className="absolute top-2 right-2 text-black text-xl hover:text-gray-700"
+            title="Remove Medicine"
+          >
+            ×
+          </button>
 
-          <label className="block text-sm mb-1">Dosage</label>
-          <input
-            type="text"
-            value={med.dosage}
-            onChange={(e) => handleMedicineChange(index, "dosage", e.target.value)}
-            placeholder="e.g. 1 tablet or 5ml"
-            className="w-full px-3 py-2 mb-3 border rounded"
-          />
+          <h3 className="text-blue-600 font-medium text-lg">{med.name}</h3>
+          <p className="text-sm text-gray-700">{med.type} - {med.dosage}</p>
 
-          <label className="block text-sm mb-1">Timing</label>
-          <div className="flex space-x-3 mb-3">
-            {["Morning", "Afternoon", "Night"].map((time) => (
-              <label key={time} className="flex items-center space-x-1 text-sm">
-                <input
-                  type="checkbox"
-                  checked={med.timing.includes(time)}
-                  onChange={(e) => {
-                    const newTiming = e.target.checked
-                      ? [...med.timing, time]
-                      : med.timing.filter((t) => t !== time);
-                    handleMedicineChange(index, "timing", newTiming);
-                  }}
-                />
-                <span>{time}</span>
-              </label>
-            ))}
+          <div className="mt-3">
+            <label className="block mb-1 font-medium">Quantity</label>
+            <input
+              type="number"
+              placeholder="e.g. 2"
+              value={med.quantity}
+              onChange={(e) =>
+                updateMedField(index, "quantity", e.target.value)
+              }
+              className="w-full border px-3 py-2 rounded"
+              min="1"
+            />
           </div>
 
-          <label className="block text-sm mb-1">Duration (days)</label>
-          <input
-            type="number"
-            value={med.duration}
-            onChange={(e) => handleMedicineChange(index, "duration", e.target.value)}
-            placeholder="e.g. 5"
-            className="w-full px-3 py-2 mb-2 border rounded"
-          />
+          <div className="mt-3">
+            <label className="block mb-1 font-medium">Timing</label>
+            <div className="flex gap-4">
+              {["Morning", "Afternoon", "Night"].map((time) => (
+                <label key={time} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={med.timing.includes(time)}
+                    onChange={() => handleTimingChange(index, time)}
+                  />
+                  {time}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <label className="block mb-1 font-medium">Duration (days)</label>
+            <input
+              type="number"
+              placeholder="e.g. 5"
+              value={med.duration}
+              onChange={(e) =>
+                updateMedField(index, "duration", e.target.value)
+              }
+              className="w-full border px-3 py-2 rounded"
+              min="1"
+            />
+          </div>
         </div>
       ))}
 
       {/* Injections */}
       <div className="mb-6">
-        <h3 className="text-lg mb-2">Add Injections</h3>
+        <h3 className="text-lg font-medium mb-2">Add Injections</h3>
+        
+        {/* Injection Search */}
+        <div className="relative mb-4">
+          <div className="flex gap-2">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search injection..."
+                value={injectionSearch}
+                onChange={(e) => {
+                  setInjectionSearch(e.target.value);
+                  setShowInjectionSuggestions(true);
+                }}
+                className="border px-3 py-2 pr-8 rounded w-full"
+              />
+              {injectionSearch && (
+                <button
+                  onClick={() => {
+                    setInjectionSearch("");
+                    setShowInjectionSuggestions(false);
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg hover:text-gray-700"
+                  aria-label="Clear search"
+                  title="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                const found = availableInjections.find(
+                  (inj) => inj.name.toLowerCase() === injectionSearch.trim().toLowerCase()
+                );
+                if (found) handleAddInjectionFromSearch(found);
+                else alert("❌ Injection not found");
+              }}
+              className="bg-blue-600 text-white px-4 rounded"
+            >
+              Add
+            </button>
+          </div>
+
+          {showInjectionSuggestions &&
+            injectionSearch.trim() &&
+            filteredInjectionSuggestions.length > 0 && (
+              <ul className="absolute bg-white border w-full rounded mt-1 shadow z-50 max-h-48 overflow-auto">
+                {filteredInjectionSuggestions.map((inj, idx) => (
+                  <li
+                    key={idx}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleAddInjectionFromSearch(inj)}
+                  >
+                    {inj.name} ({inj.dosage})
+                  </li>
+                ))}
+              </ul>
+            )}
+        </div>
+
         <button
           onClick={handleAddInjection}
-          className="bg-[#2563eb] text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4"
         >
-          + Add Injection
+          + Add Custom Injection
         </button>
+
         {injections.map((inj, index) => (
-          <div key={index} className="border rounded p-3 mt-3 bg-gray-50">
+          <div
+            key={index}
+            className="border p-4 rounded bg-gray-50 mb-4 space-y-3 relative"
+          >
+            <button
+              onClick={() => handleRemoveInjection(index)}
+              className="absolute top-2 right-2 text-black text-xl hover:text-gray-700"
+              title="Remove Injection"
+            >
+              ×
+            </button>
+
             <input
               type="text"
               placeholder="Injection Name"
               value={inj.name}
-              onChange={(e) => handleInjectionChange(index, "name", e.target.value)}
-              className="w-full px-3 py-2 mb-2 border rounded"
+              onChange={(e) => updateInjection(index, "name", e.target.value)}
+              className="w-full border px-3 py-2 rounded"
             />
             <input
               type="text"
-              placeholder="Dosage (e.g. 2ml)"
+              placeholder="Dosage (e.g. 10mg/ml)"
               value={inj.dosage}
-              onChange={(e) => handleInjectionChange(index, "dosage", e.target.value)}
-              className="w-full px-3 py-2 mb-2 border rounded"
+              onChange={(e) => updateInjection(index, "dosage", e.target.value)}
+              className="w-full border px-3 py-2 rounded"
             />
+            <div>
+              <label className="block mb-1 font-medium">Quantity</label>
+              <input
+                type="number"
+                placeholder="e.g. 2"
+                value={inj.quantity}
+                onChange={(e) => updateInjection(index, "quantity", e.target.value)}
+                className="w-full border px-3 py-2 rounded"
+                min="1"
+              />
+            </div>
             <input
               type="text"
               placeholder="Schedule (e.g. Daily for 3 days)"
               value={inj.schedule}
-              onChange={(e) => handleInjectionChange(index, "schedule", e.target.value)}
-              className="w-full px-3 py-2 mb-2 border rounded"
+              onChange={(e) =>
+                updateInjection(index, "schedule", e.target.value)
+              }
+              className="w-full border px-3 py-2 rounded"
             />
             <textarea
               placeholder="Additional Notes"
               value={inj.notes}
-              onChange={(e) => handleInjectionChange(index, "notes", e.target.value)}
-              className="w-full px-3 py-2 border rounded"
+              onChange={(e) => updateInjection(index, "notes", e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+              rows={3}
             />
           </div>
         ))}
@@ -195,45 +384,41 @@ const PrescribePage = () => {
 
       {/* Food Prescription */}
       <div className="mb-6">
-        <h3 className="text-lg mb-2">Food Prescription (Diet Plan)</h3>
+        <h3 className="text-lg font-medium mb-2">Food Prescription (Diet Plan)</h3>
         <textarea
-          rows="3"
-          className="w-full px-3 py-2 border rounded"
-          value={foodPrescription}
-          onChange={(e) => setFoodPrescription(e.target.value)}
           placeholder="Suggest a diet plan, e.g., Avoid spicy foods, Eat high-protein diet, etc."
-        ></textarea>
+          value={foodPlan}
+          onChange={(e) => setFoodPlan(e.target.value)}
+          className="w-full border px-3 py-2 rounded"
+          rows={3}
+        />
       </div>
 
       {/* Tests to be Taken */}
       <div className="mb-6">
-        <h3 className="text-lg mb-2">Tests to be Taken</h3>
-        <textarea
-          rows="2"
-          className="w-full px-3 py-2 border rounded"
-          value={recommendedTests}
-          onChange={(e) => setRecommendedTests(e.target.value)}
-          placeholder="e.g., Blood test, ECG, Chest X-Ray, etc."
-        ></textarea>
+        <h3 className="text-lg font-medium mb-2">Tests to be Taken</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {testOptions.map((test) => (
+            <label key={test} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={tests.includes(test)}
+                onChange={() => handleTestToggle(test)}
+              />
+              {test}
+            </label>
+          ))}
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex space-x-4">
-        <button
-          onClick={handleSave}
-          className="bg-[#2563eb] text-white px-6 py-2 rounded hover:bg-blue-700"
-        >
+      {/* Buttons */}
+      <div className="flex gap-4">
+        <button className="bg-blue-600 text-white px-5 py-2 rounded">
           Save Prescription
-        </button>
-        <button
-          onClick={handlePrint}
-          className="border border-[#2563eb] text-[#2563eb] px-6 py-2 rounded hover:bg-blue-50"
-        >
-          Print / Export PDF
         </button>
       </div>
     </div>
   );
 };
 
-export default PrescribePage;
+export default PrescriptionForm;

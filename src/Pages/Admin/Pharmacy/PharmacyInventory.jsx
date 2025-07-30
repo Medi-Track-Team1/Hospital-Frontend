@@ -198,11 +198,11 @@ const PharmacyInventory = () => {
               </th>
               <th 
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => requestSort('quantity')}
+                onClick={() => requestSort('stock')}
               >
                 <div className="flex items-center gap-1">
-                  Quantity
-                  {sortConfig.key === 'quantity' && (
+                  Stock
+                  {sortConfig.key === 'stock' && (
                     sortConfig.direction === 'asc' ? <HiArrowUp /> : <HiArrowDown />
                   )}
                 </div>
@@ -239,13 +239,13 @@ const PharmacyInventory = () => {
               sortedMedicines.map((medicine) => (
                 <tr 
                   key={medicine.id} 
-                  className={medicine.quantity <= lowStockThreshold ? 'bg-red-50' : ''}
+                  className={medicine.stock <= lowStockThreshold ? 'bg-red-50' : ''}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="text-sm font-medium text-gray-900">
                         {medicine.name}
-                        {medicine.quantity <= lowStockThreshold && (
+                        {medicine.stock <= lowStockThreshold && (
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                             Low Stock
                           </span>
@@ -257,7 +257,7 @@ const PharmacyInventory = () => {
                     {medicine.batch}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {medicine.quantity}
+                    {medicine.stock}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${medicine.price.toFixed(2)}

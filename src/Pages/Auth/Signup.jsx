@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
+import { registerUser, registerPatientDetails } from "./api";
 
 const Signup = ({ onClose, onLoginClick }) => {
   const [emergencyContacts, setEmergencyContacts] = useState([
     { id: 1, name: "", phone: "", relation: "", email: "" },
   ]);
-
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     patientName: "",
     age: "",
@@ -19,6 +20,17 @@ const Signup = ({ onClose, onLoginClick }) => {
     email: "",
     password: "",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+   useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const addEmergencyContact = () => {
     const newContact = {
@@ -68,17 +80,52 @@ const Signup = ({ onClose, onLoginClick }) => {
     setEmergencyContacts([
       { id: 1, name: "", phone: "", relation: "", email: "" },
     ]);
+    setError("");
   };
 
-  const handleSubmit = () => {
-    console.log("Form Data:", formData);
-    console.log("Emergency Contacts:", emergencyContacts);
-    alert("Account created successfully!");
-    onClose();
+  const handleSubmit = async () => {
+    if (!formData.patientName || !formData.email || !formData.password) {
+      setError("Name, email, and password are required");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Register user (authentication)
+      const authResponse = await registerUser({
+        username: formData.patientName,
+        email: formData.email,
+        password: formData.password
+        
+      });
+     console.log('Auth response:', formData.patientName);
+      // Register patient details
+      // await registerPatientDetails({
+      //   ...formData,
+      //   emergencyContacts
+      // }, authResponse.token);
+      
+     setSuccessMessage("Account created successfully!");
+      setTimeout(() => onClose(), 4000);
+   
+    } catch (error) {
+      setError(error.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
+    
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      {/* Success Message (shown temporarily) */}
+      {successMessage && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 animate-fade-in-out">
+          {successMessage}
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-xl">
@@ -101,6 +148,13 @@ const Signup = ({ onClose, onLoginClick }) => {
         </div>
 
         <div className="p-8 space-y-8">
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* Personal Details Section */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -441,9 +495,10 @@ const Signup = ({ onClose, onLoginClick }) => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              disabled={isLoading}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              CREATE ACCOUNT
+              {isLoading ? "Processing..." : "CREATE ACCOUNT"}
             </button>
           </div>
 

@@ -43,7 +43,8 @@ const Doctors = () => {
       experience: 'Chief of Cardiology at City Hospital (2015-Present)',
       languages: ['English', 'Spanish'],
       status: 'active',
-      profilePhoto: 'https://randomuser.me/api/portraits/men/1.jpg'
+      profilePhoto: 'https://randomuser.me/api/portraits/men/1.jpg',
+        password: 'meditrack' 
     },
     { 
       id: 2, 
@@ -58,7 +59,8 @@ const Doctors = () => {
       experience: '15 years at NeuroCare Center',
       languages: ['English', 'Mandarin'],
       status: 'active',
-      profilePhoto: 'https://randomuser.me/api/portraits/men/2.jpg'
+      profilePhoto: 'https://randomuser.me/api/portraits/men/2.jpg',
+       password: 'meditrack' 
     },
     { 
       id: 3, 
@@ -73,7 +75,8 @@ const Doctors = () => {
       experience: '8 years in pediatric practice',
       languages: ['English', 'Hindi', 'Gujarati'],
       status: 'on leave',
-      profilePhoto: 'https://randomuser.me/api/portraits/women/3.jpg'
+      profilePhoto: 'https://randomuser.me/api/portraits/women/3.jpg',
+       password: 'meditrack' 
     },
     { 
       id: 4, 
@@ -88,7 +91,8 @@ const Doctors = () => {
       experience: '12 years in orthopedic surgery',
       languages: ['English', 'French'],
       status: 'active',
-      profilePhoto: 'https://randomuser.me/api/portraits/men/4.jpg'
+      profilePhoto: 'https://randomuser.me/api/portraits/men/4.jpg',
+       password: 'meditrack' 
     },
     { 
       id: 5, 
@@ -103,20 +107,23 @@ const Doctors = () => {
       experience: '7 years in dermatology practice',
       languages: ['English', 'Spanish', 'Portuguese'],
       status: 'active',
-      profilePhoto: 'https://randomuser.me/api/portraits/women/5.jpg'
+      profilePhoto: 'https://randomuser.me/api/portraits/women/5.jpg',
+       password: 'meditrack' 
     }
   ]);
 
-  const handleAddDoctor = (newDoctor) => {
-    const newId = doctors.length > 0 ? Math.max(...doctors.map(d => d.id)) + 1 : 1;
-  
-  // Handle file upload conversion
+ const handleAddDoctor = (newDoctor) => {
+  const newId = doctors.length > 0 ? Math.max(...doctors.map(d => d.id)) + 1 : 1;
+
+  // Remove confirmPassword before saving (it's only for validation)
+  const { confirmPassword, ...doctorData } = newDoctor;
+
   const profilePhoto = newDoctor.profilePhoto instanceof File 
     ? URL.createObjectURL(newDoctor.profilePhoto) 
     : newDoctor.profilePhoto || 'https://randomuser.me/api/portraits/lego/1.jpg';
 
   setDoctors([...doctors, { 
-    ...newDoctor, 
+    ...doctorData, // Use the cleaned data without confirmPassword
     id: newId,
     status: 'active',
     profilePhoto,
@@ -125,8 +132,7 @@ const Doctors = () => {
       newDoctor.languages || []
   }]);
   setIsModalOpen(false);
-  };
-
+};
   const handleUpdateDoctor = (updatedDoctor) => {
      setDoctors(doctors.map(doctor => 
     doctor.id === updatedDoctor.id ? { 
@@ -226,6 +232,12 @@ const Doctors = () => {
               <option value="Cardiology">Cardiology</option>
               <option value="Neurology">Neurology</option>
               <option value="Pediatrics">Pediatrics</option>
+              <option value="Hepatology">Hepatology</option>
+              <option value="Psychology">Psychology</option>
+              <option value="Dental">Dental</option>
+              <option value="Eye Care">Eye Care</option>
+              <option value="Fertility">Fertility</option>
+              
             </select>
           </div>
           <div>
@@ -407,7 +419,7 @@ const Doctors = () => {
           },
           { name: 'name', label: 'Full Name', type: 'text', required: true },
           { name: 'specialty', label: 'Specialty', type: 'select', 
-            options: ['Cardiology', 'Neurology', 'Pediatrics', 'General Medicine', 'Orthopedics', 'Dermatology', 'Oncology'], 
+            options: ['Cardiology', 'Neurology', 'Pediatrics', 'Hepatology', 'Psychology', 'Dental', 'Eye Care','Fertility'], 
             required: true 
           },
           {
@@ -417,6 +429,25 @@ const Doctors = () => {
             required: true,
           },
           { name: 'email', label: 'Email', type: 'email', required: true },
+          
+          {
+            name: 'password',
+            label: 'Password',
+            type: 'password',
+            required: true,
+            pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", // Minimum 8 chars, at least 1 letter and 1 number
+            title: "Password must be at least 8 characters with at least 1 letter and 1 number",
+            placeholder: "Enter password (min 8 characters)"
+          },
+          {
+            name: 'confirmPassword',
+            label: 'Confirm Password',
+            type: 'password',
+            required: true,
+            validate: (value, formData) => value === formData.password,
+            errorMessage: "Passwords must match",
+            placeholder: "Re-enter your password"
+          },
           { name: 'phone', label: 'Phone', type: 'tel', required: true },
           { name: 'bio', label: 'Bio', type: 'textarea', required: false },
           { name: 'education', label: 'Education', type: 'text', required: false },

@@ -8,9 +8,11 @@ const PatientRegistrationForm = () => {
     gender: "",
     maritalStatus: "",
     city: "",
-    states: "",
+    state: "",
     zipCode: "",
     contactNumber: "",
+    patientEmail: "",
+    password: "",
     address: "",
   });
 
@@ -58,9 +60,11 @@ const PatientRegistrationForm = () => {
       gender: "",
       maritalStatus: "",
       city: "",
-      states: "",
+      state: "",
       zipCode: "",
       contactNumber: "",
+      patientEmail: "",
+      password: "",
       address: "",
     });
     setEmergencyContacts([
@@ -68,8 +72,49 @@ const PatientRegistrationForm = () => {
     ]);
   };
 
-  const handleRegisterPatient = () => {
-    console.log("Patient registration data:", { formData, emergencyContacts });
+  const handleRegisterPatient = async () => {
+    try {
+      // Prepare the data according to your backend Patient model
+      const patientData = {
+        patientName: formData.patientName,
+        age: parseInt(formData.age),
+        bloodGroup: formData.bloodGroup,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus || null,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode || "",
+        contactNumber: formData.contactNumber,
+        patientEmail: formData.patientEmail,
+        password: formData.password,
+        address: formData.address,
+        emergencyContacts: emergencyContacts.filter(contact => 
+          contact.name.trim() || contact.phone.trim() || contact.relation.trim() || contact.email.trim()
+        )
+      };
+
+      // Make API call to your backend
+      const response = await fetch('http://localhost:8080/api/patient/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Patient registered successfully!');
+        // Clear the form after successful registration
+        handleClearForm();
+      } else {
+        alert('Registration failed: ' + (result.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error registering patient:', error);
+      alert('Registration failed: Network error or server is not responding');
+    }
   };
 
   const inputStyle = {
@@ -203,6 +248,12 @@ const PatientRegistrationForm = () => {
     color: "#1e40af",
   };
 
+  const requiredStyle = {
+    color: "#ef4444",
+    marginLeft: "4px",
+    fontSize: "16px",
+  };
+
   return (
     <div style={containerStyle}>
       <div style={sectionStyle}>
@@ -212,20 +263,22 @@ const PatientRegistrationForm = () => {
             <input
               type="text"
               name="patientName"
-              placeholder="Patient Name"
+              placeholder="Patient Name *"
               value={formData.patientName}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
             <input
               type="number"
               name="age"
-              placeholder="Age"
+              placeholder="Age *"
               value={formData.age}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
         </div>
@@ -236,8 +289,9 @@ const PatientRegistrationForm = () => {
               value={formData.bloodGroup}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             >
-              <option value="">Blood Group</option>
+              <option value="">Blood Group *</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -254,8 +308,9 @@ const PatientRegistrationForm = () => {
               value={formData.gender}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             >
-              <option value="">Gender</option>
+              <option value="">Gender *</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
@@ -281,20 +336,22 @@ const PatientRegistrationForm = () => {
             <input
               type="text"
               name="city"
-              placeholder="City"
+              placeholder="City *"
               value={formData.city}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
             <input
               type="text"
-              name="states"
-              placeholder="States"
-              value={formData.states}
+              name="state"
+              placeholder="State*"
+              value={formData.state}
               onChange={handleInputChange}
               style={inputStyle}
+              required
             />
           </div>
           <div style={columnStyle}>
@@ -308,23 +365,49 @@ const PatientRegistrationForm = () => {
             />
           </div>
         </div>
-        <div style={fullWidthStyle}>
-          <input
-            type="tel"
-            name="contactNumber"
-            placeholder="Contact Number"
-            value={formData.contactNumber}
-            onChange={handleInputChange}
-            style={inputStyle}
-          />
+        <div style={rowStyle}>
+          <div style={columnStyle}>
+            <input
+              type="tel"
+              name="contactNumber"
+              placeholder="Contact Number *"
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={columnStyle}>
+            <input
+              type="patientEmail"
+              name="patientEmail"
+              placeholder="Email Address *"
+              value={formData.patientEmail}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={columnStyle}>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password *"
+              value={formData.password}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
         </div>
         <div style={fullWidthStyle}>
           <textarea
             name="address"
-            placeholder="Address"
+            placeholder="Address *"
             value={formData.address}
             onChange={handleInputChange}
             style={textareaStyle}
+            required
           />
         </div>
       </div>

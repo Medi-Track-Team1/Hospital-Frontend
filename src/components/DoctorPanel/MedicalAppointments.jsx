@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
+
 import {
   MdCalendarToday,
   MdPerson,
@@ -30,6 +31,9 @@ export const MedicalAppointments = () => {
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
   const navigate = useNavigate();
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
+  const [cancelAppointment, setCancelAppointment] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  
   const [appointments, setAppointments] = useState([
     {
       id: "1",
@@ -322,10 +326,10 @@ export const MedicalAppointments = () => {
                       <tr>
                         <th className="text-left p-4 font-medium">Patient</th>
                         <th className="text-left p-4 font-medium">Date & Time</th>
-                        <th className="text-left p-4 font-medium">Type</th>
+                       
                         <th className="text-left p-4 font-medium">Reason</th>
                         
-                        <th className="text-left p-4 font-medium">Status</th>
+                    
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
@@ -339,13 +343,7 @@ export const MedicalAppointments = () => {
                               </div>
                               <div>
                                 <p className="font-medium">{appointment.patient.name}</p>
-                                <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                                  {appointment.patient.type === "video-call" ? 
-                                    <MdVideocam className="h-3 w-3" /> : 
-                                    <MdLocationOn className="h-3 w-3" />
-                                  }
-                                  <span className="capitalize">{appointment.patient.type.replace('-', ' ')}</span>
-                                </div>
+                               
                               </div>
                             </div>
                           </td>
@@ -354,66 +352,44 @@ export const MedicalAppointments = () => {
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <p className="font-medium">{appointment.dateTime}</p>
-                                <p className="text-sm text-muted-foreground">{appointment.duration}</p>
+                               
                               </div>
                             </div>
                           </td>
-                          <td className="p-2 text-sm">
-                            <Badge variant="outline" className="text-primary border-primary">
-                              {appointment.type}
-                            </Badge>
-                          </td>
+                          
                           <td className="p-3 text-sm">{appointment.reason}</td>
                           
-                          <td className="p-2 text-sm">
-                            <Badge className={`border ${getStatusBadge(appointment.status)}`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </Badge>
-                          </td>
+                          
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
-                              {!appointment.isAccepted ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleAccept(appointment.id)}
-                                  className="bg-primary hover:bg-primary/90 text-xs"
-                                >
-                                  Accept
-                                </Button>
-                              ) : null}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleReschedule(appointment.id)}
-                                className="text-xs"
-                                disabled={appointment.isAccepted}
-                              >
-                                <MdEditCalendar className="h-3 w-3 mr-1" />
-                                Reschedule
-                              </Button>
+                            
+                              
                               <Button
   size="sm"
   variant="outline"
-  className={`text-xs ${!appointment.isAccepted ? "opacity-50 cursor-not-allowed" : ""}`}
+  className="text-xs"
   onClick={() => setShowPrescribeModal(true)}
-  disabled={!appointment.isAccepted}
+  
 >
   <MdDescription className="h-3 w-3 mr-1" />
   Prescription
 </Button>
 <Button
-  size="sm"
-  variant="outline"
-  className="text-xs"
-  onClick={() =>
-    navigate("/doctor-panel/patienthistory", {
-      state: { patient: appointment.patient }, // Pass patient object
-    })
-  }
->
-  <MdVisibility className="h-3 w-3 mr-1" />
-  View History
-</Button>
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate("/doctor-panel/patienthistory")}
+                                className="text-xs"
+                              >
+                                <MdVisibility className="h-3 w-3 mr-1" />
+                                View History
+                              </Button>
+
+                              <button
+                                className="px-3 py-1 text-xs border rounded-md bg-red-500 text-white border-red-500 hover:bg-red-600"
+                                onClick={() => setCancelAppointment(appointment)}
+                              >
+                                Cancel
+                              </button>
 
                             </div>
                           </td>
@@ -445,10 +421,10 @@ export const MedicalAppointments = () => {
                       <tr>
                         <th className="text-left p-4 font-medium">Patient</th>
                         <th className="text-left p-4 font-medium">Date & Time</th>
-                        <th className="text-left p-4 font-medium">Type</th>
+                       
                         <th className="text-left p-4 font-medium">Reason</th>
                        
-                        <th className="text-left p-4 font-medium">Status</th>
+                        
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
@@ -462,13 +438,7 @@ export const MedicalAppointments = () => {
                               </div>
                               <div>
                                 <p className="font-medium">{appointment.patient.name}</p>
-                                <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                                  {appointment.patient.type === "video-call" ? 
-                                    <MdVideocam className="h-3 w-3" /> : 
-                                    <MdLocationOn className="h-3 w-3" />
-                                  }
-                                  <span className="capitalize">{appointment.patient.type.replace('-', ' ')}</span>
-                                </div>
+                                
                               </div>
                             </div>
                           </td>
@@ -477,33 +447,17 @@ export const MedicalAppointments = () => {
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <p className="font-medium">{appointment.dateTime}</p>
-                                <p className="text-sm text-muted-foreground">{appointment.duration}</p>
+                                
                               </div>
                             </div>
                           </td>
-                          <td className="p-2 text-sm">
-                            <Badge variant="outline" className="text-primary border-primary">
-                              {appointment.type}
-                            </Badge>
-                          </td>
+                          
                           <td className="p-3 text-sm">{appointment.reason}</td>
                           
-                          <td className="p-2 text-sm">
-                            <Badge className={`border ${getStatusBadge(appointment.status)}`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </Badge>
-                          </td>
+                         
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedPatient(appointment.patient)}
-                                className="text-xs"
-                              >
-                                <MdVisibility className="h-3 w-3 mr-1" />
-                                View Details
-                              </Button>
+                              
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -550,6 +504,48 @@ export const MedicalAppointments = () => {
     isOpen={showPrescribeModal}
     onClose={() => setShowPrescribeModal(false)}
   />
+)}
+
+{cancelAppointment && (
+  <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
+    <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-red-600">Cancel Appointment</h2>
+      <p className="text-sm text-gray-600">
+        Please provide a reason for cancelling the appointment with <strong>{cancelAppointment.patient.name}</strong>.
+      </p>
+      <textarea
+        rows={4}
+        className="w-full border rounded p-2 text-sm"
+        placeholder="Enter cancellation reason..."
+        value={cancelReason}
+        onChange={(e) => setCancelReason(e.target.value)}
+      />
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          onClick={() => setCancelAppointment(null)}
+        >
+          Close
+        </button>
+        <button
+          className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 ${
+            !cancelReason.trim() ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={!cancelReason.trim()}
+          onClick={() => {
+            // Add your cancellation logic here
+            console.log("Cancelled appointment:", cancelAppointment);
+            console.log("Reason:", cancelReason);
+            
+            setCancelAppointment(null);
+            setCancelReason("");
+          }}
+        >
+          Confirm Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 )}
 
     </div>

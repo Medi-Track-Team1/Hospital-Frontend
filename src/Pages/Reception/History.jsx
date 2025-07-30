@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import jsPDF from "jspdf";
 import axios from "axios";
 import {
   Search,
@@ -31,12 +32,12 @@ function App() {
         setLoading(true);
         setError(null);
 
-        let url = "/api/billing/history";
-        if (selectedPatient) {
-          url += `?patientId=${encodeURIComponent(selectedPatient)}`;
-        }
+        let url = "https://billing-backend-0zk0.onrender.com/api/billing/history";
+      if (selectedPatient) {
+        url += `?patientId=${encodeURIComponent(selectedPatient)}`;
+      }
 
-        const response = await axios.get(url);
+      const response = await axios.get(url);
 
         if (response.data && response.data.success && response.data.data) {
           const normalizedBills = response.data.data.map((bill) => {
@@ -70,6 +71,7 @@ function App() {
               patientId: bill.patientId || null,
               patientName: bill.patientName || `Patient ${bill.patientId || "Unknown"}`,
               doctorName: bill.doctorName || "Unknown",
+              department: bill.department || "Unknown",
               billDate: bill.createdAt
                 ? new Date(bill.createdAt).toISOString().split("T")[0]
                 : new Date().toISOString().split("T")[0],
@@ -791,6 +793,19 @@ function App() {
                   fontWeight: "600",
                   fontSize: "14px",
                   color: "#6B7280",
+                  minWidth: "170px",
+                }}
+              >
+                Department
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "16px",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#6B7280",
                   minWidth: "110px",
                 }}
               >
@@ -879,6 +894,7 @@ function App() {
                   <div style={{ fontSize: "12px", color: "#6B7280" }}>{bill.patientId}</div>
                 </td>
                 <td style={{ padding: "12px 16px", color: "#374151" }}>{bill.doctorName}</td>
+                <td style={{ padding: "12px 16px", color: "#374151" }}>{bill.department}</td>
                 <td style={{ padding: "12px 16px", color: "#374151" }}>{bill.billDate}</td>
                 {/* Consultancy Fee cell */}
                 <td
@@ -919,202 +935,771 @@ function App() {
       </div>
 
       {/* Billing Details Modal */}
-      {selectedBillDetails && (
+{selectedBillDetails && (
+  <>
+    {/* Print Styles */}
+    <style>
+      {`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-area, #printable-area * {
+            visibility: visible;
+          }
+          #printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 20px !important;
+            max-height: none !important;
+            overflow: visible !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #3B82F6;
+            padding-bottom: 20px;
+          }
+          .print-footer {
+            display: block !important;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #3B82F6;
+            text-align: center;
+            font-size: 12px;
+            color: #6B7280;
+          }
+          .patient-info-print {
+            border: 2px solid #3B82F6 !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
+            margin: 20px 0 !important;
+            background: #F8FAFC !important;
+          }
+          .total-print {
+            background: #3B82F6 !important;
+            color: white !important;
+            padding: 15px !important;
+            text-align: center !important;
+            border-radius: 8px !important;
+            margin-top: 20px !important;
+          }
+        }
+      `}
+    </style>
+
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(59, 130, 246, 0.4)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 3000,
+        padding: "20px",
+        backdropFilter: "blur(8px)",
+      }}
+      onClick={closeModal}
+    >
+      {/* Overlay close button OUTSIDE main modal, z-index higher! */}
+      <button
+        onClick={closeModal}
+        className="no-print"
+        style={{
+          position: "fixed",
+          top: "40px",
+          right: "60px",
+          background: "#F3F4F6",
+          border: "2px solid #E5E7EB",
+          cursor: "pointer",
+          fontSize: "18px",
+          color: "#2563EB",
+          borderRadius: "50%",
+          width: "46px",
+          height: "46px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 5001,
+          boxShadow: "0 4px 20px rgba(59,130,246,0.15)",
+          transition: "all 0.3s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "#2563EB";
+          e.currentTarget.style.color = "white";
+          e.currentTarget.style.borderColor = "#2563EB";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "#F3F4F6";
+          e.currentTarget.style.color = "#2563EB";
+          e.currentTarget.style.borderColor = "#E5E7EB";
+        }}
+        tabIndex={0}
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
+      <div
+        id="printable-area"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          maxWidth: "720px",
+          width: "100%",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          padding: "32px",
+          boxShadow: "0 20px 60px rgba(59, 130, 246, 0.20)",
+          position: "relative",
+          border: "1px solid #E5E7EB",
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Branding block is moved UP HERE */}
+        <div className="print-header" style={{
+          display: "block",
+          textAlign: "center",
+          marginBottom: "24px",
+          borderBottom: "3px solid #3B82F6",
+          paddingBottom: "20px",
+          background: "#F8FAFC",
+          borderRadius: "10px 10px 0 0"
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "14px",
+          }}>
+            <div style={{
+              background: "#3B82F6",
+              color: "#FFF",
+              padding: "12px",
+              borderRadius: "12px",
+              fontSize: "28px",
+              lineHeight: "24px",
+              boxShadow: "0 2px 8px #3B82F666"
+            }}>
+              ⚡
+            </div>
+            <h1 style={{
+              fontSize: "2rem",
+              margin: 0,
+              color: "#2563EB",
+              letterSpacing: "0.8px",
+              fontWeight: 800,
+              fontFamily: "'Inter', sans-serif",
+              textShadow: "0 1px 6px #2563EB14"
+            }}>
+              MediTrack
+            </h1>
+          </div>
+          <div style={{ marginTop: "6px", fontSize: "15px", color: "#374151", opacity: 0.95, letterSpacing: "0.2px" }}>
+            123 Healthcare Avenue, Medical District, Coimbatore - 641001
+          </div>
+          <div style={{ fontSize: "14px", color: "#6B7280" }}>
+            Phone: +91-123-456-7890 &nbsp; | &nbsp; info@meditrack.com &nbsp; | &nbsp; www.meditrack.com
+          </div>
+        </div>
+
+        {/* Print/Download buttons - appear just BELOW header, always visible */}
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="bill-details-title"
+          className="no-print"
           style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "12px",
+            marginBottom: "24px",
+            marginTop: "10px"
+          }}
+        >
+          <button
+            onClick={() => window.print()}
+            style={{
+              background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
+              color: "white",
+              border: "none",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "15px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 4px 16px rgba(59,130,246,0.12)",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(59, 130, 246, 0.22)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(59,130,246,0.09)";
+            }}
+          >
+            🖨️ Print
+          </button>
+          <button
+            onClick={() => {
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  let yPos = margin;
+
+  // Hospital Header Block
+  doc.setFillColor(59, 130, 246);
+  doc.rect(0, 0, pageWidth, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont(undefined, 'bold');
+  doc.text('⚡ MediTrack', pageWidth / 2, 15, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text('Advanced Healthcare Management System', pageWidth / 2, 22, { align: 'center' });
+  doc.text('123 Healthcare Avenue, Medical District, Coimbatore - 641001', pageWidth / 2, 28, { align: 'center' });
+  yPos = 45;
+
+  // Contact Info
+  doc.setTextColor(107, 114, 128);
+  doc.setFontSize(9);
+  doc.text('Phone: +91-123-456-7890 | Email: info@meditrack.com | www.meditrack.com', pageWidth / 2, yPos, { align: 'center' });
+  yPos += 15;
+
+  // Bill Title Section
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 15, 3, 3, 'F');
+  doc.setTextColor(31, 41, 55);
+  doc.setFontSize(18);
+  doc.setFont(undefined, 'bold');
+  doc.text('MEDICAL INVOICE', pageWidth / 2, yPos + 5, { align: 'center' });
+  yPos += 25;
+
+  // Patient Information Section
+  doc.setDrawColor(59, 130, 246);
+  doc.setFillColor(248, 250, 252);
+  doc.setLineWidth(1);
+  doc.roundedRect(margin, yPos - 5, pageWidth - 2 * margin, 50, 5, 5, 'FD');
+
+  doc.setTextColor(59, 130, 246);
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'bold');
+  yPos += 5;
+  doc.text('PATIENT INFORMATION', margin + 8, yPos);
+  yPos += 8;
+
+  doc.setTextColor(55, 65, 81);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
+
+  const leftCol = margin + 8;
+  const rightCol = pageWidth / 2 + 10;
+
+  doc.text(`Patient Name: ${selectedBillDetails.patientName}`, leftCol, yPos);
+  doc.text(`Doctor: Dr. ${selectedBillDetails.doctorName || "Unknown"}`, rightCol, yPos);
+  yPos += 6;
+
+  doc.text(`Patient ID: ${selectedBillDetails.patientId || "N/A"}`, leftCol, yPos);
+  doc.text(`Department: ${selectedBillDetails.department || "General"}`, rightCol, yPos);
+  yPos += 6;
+
+  doc.text(`Date: ${selectedBillDetails.billDate || "N/A"}`, leftCol, yPos);
+  doc.text(`Status: ${selectedBillDetails.status || "Paid"}`, rightCol, yPos);
+  yPos += 6;
+
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(34, 197, 94);
+  doc.text(`Consultancy Fee: ₹${(selectedBillDetails.consultancyFee || 0).toLocaleString()}`, leftCol, yPos);
+  yPos += 20;
+
+  // Items Table
+  doc.setTextColor(31, 41, 55);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(12);
+  doc.text('MEDICAL ITEMS & SERVICES', margin, yPos);
+  yPos += 10;
+
+  // Table header with blue background
+  const tableTop = yPos;
+  const rowHeight = 8;
+  const colWidths = [70, 20, 30, 30, 20];
+  const colX = [margin, margin + 70, margin + 90, margin + 120, margin + 150];
+
+  doc.setFillColor(59, 130, 246);
+  doc.rect(margin, yPos - 2, pageWidth - 2 * margin, rowHeight, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(9);
+  doc.text('Item Name', colX[0] + 2, yPos + 4);
+  doc.text('Qty', colX[1] + 2, yPos + 4);
+  doc.text('Unit Price', colX[2] + 2, yPos + 4);
+  doc.text('Amount', colX[3] + 2, yPos + 4);
+  doc.text('Type', colX[4] + 2, yPos + 4);
+  yPos += rowHeight;
+
+  // Table rows
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(55, 65, 81);
+  selectedBillDetails.items.forEach((item, index) => {
+    if (yPos > pageHeight - 50) {
+      doc.addPage();
+      yPos = margin;
+    }
+    if (index % 2 === 0) {
+      doc.setFillColor(249, 250, 251);
+      doc.rect(margin, yPos - 2, pageWidth - 2 * margin, rowHeight, 'F');
+    }
+    doc.setFontSize(8);
+    doc.text(item.name || "Unnamed", colX[0] + 2, yPos + 4);
+    doc.text(`${item.quantity || "-"}`, colX[1] + 2, yPos + 4);
+    doc.text(`₹${item.unitPrice?.toLocaleString() || "-"}`, colX[2] + 2, yPos + 4);
+    doc.text(`₹${item.totalPrice?.toLocaleString() || "-"}`, colX[3] + 2, yPos + 4);
+    doc.text(item.type || "N/A", colX[4] + 2, yPos + 4);
+    yPos += rowHeight;
+  });
+
+  // Total Section
+  yPos += 10;
+  doc.setFillColor(59, 130, 246);
+  doc.roundedRect(pageWidth - 90, yPos - 5, 70, 20, 5, 5, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(14);
+  doc.text('TOTAL', pageWidth - 55, yPos + 2, { align: 'center' });
+  doc.setFontSize(16);
+  doc.text(
+    `₹${(selectedBillDetails.total || selectedBillDetails.totalAmount || 0).toLocaleString()}`,
+    pageWidth - 55,
+    yPos + 10,
+    { align: 'center' }
+  );
+
+  // Footer
+  yPos = pageHeight - 30;
+  doc.setDrawColor(59, 130, 246);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+
+  yPos += 8;
+  doc.setTextColor(107, 114, 128);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(9);
+  doc.text('Thank you for choosing MediTrack. Wishing you good health!', pageWidth / 2, yPos, { align: 'center' });
+  doc.setFontSize(8);
+  doc.text('This is a computer-generated invoice. For queries, contact us at info@meditrack.com', pageWidth / 2, yPos + 6, { align: 'center' });
+
+  doc.save(`MediTrack_Invoice_${selectedBillDetails.patientName}_${selectedBillDetails.patientId || "unknown"}.pdf`);
+}}
+
+            style={{
+              background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+              color: "white",
+              border: "none",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "15px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 4px 16px rgba(5,150,105,0.10)",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(5, 150, 105, 0.17)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(5,150,105,0.12)";
+            }}
+          >
+            📄 Download PDF
+          </button>
+        </div>
+
+        {/* Header with MediTrack Branding */}
+        <div style={{
+          color: "black",
+          padding: "24px",
+          borderRadius: "12px",
+          marginBottom: "24px",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute",
+            top: "-20px",
+            right: "-20px",
+            width: "80px",
+            height: "80px",
+            background: "rgba(255,255,255,0.1)",
+            borderRadius: "50%",
+          }}></div>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
+            
+            <h1 style={{
+              margin: 0,
+              fontSize: "24px",
+              fontWeight: "bold",
+              letterSpacing: "0.5px",
+            }}>
+              MediTrack
+            </h1>
+          </div>
+          <h2 style={{
+            margin: "0 0 8px 0",
+            fontSize: "20px",
+            fontWeight: "600",
+            opacity: 0.95,
+          }}>
+            Medical Invoice
+          </h2>
+          <p style={{
+            margin: 0,
+            fontSize: "16px",
+            opacity: 0.9,
+          }}>
+            {selectedBillDetails.patientName}
+          </p>
+        </div>
+
+        {/* Patient Information */}
+        <div 
+          className="patient-info-print"
+          style={{
+            background: "#F8FAFC",
+            border: "2px solid #E5E7EB",
+            borderRadius: "12px",
+            padding: "20px",
+            marginBottom: "24px",
+            position: "relative",
+          }}
+        >
+          <div style={{
+            position: "absolute",
+            top: "12px",
+            right: "12px",
+            background: getStatusColor(selectedBillDetails.status || "paid"),
+            color: "white",
+            borderRadius: "20px",
+            padding: "6px 12px",
+            fontSize: "12px",
+            fontWeight: "600",
+            textTransform: "capitalize",
+          }}>
+            {selectedBillDetails.status || "paid"}
+          </div>
+
+          <h3 style={{
+            margin: "0 0 16px 0",
+            fontSize: "18px",
+            fontWeight: "600",
+            color: "#1F2937",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            zIndex: 3000,
-            padding: "20px",
-          }}
-          onClick={closeModal}
-        >
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "12px",
-              maxWidth: "600px",
-              width: "100%",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              padding: "24px",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
-              position: "relative",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeModal}
-              aria-label="Close bill details"
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#6B7280",
-                fontSize: "20px",
-              }}
-            >
-              <X size={24} />
-            </button>
+            gap: "8px",
+          }}>
+            👤 Patient Information
+          </h3>
 
-            <h2
-              id="bill-details-title"
-              style={{
-                marginBottom: "16px",
-                fontWeight: "700",
-                fontSize: "20px",
-                color: "#1F2937",
-              }}
-            >
-              Billing Details - {selectedBillDetails.patientName}
-            </h2>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: "16px",
+          }}>
+            <div>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ 
+                  fontWeight: "600", 
+                  color: "#374151", 
+                  display: "inline-block",
+                  minWidth: "100px"
+                }}>
+                  Patient ID:
+                </span>
+                <span style={{ 
+                  color: "#6B7280", 
+                  fontFamily: "monospace",
+                  background: "white",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  marginLeft: "8px",
+                  border: "1px solid #D1D5DB"
+                }}>
+                  {selectedBillDetails.patientId}
+                </span>
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ fontWeight: "600", color: "#374151" }}>Doctor: </span>
+                <span style={{ color: "#3B82F6", fontWeight: "500" }}>
+                  👨‍⚕️ Dr. {selectedBillDetails.doctorName}
+                </span>
+              </div>
+              <div>
+                <span style={{ fontWeight: "600", color: "#374151" }}>Department: </span>
+                <span style={{ color: "#6B7280" }}>{selectedBillDetails.department || "General"}</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ fontWeight: "600", color: "#374151" }}>Date: </span>
+                <span style={{ color: "#6B7280" }}>📅 {selectedBillDetails.billDate}</span>
+              </div>
+              <div>
+                <span style={{ fontWeight: "600", color: "#374151" }}>Consultancy Fee: </span>
+                <span style={{ 
+                  color: "#059669", 
+                  fontWeight: "600",
+                  background: "#ECFDF5",
+                  padding: "4px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #A7F3D0"
+                }}>
+                  ₹{(selectedBillDetails.consultancyFee || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <p>
-              <strong>Patient ID:</strong> {selectedBillDetails.patientId}
-            </p>
-            <p>
-              <strong>Doctor:</strong> {selectedBillDetails.doctorName}
-            </p>
-            <p>
-              <strong>Date:</strong> {selectedBillDetails.billDate}
-            </p>
-            {/* Consultancy Fee in Modal */}
-            <p>
-              <strong>Consultancy Fee:</strong> ₹
-              {(selectedBillDetails.consultancyFee || 0).toLocaleString()}
-            </p>
+        {/* Items Section */}
+        <div style={{
+          background: "white",
+          border: "2px solid #E5E7EB",
+          borderRadius: "12px",
+          overflow: "hidden",
+          marginBottom: "24px",
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #1F2937 0%, #374151 100%)",
+            color: "white",
+            padding: "16px 20px",
+          }}>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: "18px", 
+              fontWeight: "600", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "8px" 
+            }}>
+              💊 Medical Items & Services
+            </h3>
+          </div>
 
-            <h3 style={{ marginTop: "24px", fontWeight: "600" }}>Items (Medicines & Tests)</h3>
-
-            {selectedBillDetails.items.length === 0 ? (
-              <p>No items found for this bill.</p>
-            ) : (
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  marginTop: "12px",
-                }}
-              >
+          {selectedBillDetails.items.length === 0 ? (
+            <div style={{ padding: "40px", textAlign: "center", color: "#6B7280" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
+              <p style={{ margin: 0, fontSize: "16px" }}>No items found for this invoice.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "8px",
-                        borderBottom: "1px solid #e5e7eb",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Name
+                  <tr style={{ background: "#F8FAFC" }}>
+                    <th style={{
+                      textAlign: "left",
+                      padding: "16px",
+                      borderBottom: "2px solid #E5E7EB",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                    }}>
+                      Item Name
                     </th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                        padding: "8px",
-                        borderBottom: "1px solid #e5e7eb",
-                        fontWeight: "600",
-                        width: "80px",
-                      }}
-                    >
+                    <th style={{
+                      textAlign: "center",
+                      padding: "16px",
+                      borderBottom: "2px solid #E5E7EB",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                      width: "80px",
+                    }}>
                       Qty
                     </th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                        padding: "8px",
-                        borderBottom: "1px solid #e5e7eb",
-                        fontWeight: "600",
-                        width: "100px",
-                      }}
-                    >
+                    <th style={{
+                      textAlign: "right",
+                      padding: "16px",
+                      borderBottom: "2px solid #E5E7EB",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                      width: "120px",
+                    }}>
                       Unit Price
                     </th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                        padding: "8px",
-                        borderBottom: "1px solid #e5e7eb",
-                        fontWeight: "600",
-                        width: "120px",
-                      }}
-                    >
-                      Total Price
+                    <th style={{
+                      textAlign: "right",
+                      padding: "16px",
+                      borderBottom: "2px solid #E5E7EB",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                      width: "120px",
+                    }}>
+                      Amount
                     </th>
-                    <th
-                      style={{
-                        textAlign: "center",
-                        padding: "8px",
-                        borderBottom: "1px solid #e5e7eb",
-                        fontWeight: "600",
-                        width: "100px",
-                      }}
-                    >
+                    <th style={{
+                      textAlign: "center",
+                      padding: "16px",
+                      borderBottom: "2px solid #E5E7EB",
+                      fontWeight: "600",
+                      color: "#374151",
+                      fontSize: "14px",
+                      width: "100px",
+                    }}>
                       Type
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedBillDetails.items.map((item, idx) => (
-                    <tr key={`${item.medicineName || item.name}-${idx}`}>
-                      <td style={{ padding: "8px", color: "#374151" }}>{item.name}</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>
+                    <tr 
+                      key={`${item.name}-${idx}`}
+                      style={{
+                        background: idx % 2 === 0 ? "white" : "#FAFBFC",
+                        transition: "background-color 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => e.target.closest('tr').style.background = "#EBF8FF"}
+                      onMouseLeave={(e) => e.target.closest('tr').style.background = idx % 2 === 0 ? "white" : "#FAFBFC"}
+                    >
+                      <td style={{ 
+                        padding: "16px", 
+                        color: "#374151",
+                        fontWeight: "500",
+                        borderBottom: "1px solid #F3F4F6"
+                      }}>
+                        {item.name}
+                      </td>
+                      <td style={{ 
+                        padding: "16px", 
+                        textAlign: "center",
+                        color: "#6B7280",
+                        borderBottom: "1px solid #F3F4F6",
+                        fontWeight: "600"
+                      }}>
                         {item.quantity || "-"}
                       </td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>
+                      <td style={{ 
+                        padding: "16px", 
+                        textAlign: "right",
+                        color: "#374151",
+                        fontWeight: "500",
+                        borderBottom: "1px solid #F3F4F6"
+                      }}>
                         ₹{item.unitPrice?.toLocaleString() || "-"}
                       </td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>
+                      <td style={{ 
+                        padding: "16px", 
+                        textAlign: "right",
+                        color: "#059669",
+                        fontWeight: "600",
+                        borderBottom: "1px solid #F3F4F6"
+                      }}>
                         ₹{item.totalPrice?.toLocaleString() || "-"}
                       </td>
-                      <td
-                        style={{
-                          padding: "8px",
-                          textAlign: "center",
+                      <td style={{
+                        padding: "16px",
+                        textAlign: "center",
+                        borderBottom: "1px solid #F3F4F6"
+                      }}>
+                        <span style={{
                           textTransform: "capitalize",
-                          color:
-                            item.type === "medicine"
-                              ? "#10B981"
-                              : item.type === "test"
-                              ? "#3B82F6"
-                              : item.type === "injection"
-                              ? "#F59E0B"
-                              : "#6B7280",
+                          color: "white",
+                          background: item.type === "medicine" ? "#059669" : 
+                                    item.type === "test" ? "#3B82F6" : 
+                                    item.type === "injection" ? "#F59E0B" : "#6B7280",
                           fontWeight: "600",
-                        }}
-                      >
-                        {item.type}
+                          padding: "4px 12px",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                        }}>
+                          {item.type}
+                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
-
-            <h3
-              style={{
-                marginTop: "24px",
-                fontWeight: "700",
-                fontSize: "18px",
-                textAlign: "right",
-              }}
-            >
-              Total: ₹
-              {(selectedBillDetails.total || selectedBillDetails.totalAmount || 0).toLocaleString()}
-            </h3>
-          </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Total Amount */}
+        <div 
+          className="total-print"
+          style={{
+            color: "black",
+            padding: "20px",
+            borderRadius: "12px",
+            textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{
+            position: "absolute",
+            top: "-30px",
+            right: "-30px",
+            width: "100px",
+            height: "100px",
+            background: "rgba(255,255,255,0.1)",
+            borderRadius: "50%",
+          }}></div>
+          <p style={{ 
+            margin: "0 0 8px 0", 
+            fontSize: "14px", 
+            opacity: 0.9,
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+            fontWeight: "600"
+          }}>
+            Total Amount
+          </p>
+          <h3 style={{
+            margin: 0,
+            fontSize: "32px",
+            fontWeight: "700",
+            position: "relative",
+            zIndex: 1,
+          }}>
+            ₹{(selectedBillDetails.total || selectedBillDetails.totalAmount || 0).toLocaleString()}
+          </h3>
+        </div>
+
+        {/* Print Footer */}
+        <div className="print-footer" style={{ display: "none" }}>
+          <p style={{ margin: "0 0 8px 0", fontWeight: "600", color: "#3B82F6" }}>
+            Thank you for choosing MediTrack
+          </p>
+          <p style={{ margin: 0 }}>
+            Wishing you good health! • For support: info@meditrack.com
+          </p>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
     </div>
   );
 }

@@ -37,7 +37,7 @@ const Eyecare = () => {
       specializations: ["Cataract Surgery", "Glaucoma"],
       specialty: "Eyecare",
       image: rakesh,
-      email: "surya@hospital.com",
+      email: "rakesh@hospital.com",
       phone: "+91 99999 12345",
       languages: ["English", "Hindi", "Tamil"],
       timing: "Mon - Fri: 9:00 AM - 1:00 PM",
@@ -52,7 +52,7 @@ const Eyecare = () => {
       specializations: ["Retinal Detachment", "Macular Degeneration"],
       specialty: "Eyecare",
       image: ds,
-      email: "prema@hospital.com",
+      email: "sakthi@hospital.com",
       phone: "+91 99999 67890",
       languages: ["English", "Tamil"],
       timing: "Mon - Fri: 2:00 PM - 6:00 PM",
@@ -102,7 +102,7 @@ const Eyecare = () => {
             className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base">
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-10">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Eyecare
           </motion.h2>
@@ -127,7 +127,7 @@ const Eyecare = () => {
       </motion.div>
 
       {/* Doctor List */}
-      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28 mt-10 pt-6" id="Doctors">
         Meet Our <span className="text-blue-600">Eye Specialists</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">

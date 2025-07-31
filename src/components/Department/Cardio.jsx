@@ -102,7 +102,7 @@ const handleBookClick = (doctor) => {
             className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base">
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-8">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Cardiology
           </motion.h2>

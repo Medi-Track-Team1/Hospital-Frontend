@@ -95,7 +95,7 @@ const Dental = () => {
             className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base">
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-8">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Dental Care
           </motion.h2>
@@ -122,7 +122,7 @@ const Dental = () => {
 
       {/* Doctor List */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
-        Find Your <span className="text-blue-600">Dentist</span>
+        Meet Your <span className="text-blue-600">Dentist</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
         Book appointments with top dental specialists for preventive and cosmetic treatments.

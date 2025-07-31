@@ -49,11 +49,11 @@ const AppointmentPage = () => {
 
   const handleConfirmClose = () => {
     setShowConfirmation(false);
-    navigate("/departments/appointment", { state: { doctor } }); 
+    navigate("/departments/appointment", { state: { doctor } });
   };
 
   return (
-<div className="min-h-screen bg-gray-100 py-6 px-6 mt-12">
+    <div className="min-h-screen bg-gray-100 py-6 px-6 mt-12">
       <div className="bg-white max-w-5xl mx-auto shadow-xl rounded-lg p-6 space-y-6">
         <h2 className="text-2xl font-semibold pb-4">
           Appointment with {doctor?.name || "Doctor"}
@@ -73,20 +73,27 @@ const AppointmentPage = () => {
 
           {/* Appointment Details */}
           <div className="bg-blue-100 p-4 rounded-md">
-<h3 className="text-lg font-medium mb-4">
-  Doctor Appointment Details –{" "}
-  <span className="text-blue-600 font-normal">
-    {new Date().toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })}
-  </span>
-</h3>
+            <h3 className="text-lg font-medium mb-4">
+              Doctor Appointment Details –{" "}
+              <span className="text-blue-600 font-normal">
+                {new Date().toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <input type="text" value={form.doctor} readOnly className="w-full border px-4 py-2 rounded-lg" />
               <input type="text" value={form.specialty} readOnly className="w-full border px-4 py-2 rounded-lg" />
-              <input type="date" name="date" required value={form.date} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+<input
+  type="date"
+  name="date"
+  value={form.date}
+  onChange={handleChange}
+  min={new Date().toISOString().split("T")[0]}
+  className="w-full border px-4 py-2 rounded-lg"
+/>
               <input type="time" name="time" required value={form.time} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
             </div>
             <div className="mt-4">
@@ -98,6 +105,7 @@ const AppointmentPage = () => {
           </div>
 
           {/* Medical Info */}
+
           <div className="bg-blue-100 p-4 rounded-md">
             <h3 className="text-lg font-medium mb-4">❤️ Medical Information</h3>
             <textarea

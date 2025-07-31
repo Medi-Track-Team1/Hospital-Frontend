@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+// src/pages/departments/Neuro.jsx
+
+import React from "react";
 import { Brain, Phone, Mail } from "lucide-react";
 import neurology from "../../assets/neuro.jpg";
 import Sunil from "../../assets/Sunil.jpeg";
 import athi from "../../assets/athi.png";
-import AppointmentModal from "./AppointModal";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: (i = 1) => ({
+  visible: (i = 0) => ({
     opacity: 1,
     y: 0,
     transition: {
@@ -20,56 +22,49 @@ const fadeInUp = {
 };
 
 const Neuro = () => {
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   const handleBookClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedDoctor(null);
+    navigate("/departments/appointment", { state: { doctor } });
   };
 
   const doctors = [
     {
       id: 601,
       name: "Dr. Sunil Kumar",
-      education: "Apex Medical University",
+      title: "Neurologist",
+      rating: 4.2,
       experience: "12 years",
-      specialization: ["Stroke", "Epilepsy"],
-      specialty: "Neurologist",
+      education: "Apex Medical University",
+      specializations: ["Stroke", "Epilepsy"],
+      specialty: "Neurology",
+      image: Sunil,
       email: "sunil@medilab.com",
       phone: "+91 90001 12345",
       languages: ["English", "Hindi"],
-      image: Sunil,
-      rating: 4.2,
-       timing: "Mon - Fri: 9:00 AM - 1:00 PM",
+      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
     },
     {
       id: 602,
       name: "Dr. Athithyan",
-      education: "Vels Medical University",
+      title: "Neurologist",
+      rating: 4.0,
       experience: "10 years",
-      specialization: ["Neurodegenerative Disorders", "Epilepsy"],
-      specialty: "Neurologist",
+      education: "Vels Medical University",
+      specializations: ["Neurodegenerative Disorders", "Epilepsy"],
+      specialty: "Neurology",
+      image: athi,
       email: "athithyan@medilab.com",
       phone: "+91 98765 67890",
       languages: ["English", "Tamil"],
-      image: athi,
-      rating: 4.0,
       timing: "Mon - Fri: 1:00 AM - 9:00 AM",
-
-
     },
   ];
 
   return (
-    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
+    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
       {/* Header */}
-       <motion.div
+      <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
@@ -79,125 +74,113 @@ const Neuro = () => {
           <Brain className="w-10 h-10 text-red-500" />
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-black">Neurology</h2>
-            <p className="text-lg sm:text-xl font-bold text-gray-500">Expert Care for Brain & Nerves</p>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">Brain & Nervous System Specialists</p>
           </div>
         </div>
-        <div>
-          <button
-            onClick={() => {
-              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
-          >
-            Find a Doctor
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
+        >
+          Find a Doctor
+        </button>
       </motion.div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
       {/* Department Info */}
       <motion.div
-        className="flex flex-col lg:flex-row items-center lg:items-start bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl"
+        className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center gap-6"
         initial="hidden"
         animate="visible"
         variants={fadeInUp}
+        custom={0}
       >
-        <div className="w-full lg:w-1/2 mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
-          <div className="relative w-full h-[240px] sm:h-[300px] lg:h-[320px] rounded-lg overflow-hidden shadow-lg">
-            <img
-              src={neurology}
-              alt="Neurology Department"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          </div>
+        <div className="lg:w-1/2 flex justify-center items-center transition-transform duration-700 hover:scale-105">
+          <img
+            src={neurology}
+            alt="Neurology Department"
+            className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
+          />
         </div>
-        <div className="w-full lg:w-1/2 lg:pl-8 text-black space-y-4">
-        <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-                    Department of Dental Care
-                  </motion.h2>
-          {[
-            "Our Neurology department offers advanced diagnostic and treatment services for a broad range of neurological disorders.",
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-8">
+          <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
+            Department of Neurology
+          </motion.h2>
+          {["Our Neurology department offers advanced diagnostic and treatment services for a broad range of neurological disorders.",
             "We manage conditions like epilepsy, stroke, multiple sclerosis, Parkinson's disease, and migraines.",
             "Our expert neurologists collaborate with radiology, neuro-rehabilitation, and neurosurgery teams to provide holistic care.",
             "We are committed to clinical excellence, continuous innovation, and patient-centric approaches.",
-          ].map((text, index) => (
-            <motion.p key={index} custom={index + 1} variants={fadeInUp} initial="hidden" animate="visible">
+          ].map((text, i) => (
+            <motion.p
+              key={i}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              custom={i + 1}
+              className="text-justify"
+            >
               {text}
             </motion.p>
           ))}
         </div>
       </motion.div>
 
-      <div className="h-[60px] sm:h-[90px]"></div>
-
       {/* Doctor List */}
-      <motion.h1
-        className="text-3xl font-bold text-black text-center scroll-mt-28"
-        id="Doctors"
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
-        Find Your <span className="text-blue-600">Specialist</span>
-      </motion.h1>
-
-      <motion.p
-        className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl"
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
+      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28 mt-10 pt-5" id="Doctors">
+        Meet Our <span className="text-blue-600">Neurologists</span>
+      </h1>
+      <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
         Connect with experienced neurologists and book your appointment with ease.
-      </motion.p>
+      </p>
 
-      <div className="flex flex-wrap justify-center gap-6">
-        {doctors.map((doc, idx) => (
+      <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
+        {doctors.map((doctor, index) => (
           <motion.div
-            key={doc.id}
+            key={doctor.id}
             className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
-           
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            custom={index + 1}
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
-                src={doc.image}
-                alt={doc.name}
+                src={doctor.image}
+                alt={doctor.name}
                 className="w-full h-full object-cover object-top"
               />
             </div>
-
             <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doc.name}</h2>
-              <p className="text-blue-600 text-sm">{doc.specialty}</p>
+              <h2 className="text-xl font-semibold">{doctor.name}</h2>
+              <p className="text-blue-600 text-sm">{doctor.title}</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">{doc.rating}</span>
+                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
               </div>
             </div>
-
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doc.id}</p>
-              <p><strong>Experience:</strong> {doc.experience}</p>
-              <p><strong>Education:</strong> {doc.education}</p>
-              <p><strong>Languages:</strong> {doc.languages.join(", ")}</p>
-              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
+              <p><strong>ID:</strong> #{doctor.id}</p>
+              <p><strong>Experience:</strong> {doctor.experience}</p>
+              <p><strong>Education:</strong> {doctor.education}</p>
+              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
             </div>
-
             <div className="mt-4 w-full px-4">
               <p className="font-semibold text-sm mb-1">Specializations</p>
               <div className="flex flex-wrap gap-2 text-xs">
-                {doc.specialization.map((s, idx) => (
+                {doctor.specializations.map((spec, idx) => (
                   <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-                    {s}
+                    {spec}
                   </span>
                 ))}
               </div>
             </div>
-
-            <div className="mt-4 w-full px-4">
+            <div className="mt-6 w-full px-4">
               <button
+                onClick={() => handleBookClick(doctor)}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
-                onClick={() => handleBookClick(doc)}
               >
                 Book Appointment
               </button>
@@ -206,11 +189,7 @@ const Neuro = () => {
         ))}
       </div>
 
-      {showModal && selectedDoctor && (
-        <AppointmentModal doctor={selectedDoctor} onClose={closeModal} />
-      )}
-
-      <div className="h-[40px]"></div>
+      <div className="h-[40px]" />
     </div>
   );
 };

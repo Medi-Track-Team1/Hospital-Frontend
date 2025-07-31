@@ -59,9 +59,6 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Top Doctors</h2>
-            <button className="text-[#2563eb] hover:text-blue-700 text-sm font-medium">
-              View All
-            </button>
           </div>
           <div className="space-y-4">
             {doctors.map((doctor) => (
@@ -78,9 +75,6 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Recent Appointments</h2>
-            <button className="text-[#2563eb] hover:text-blue-700 text-sm font-medium">
-              View All
-            </button>
           </div>
           <div className="space-y-4">
             {appointments.map((appointment) => (

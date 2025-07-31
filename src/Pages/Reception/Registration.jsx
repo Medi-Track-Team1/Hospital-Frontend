@@ -8,10 +8,11 @@ const PatientRegistrationForm = () => {
     gender: "",
     maritalStatus: "",
     city: "",
-    states: "",
+    state: "",
     zipCode: "",
     contactNumber: "",
-    email: "",
+    patientEmail: "",
+    password: "",
     address: "",
   });
 
@@ -59,10 +60,11 @@ const PatientRegistrationForm = () => {
       gender: "",
       maritalStatus: "",
       city: "",
-      states: "",
+      state: "",
       zipCode: "",
       contactNumber: "",
-      email: "",
+      patientEmail: "",
+      password: "",
       address: "",
     });
     setEmergencyContacts([
@@ -70,8 +72,49 @@ const PatientRegistrationForm = () => {
     ]);
   };
 
-  const handleRegisterPatient = () => {
-    console.log("Patient registration data:", { formData, emergencyContacts });
+  const handleRegisterPatient = async () => {
+    try {
+      // Prepare the data according to your backend Patient model
+      const patientData = {
+        patientName: formData.patientName,
+        age: parseInt(formData.age),
+        bloodGroup: formData.bloodGroup,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus || null,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode || "",
+        contactNumber: formData.contactNumber,
+        patientEmail: formData.patientEmail,
+        password: formData.password,
+        address: formData.address,
+        emergencyContacts: emergencyContacts.filter(contact => 
+          contact.name.trim() || contact.phone.trim() || contact.relation.trim() || contact.email.trim()
+        )
+      };
+
+      // Make API call to your backend
+      const response = await fetch('http://localhost:8080/api/patient/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Patient registered successfully!');
+        // Clear the form after successful registration
+        handleClearForm();
+      } else {
+        alert('Registration failed: ' + (result.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error registering patient:', error);
+      alert('Registration failed: Network error or server is not responding');
+    }
   };
 
   const inputStyle = {
@@ -303,9 +346,9 @@ const PatientRegistrationForm = () => {
           <div style={columnStyle}>
             <input
               type="text"
-              name="states"
-              placeholder="States *"
-              value={formData.states}
+              name="state"
+              placeholder="State*"
+              value={formData.state}
               onChange={handleInputChange}
               style={inputStyle}
               required
@@ -336,10 +379,21 @@ const PatientRegistrationForm = () => {
           </div>
           <div style={columnStyle}>
             <input
-              type="email"
-              name="email"
+              type="patientEmail"
+              name="patientEmail"
               placeholder="Email Address *"
-              value={formData.email}
+              value={formData.patientEmail}
+              onChange={handleInputChange}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={columnStyle}>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password *"
+              value={formData.password}
               onChange={handleInputChange}
               style={inputStyle}
               required

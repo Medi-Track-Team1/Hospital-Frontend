@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const AppointModal = ({ doctor, onClose }) => {
+const AppointmentPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const doctor = location.state?.doctor;
+
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -20,8 +24,8 @@ const AppointModal = ({ doctor, onClose }) => {
 
   useEffect(() => {
     if (doctor) {
-      setForm((prevForm) => ({
-        ...prevForm,
+      setForm((prev) => ({
+        ...prev,
         doctor: doctor.name || "",
         specialty: doctor.specialty || "",
       }));
@@ -31,7 +35,6 @@ const AppointModal = ({ doctor, onClose }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === "phone") {
-      // Only allow numeric input
       const numericValue = value.replace(/\D/g, "");
       setForm({ ...form, phone: numericValue });
     } else {
@@ -41,55 +44,45 @@ const AppointModal = ({ doctor, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setShowConfirmation(true); // Show confirmation popup
+    setShowConfirmation(true);
   };
 
   const handleConfirmClose = () => {
     setShowConfirmation(false);
-    onClose();
+    navigate("/departments/appointment", { state: { doctor } }); 
   };
 
-  if (!doctor) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-[95%] sm:w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%] max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+<div className="min-h-screen bg-gray-100 py-6 px-6 mt-12">
+      <div className="bg-white max-w-5xl mx-auto shadow-xl rounded-lg p-6 space-y-6">
+        <h2 className="text-2xl font-semibold pb-4">
+          Appointment with {doctor?.name || "Doctor"}
+        </h2>
 
-        {/* Fixed Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b bg-white sticky top-0 z-10">
-          <h2 className="text-2xl font-semibold">Appointment with {doctor.name}</h2>
-          <button onClick={onClose}><X className="w-6 h-6" /></button>
-        </div>
-
-        {/* Scrollable Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Patient Info */}
           <div className="bg-blue-100 p-4 rounded-md">
             <h3 className="text-lg font-medium mb-4">👤 Patient Information</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <input name="name" required placeholder="Enter patient full name" value={form.name} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
-              <input name="age" required placeholder="Enter age" value={form.age} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
-<input
-  name="phone"
-  required
-  type="tel"
-  placeholder="+91"
-  value={form.phone}
-  onChange={(e) => {
-    const numeric = e.target.value.replace(/\D/g, ""); // Remove non-numeric chars
-    setForm({ ...form, phone: numeric });
-  }}
-  pattern="[0-9]{10}"
-  maxLength={10}
-  className="w-full border px-4 py-2 rounded-lg"
-/>
-              <input name="email" required type="email" placeholder="patient@email.com" value={form.email} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+              <input name="name" required placeholder="Full name" value={form.name} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+              <input name="age" required placeholder="Age" value={form.age} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+              <input name="phone" required type="tel" placeholder="+91" value={form.phone} onChange={handleChange} maxLength={10} pattern="[0-9]{10}" className="w-full border px-4 py-2 rounded-lg" />
+              <input name="email" required type="email" placeholder="Email" value={form.email} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
             </div>
           </div>
 
           {/* Appointment Details */}
           <div className="bg-blue-100 p-4 rounded-md">
-            <h3 className="text-lg font-medium mb-4">📅 Doctor Appointment Details</h3>
+<h3 className="text-lg font-medium mb-4">
+  Doctor Appointment Details –{" "}
+  <span className="text-blue-600 font-normal">
+    {new Date().toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })}
+  </span>
+</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <input type="text" value={form.doctor} readOnly className="w-full border px-4 py-2 rounded-lg" />
               <input type="text" value={form.specialty} readOnly className="w-full border px-4 py-2 rounded-lg" />
@@ -127,7 +120,7 @@ const AppointModal = ({ doctor, onClose }) => {
 
           {/* Buttons */}
           <div className="flex justify-end space-x-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-blue-200 rounded-md hover:bg-blue-300">
+            <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 bg-blue-200 rounded-md hover:bg-blue-300">
               Cancel
             </button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
@@ -137,11 +130,11 @@ const AppointModal = ({ doctor, onClose }) => {
         </form>
       </div>
 
-      {/* ✅ Confirmation Popup */}
+      {/* Confirmation */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-[90%] max-w-md text-center">
-            <h3 className="text-xl font-bold mb-4 text-green-700">✅ Mail will be sent shortly!,</h3>
+            <h3 className="text-xl font-bold mb-4 text-green-700">✅ Mail will be sent shortly!</h3>
             <p className="mb-2"><strong>Patient:</strong> {form.name}</p>
             <p className="mb-2"><strong>Doctor:</strong> {form.doctor}</p>
             <p className="mb-2"><strong>Department:</strong> {form.specialty}</p>
@@ -156,4 +149,4 @@ const AppointModal = ({ doctor, onClose }) => {
   );
 };
 
-export default AppointModal;
+export default AppointmentPage;

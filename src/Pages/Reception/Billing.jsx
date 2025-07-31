@@ -9,6 +9,7 @@ const ReceptionBilling = () => {
   const [billDate, setBillDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+
   const [consultancyFee, setConsultancyFee] = useState(0);
   const [medicines, setMedicines] = useState([
     { name: "", quantity: 1, rate: 0 },
@@ -17,6 +18,7 @@ const ReceptionBilling = () => {
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
   const [savedBills, setSavedBills] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -26,8 +28,7 @@ const ReceptionBilling = () => {
       return;
     }
     try {
-       const res = await axios.get(`https://billing-backend-0zk0.onrender.com/api/patient/${pid}`);
-      console.log("Fetched patient:", res.data);
+      const res = await axios.get(`https://billing-backend-0zk0.onrender.com/api/patient/${pid}`);
       if (res.data && res.data.name) setPatientName(res.data.name);
       else setPatientName("");
     } catch (error) {
@@ -36,38 +37,27 @@ const ReceptionBilling = () => {
   };
 
   // Fetch bill using patientId and (optionally) patient name
-  const fetchBillByPatientId = async (enteredPatientId) => {
-    if (!enteredPatientId) return;
+  const fetchBillByPatientId = async () => {
+    if (!patientId) return;
     try {
-      const res = await axios.get(`/api/billing/${enteredPatientId}`);
+      const res = await axios.get(`https://billing-backend-0zk0.onrender.com/api/billing/${patientId}`);
       if (res.data && res.data.success && res.data.data) {
         const billing = res.data.data;
-
         if (billing.patientName) setPatientName(billing.patientName);
-        else fetchPatientName(enteredPatientId);
-
+        else fetchPatientName(patientId);
         setConsultancyFee(0);
-
-        setMedicines(
-          (billing.medicines || []).map((item) => ({
-            name: item.medicineName,
-            quantity: item.quantity,
-            rate: item.unitPrice,
-          }))
-        );
-
-        setTests(
-          (billing.tests || []).map((item) => ({
-            name: item.medicineName,
-            rate: item.unitPrice,
-          }))
-        );
+        setMedicines((billing.medicines || []).map(item => ({
+          name: item.medicineName,
+          quantity: item.quantity,
+          rate: item.unitPrice
+        })));
+        setTests((billing.tests || []).map(item => ({
+          name: item.medicineName,
+          rate: item.unitPrice
+        })));
         setDiscount((billing.discount / billing.subtotal) * 100 || 0);
-        setBillDate(
-          billing.createdAt
-            ? new Date(billing.createdAt).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0]
-        );
+        setPaymentMethod(billing.paymentMethod || "Cash");
+        setBillDate(billing.createdAt ? new Date(billing.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
       } else {
         toast.info("No billing found for this patient ID");
         resetForm();
@@ -120,30 +110,45 @@ const ReceptionBilling = () => {
     setNotes("");
   };
 
-  const saveBill = () => {
+ const saveBill = async () => {
+    if (saving) return;
+    setSaving(true);
+
     const bill = {
-      id: Date.now(),
       patientId,
       patientName,
       billDate,
       consultancyFee,
-      items: [...medicines, ...tests].filter((item) => item.name.trim() !== ""),
-      discount,
       paymentMethod,
+      discount,
       notes,
-      medicines: medicines.filter((item) => item.name.trim() !== ""),
-      tests: tests.filter((item) => item.name.trim() !== ""),
-      medicinesSubtotal,
-      testsSubtotal,
+      medicines: medicines.filter((item) => item.name.trim() !== "").map((item) => ({
+        medicineName: item.name,
+        quantity: item.quantity,
+        unitPrice: item.rate,
+        totalPrice: item.quantity * item.rate,
+      })),
+      tests: tests.filter((item) => item.name.trim() !== "").map((item) => ({
+        medicineName: item.name,
+        quantity: 1,
+        unitPrice: item.rate,
+        totalPrice: item.rate,
+      })),
       subtotal,
-      discountAmount,
-      taxAmount,
-      total,
-      timestamp: new Date().toLocaleString(),
+      gst: taxAmount,
+      totalAmount: total,
     };
-    setSavedBills([...savedBills, bill]);
-    resetForm();
-    toast.success("Bill saved successfully!");
+
+    try {
+      await axios.post("https://billing-backend-0zk0.onrender.com/api/billing", bill);
+      toast.success("Bill saved to backend successfully!");
+      resetForm();
+    } catch (error) {
+      toast.error("Failed to save bill to backend!");
+      console.error("Save error:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const processPayment = () => {
@@ -155,6 +160,7 @@ const ReceptionBilling = () => {
       toast.error("Total amount must be greater than 0!");
       return;
     }
+    
     toast.success(
       `Payment of ₹${total.toFixed(
         2
@@ -394,18 +400,8 @@ const ReceptionBilling = () => {
               <span style={styles.amount}>
                 ₹{(item.quantity * item.rate).toFixed(2)}
               </span>
-              <button
-                onClick={() => removeMedicine(index)}
-                style={styles.removeBtn}
-                disabled={medicines.length === 1}
-              >
-                ❌
-              </button>
             </div>
           ))}
-          <button onClick={addMedicine} style={styles.addBtn}>
-            ➕ Add Medicine
-          </button>
         </div>
 
         {/* Tests Section */}
@@ -434,18 +430,8 @@ const ReceptionBilling = () => {
                 step="0.01"
               />
               <span style={styles.amount}>₹{item.rate.toFixed(2)}</span>
-              <button
-                onClick={() => removeTest(index)}
-                style={styles.removeBtn}
-                disabled={tests.length === 1}
-              >
-                ❌
-              </button>
             </div>
           ))}
-          <button onClick={addTest} style={styles.addBtn}>
-            ➕ Add Test
-          </button>
         </div>
 
         {/* Payment Section */}
@@ -557,7 +543,7 @@ const ReceptionBilling = () => {
               <button
                 onClick={saveBill}
                 style={styles.saveBtn}
-                disabled={!patientId || !patientName}
+                disabled={saving ||!patientId || !patientName}
                 onMouseEnter={(e) => {
                   if (!e.target.disabled) {
                     e.target.style.transform = "translateY(-3px)";

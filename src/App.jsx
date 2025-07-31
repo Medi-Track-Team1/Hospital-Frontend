@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import ProtectedRoute from './components/ProtectedRoute';
+import UnauthorizedPage from "./components/UnauthroizedPage";
 // Routes and Components
 import HomeRoutes from "./components/Home/HomeRoutes";
 import Patient from "./components/PatientProfile/Patient";
@@ -39,6 +40,56 @@ function App() {
         <Route path="/doctor-panel/patienthistory" element={<CompletedTreatments/>}/>
         <Route path="/reception/*" element={<Reception />} />
         <Route path="/admin/*" element={<Admin/>}/>
+
+        {/* Don't touch below code or remove comment */}
+        {/* Doctor Routes */}
+        {/* <Route path="/doctor-panel" element={
+          <ProtectedRoute roles={['ROLE_DOCTOR']}>
+            <DoctorPanelPage />
+          </ProtectedRoute>
+         } /> */}
+        
+        {/* <Route path="/doctor-panel/patienthistory" element={
+          <ProtectedRoute roles={['ROLE_DOCTOR']}>
+            <CompletedTreatments />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Patient Routes */}
+        {/* <Route path="/patient/*" element={
+          <ProtectedRoute roles={['ROLE_PATIENT']}>
+            <Patient />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Reception/Nurse Routes */}
+        {/* <Route path="/reception/*" element={
+          <ProtectedRoute roles={['ROLE_NURSE']}>
+            <Reception />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Admin Routes */}
+        {/* <Route path="/admin/*" element={
+          <ProtectedRoute roles={['ROLE_ADMIN']}>
+            <Admin />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Department Routes (adjust roles as needed) */}
+        {/* <Route path="/departments/*" element={
+          <ProtectedRoute roles={['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_NURSE']}>
+            <DeptRoute />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Unauthorized route */}
+        {/* <Route path="/unauthorized" element={<UnauthorizedPage />} /> */}
+     
+     
+     
+     
+     
       </Routes>
       
       {/* Show Login Popup */}

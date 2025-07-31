@@ -328,7 +328,7 @@ export const MedicalAppointments = () => {
                         <th className="text-left p-4 font-medium">Date & Time</th>
                        
                         <th className="text-left p-4 font-medium">Reason</th>
-                        
+                        <th className="text-left p-4 font-medium">Status</th>
                     
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
@@ -358,7 +358,11 @@ export const MedicalAppointments = () => {
                           </td>
                           
                           <td className="p-3 text-sm">{appointment.reason}</td>
-                          
+                          <td className="p-2 text-sm">
+                            <Badge className={`border ${getStatusBadge(appointment.status)}`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </Badge>
+                          </td>
                           
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
@@ -424,7 +428,7 @@ export const MedicalAppointments = () => {
                        
                         <th className="text-left p-4 font-medium">Reason</th>
                        
-                        
+                        <th className="text-left p-4 font-medium">Status</th>
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
@@ -453,7 +457,11 @@ export const MedicalAppointments = () => {
                           </td>
                           
                           <td className="p-3 text-sm">{appointment.reason}</td>
-                          
+                          <td className="p-2 text-sm">
+                            <Badge className={`border ${getStatusBadge(appointment.status)}`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </Badge>
+                          </td>
                          
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">

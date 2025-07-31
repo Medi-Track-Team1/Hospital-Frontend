@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { API_BASE_URL } from "./api";
+import { loginUser, isAdmin, isDoctor, isNurse, isPatient } from './api';
 
-const Login = ({ onClose, onSignupClick }) => {
+const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(''); // Add success message state
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +21,7 @@ const Login = ({ onClose, onSignupClick }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage(''); // Clear any previous messages
+    setSuccessMessage('');
     
     if (!formData.email || !formData.password) {
       setError('Email and password are required');
@@ -31,33 +31,32 @@ const Login = ({ onClose, onSignupClick }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      // Save the token and user details to localStorage
-      localStorage.setItem('authToken', data.token);
-     
-      // Show success message instead of alert
+      // Use the loginUser function from api.js
+      const user = await loginUser(formData.email, formData.password);
+      
       setSuccessMessage('Login successful!');
       
+      // Determine where to redirect based on role
+      let redirectPath = '/';
+      if (isAdmin()) {
+        redirectPath = '/admin/dashboard';
+      } else if (isDoctor()) {
+        redirectPath = '/doctor/dashboard';
+      } else if (isNurse()) {
+        redirectPath = '/nurse/dashboard';
+      } else if (isPatient()) {
+        redirectPath = '/patient/dashboard';
+      }
+
+      // Notify parent component about successful login
+      if (onLoginSuccess) {
+        onLoginSuccess(redirectPath);
+      }
+
       // Close the modal after 2 seconds
       setTimeout(() => {
         onClose();
-      }, 5000);
+      }, 2000);
       
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.');
@@ -91,7 +90,6 @@ const Login = ({ onClose, onSignupClick }) => {
         </div>
       )}
 
-      {/* Add success message display */}
       {successMessage && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
           {successMessage}

@@ -99,6 +99,7 @@ const Signup = ({ onClose, onLoginClick }) => {
         email: formData.email,
         password: formData.password
         
+        
       });
      console.log('Auth response:', formData.patientName);
       // Register patient details

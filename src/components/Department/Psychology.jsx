@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Brain, Phone, Mail } from "lucide-react";
-import { motion } from "framer-motion";
 import psychology from "../../assets/psychology.jpg";
 import dr from "../../assets/dr.jpg";
 import poovu from "../../assets/poovu.png";
-import AppointmentModal from "./AppointModal";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -19,30 +19,11 @@ const fadeInUp = {
   }),
 };
 
-const fadeInDown = {
-  hidden: { opacity: 0, y: -40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
-};
-
 const Psychology = () => {
-  const [showPopup, setShowPopup] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const navigate = useNavigate();
 
   const handleBookClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setSelectedDoctor(null);
+    navigate("/departments/appointment", { state: { doctor } });
   };
 
   const doctors = [
@@ -59,8 +40,7 @@ const Psychology = () => {
       email: "ragavan@hospital.com",
       phone: "+91 98765 11111",
       languages: ["English", "Tamil"],
-             timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-
+      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
     },
     {
       id: 802,
@@ -95,88 +75,67 @@ const Psychology = () => {
             <p className="text-lg sm:text-xl font-bold text-gray-500">Mind Matters Most</p>
           </div>
         </div>
-        <div>
-          <button
-            onClick={() => {
-              document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
-          >
-            Find a Doctor
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
+        >
+          Find a Doctor
+        </button>
       </motion.div>
 
       <hr className="w-full max-w-6xl border-t-2 border-black mb-10" />
 
       {/* Department Info */}
       <motion.div
-        className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center"
-        variants={fadeInUp}
+        className="flex flex-col lg:flex-row bg-blue-100 mt-6 p-4 sm:p-6 mb-10 w-full max-w-6xl items-center gap-6"
         initial="hidden"
         animate="visible"
+        variants={fadeInUp}
         custom={0}
       >
-        <div className="lg:w-1/2 flex justify-center items-center mb-6 lg:mb-0 transition-transform duration-700 hover:scale-105">
+        <div className="lg:w-1/2 flex justify-center items-center transition-transform duration-700 hover:scale-105">
           <img
             src={psychology}
             alt="Psychology Department"
-            className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
+            className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 lg:pl-8 text-black space-y-4">
-        <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-                    Department of Psychology
-                  </motion.h2>
-          {[
-            "Our Psychology department provides comprehensive mental health support through individualized therapy, counseling, and psychological assessments.",
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-10">
+          <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
+            Department of Psychology
+          </motion.h2>
+          {["Our Psychology department provides comprehensive mental health support through individualized therapy, counseling, and psychological assessments.",
             "We specialize in managing stress, anxiety, depression, behavioral issues, and emotional trauma with compassion and professionalism.",
             "Our team includes clinical psychologists, child therapists, and behavioral specialists committed to your emotional well-being.",
             "We offer both in-person and virtual therapy sessions tailored to suit your personal needs.",
-            "Let us help you build mental strength and restore emotional balance through evidence-based care.",
-          ].map((text, i) => (
-            <motion.p
-              key={i}
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              custom={i + 1}
-              className="text-justify"
-            >
-              {text}
-            </motion.p>
-          ))}
+            "Let us help you build mental strength and restore emotional balance through evidence-based care."]
+            .map((text, i) => (
+              <motion.p key={i} variants={fadeInUp} initial="hidden" animate="visible" custom={i + 1} className="text-justify">
+                {text}
+              </motion.p>
+            ))}
         </div>
       </motion.div>
 
-      <div className="h-[60px]" />
-
       {/* Doctor List */}
-      <motion.h1
-        className="text-3xl font-bold text-black text-center scroll-mt-28"
-        id="Doctors"
-        variants={fadeInDown}
-        initial="hidden"
-        animate="visible"
-      >
-        Find Your <span className="text-blue-600">Therapist</span>
-      </motion.h1>
-      <motion.p
-        className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl"
-        variants={fadeInUp}
-        initial="hidden"
-        animate="visible"
-        custom={1}
-      >
+      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28 mt-10" id="Doctors">
+        Meet Our <span className="text-blue-600">Therapists</span>
+      </h1>
+      <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
         Connect with licensed psychologists and mental health professionals for personal guidance.
-      </motion.p>
+      </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
         {doctors.map((doctor, index) => (
           <motion.div
             key={doctor.id}
             className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
-      
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            custom={index + 1}
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
@@ -221,10 +180,6 @@ const Psychology = () => {
           </motion.div>
         ))}
       </div>
-
-      {showPopup && selectedDoctor && (
-        <AppointmentModal doctor={selectedDoctor} onClose={closePopup} />
-      )}
 
       <div className="h-[40px]" />
     </div>

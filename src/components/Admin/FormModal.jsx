@@ -7,7 +7,7 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData 
   useEffect(() => {
     if (isOpen) {
       setFormData(initialData || {});
-      // Reset file inputs when modal opens
+      
       Object.keys(fileInputRefs.current).forEach(key => {
         if (fileInputRefs.current[key]) {
           fileInputRefs.current[key].value = '';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+
 // Password encryption function using Web Crypto API
 const encryptPassword = async (password) => {
   const encoder = new TextEncoder();
@@ -83,12 +84,12 @@ const Login = ({ onClose, onSignupClick }) => {
     }
   };
 
+
   return (
     <div className="relative bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-      {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-gray-500 text-2xl font-bold"
+        className="absolute top-4 right-4 text-gray-500 text-2xl font-bold hover:text-blue-600 transition-colors"
         style={{
           background: 'transparent',
           border: 'none',
@@ -96,18 +97,13 @@ const Login = ({ onClose, onSignupClick }) => {
           padding: '0',
           margin: '0',
         }}
-        onMouseEnter={(e) => {
-          e.target.style.color = '#2563eb'; // blue-600
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.color = '#6b7280'; // gray-500
-        }}
       >
         ×
       </button>
 
       <h2 className="text-2xl font-bold text-center text-black mb-2">Welcome Back!</h2>
       <p className="text-black text-center mb-6">Login with your details to continue</p>
+
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
@@ -118,7 +114,7 @@ const Login = ({ onClose, onSignupClick }) => {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
             required
           />
         </div>
@@ -131,15 +127,17 @@ const Login = ({ onClose, onSignupClick }) => {
             placeholder="Password"
             value={formData.password}
             onChange={handleInputChange}
+
             className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
             required
           />
         </div>
 
-        {/* Blue Login Button */}
         <button
           type="submit"
           disabled={isLoading}
+
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
           {isLoading ? (
@@ -150,6 +148,7 @@ const Login = ({ onClose, onSignupClick }) => {
           ) : (
             "Login"
           )}
+
         </button>
       </form>
 
@@ -157,7 +156,7 @@ const Login = ({ onClose, onSignupClick }) => {
         Don't have an account?{' '}
         <button
           onClick={onSignupClick}
-          className="text-sm text-blue-600 hover:underline font-medium"
+          className="text-sm text-blue-600 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
         >
           SignUp
         </button>

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Heart, Phone, Mail } from "lucide-react";
 import cardio from "../../assets/Cardio.jpg";
 import Boo from "../../assets/boo.png";
 import Mahesh from "../../assets/Mahesh.png";
 import { motion } from "framer-motion";
-import AppointmentModal from "./AppointModal"; // Make sure it's styled as per second image
+import { useNavigate } from "react-router-dom";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -20,18 +20,11 @@ const fadeInUp = {
 };
 
 const Cardio = () => {
-  const [showPopup, setShowPopup] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const navigate = useNavigate();
 
-  const handleBookClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setSelectedDoctor(null);
-    setShowPopup(false);
-  };
+const handleBookClick = (doctor) => {
+  navigate("/departments/appointment", { state: { doctor } }); // ✅ full path
+};
 
   const doctors = [
     {
@@ -109,7 +102,7 @@ const Cardio = () => {
             className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base">
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-8">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Cardiology
           </motion.h2>
@@ -195,11 +188,6 @@ const Cardio = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* Modal Component */}
-      {showPopup && selectedDoctor && (
-        <AppointmentModal isOpen={showPopup} doctor={selectedDoctor} onClose={closePopup} />
-      )}
 
       <div className="h-[40px]" />
     </div>

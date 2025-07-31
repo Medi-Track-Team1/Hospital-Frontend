@@ -7,7 +7,7 @@ const AddMedicineForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     batch: '',
-    quantity: '',
+    stock: '',
     price: '',
     expiry: '',
     supplier: ''
@@ -32,7 +32,7 @@ const AddMedicineForm = () => {
     try {
       await MedicineService.addMedicine({
         ...formData,
-        quantity: parseInt(formData.quantity),
+        stock: parseInt(formData.stock),
         price: parseFloat(formData.price)
       });
       navigate('/admin/pharmacy');
@@ -94,14 +94,14 @@ const AddMedicineForm = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2" htmlFor="quantity">
-              Quantity*
+            <label className="block text-gray-700 mb-2" htmlFor="stock">
+              Stock Quantity*
             </label>
             <input
               type="number"
-              id="quantity"
-              name="quantity"
-              value={formData.quantity}
+              id="stock"
+              name="stock"
+              value={formData.stock}
               onChange={handleChange}
               min="0"
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

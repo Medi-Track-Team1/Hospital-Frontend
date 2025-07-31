@@ -89,9 +89,9 @@ const toast = {
 const encryptPassword = async (password) => {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 };
 
 const Signup = ({ onClose, onLoginClick }) => {
@@ -119,13 +119,16 @@ const Signup = ({ onClose, onLoginClick }) => {
 
   const addEmergencyContact = () => {
     const newId = Math.max(...emergencyContacts.map((c) => c.id), 0) + 1;
-    setEmergencyContacts([...emergencyContacts, {
-      id: newId,
-      name: "",
-      phone: "",
-      relation: "",
-      email: "",
-    }]);
+    setEmergencyContacts([
+      ...emergencyContacts,
+      {
+        id: newId,
+        name: "",
+        phone: "",
+        relation: "",
+        email: "",
+      },
+    ]);
   };
 
   const removeEmergencyContact = (id) => {
@@ -255,7 +258,7 @@ const Signup = ({ onClose, onLoginClick }) => {
     try {
       // Encrypt password before sending
       const encryptedPassword = await encryptPassword(formData.password);
-      
+
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -270,12 +273,17 @@ const Signup = ({ onClose, onLoginClick }) => {
         patientEmail: formData.patientEmail,
         password: encryptedPassword, // Send encrypted password
         address: formData.address,
-        emergencyContacts: emergencyContacts.filter(contact => 
-          contact.name.trim() || contact.phone.trim() || contact.relation.trim() || contact.email.trim()
-        )
+        emergencyContacts: emergencyContacts.filter(
+          (contact) =>
+            contact.name.trim() ||
+            contact.phone.trim() ||
+            contact.relation.trim() ||
+            contact.email.trim()
+        ),
       };
 
       // Make API call to your backend
+
       const response = await fetch('https://patient-service-ntk0.onrender.com/api/patient/registration', {
         method: 'POST',
         headers: {
@@ -284,16 +292,19 @@ const Signup = ({ onClose, onLoginClick }) => {
         body: JSON.stringify(patientData),
       });
 
+
       const result = await response.json();
 
       // Dismiss loading toast
       toast.dismiss(loadingToastId);
 
       if (response.ok && result.success) {
+
         toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
           autoClose: 5000,
         });
         
+
         // Clear the form after successful registration
         clearForm();
         
@@ -302,6 +313,7 @@ const Signup = ({ onClose, onLoginClick }) => {
           onClose();
         }, 2000);
       } else {
+
         toast.error(`Registration failed: ${result.message || 'Unknown error'}`, {
           autoClose: 7000,
         });
@@ -316,6 +328,7 @@ const Signup = ({ onClose, onLoginClick }) => {
       });
     } finally {
       setIsSubmitting(false);
+
     }
   };
 

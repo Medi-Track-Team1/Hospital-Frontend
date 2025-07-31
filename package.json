@@ -24,7 +24,9 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "framer-motion": "^12.23.6",
+    "html-pdf": "^183.0.1",
     "html2pdf.js": "^0.10.3",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.462.0",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
@@ -50,7 +52,7 @@
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.4.5",
-    "vite": "^5.4.19",
+    "vite": "^7.0.6",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }

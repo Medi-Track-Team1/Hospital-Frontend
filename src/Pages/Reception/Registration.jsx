@@ -1,5 +1,14 @@
 import React, { useState } from "react";
 
+// Password encryption function using Web Crypto API
+const encryptPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
 const PatientRegistrationForm = () => {
   const [formData, setFormData] = useState({
     patientName: "",
@@ -74,6 +83,9 @@ const PatientRegistrationForm = () => {
 
   const handleRegisterPatient = async () => {
     try {
+      // Encrypt password before sending
+      const encryptedPassword = await encryptPassword(formData.password);
+      
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -86,7 +98,7 @@ const PatientRegistrationForm = () => {
         zipCode: formData.zipCode || "",
         contactNumber: formData.contactNumber,
         patientEmail: formData.patientEmail,
-        password: formData.password,
+        password: encryptedPassword, // Send encrypted password
         address: formData.address,
         emergencyContacts: emergencyContacts.filter(contact => 
           contact.name.trim() || contact.phone.trim() || contact.relation.trim() || contact.email.trim()
@@ -94,7 +106,7 @@ const PatientRegistrationForm = () => {
       };
 
       // Make API call to your backend
-      const response = await fetch('http://localhost:8080/api/patient/registration', {
+      const response = await fetch('https://patient-service-ntk0.onrender.com/api/patient/registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,12 +260,6 @@ const PatientRegistrationForm = () => {
     color: "#1e40af",
   };
 
-  const requiredStyle = {
-    color: "#ef4444",
-    marginLeft: "4px",
-    fontSize: "16px",
-  };
-
   return (
     <div style={containerStyle}>
       <div style={sectionStyle}>
@@ -379,7 +385,7 @@ const PatientRegistrationForm = () => {
           </div>
           <div style={columnStyle}>
             <input
-              type="patientEmail"
+              type="email"
               name="patientEmail"
               placeholder="Email Address *"
               value={formData.patientEmail}

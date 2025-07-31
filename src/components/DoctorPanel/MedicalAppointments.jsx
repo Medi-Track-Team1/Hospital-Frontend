@@ -183,7 +183,7 @@ const { id: doctorId } = useParams();
 <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => navigate("/doctor-panel/patienthistory")}
+                                onClick={() => navigate("/doctor/:id/patienthistory")}
                                 className="text-xs"
                               >
                                 <MdVisibility className="h-3 w-3 mr-1" />

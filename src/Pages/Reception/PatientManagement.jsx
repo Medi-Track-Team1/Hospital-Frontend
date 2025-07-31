@@ -3,6 +3,7 @@ import { Search, Filter, Edit, Eye, Trash2, Phone, Mail, MapPin, X, Save, User, 
 
 const PatientManagement = () => {
   const [patients, setPatients] = useState([]);
+  const [allPatients, setAllPatients] = useState([]); // Store all patients for local filtering
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,7 +15,59 @@ const PatientManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // API base URL - adjust this to match your backend server
-  const API_BASE_URL = 'http://localhost:8080/api/patient';
+  const API_BASE_URL = 'https://patient-service-ntk0.onrender.com/api/patient';
+
+  // Helper function to format date correctly
+  const formatDateToLocal = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      // Create date object from the ISO string
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) return 'N/A';
+      
+      // Format as YYYY-MM-DD in local timezone
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'N/A';
+    }
+  };
+
+  // Transform backend data to frontend format
+  const transformPatientData = (patientData) => {
+    return patientData.map(patient => ({
+      id: patient.patientId,
+      name: patient.patientName,
+      age: patient.age,
+      gender: patient.gender,
+      // Use emergency contact phone for table display (backwards compatibility)
+      phone: patient.emergencyContacts?.[0]?.phone || 'N/A',
+      email: patient.emergencyContacts?.[0]?.email || 'N/A',
+      address: `${patient.address}, ${patient.city}, ${patient.state} ${patient.zipCode}`,
+      registrationDate: formatDateToLocal(patient.createdAt),
+      lastVisit: formatDateToLocal(patient.updatedAt),
+      bloodGroup: patient.bloodGroup,
+      emergencyContact: patient.emergencyContacts?.[0]?.phone || 'N/A',
+      maritalStatus: patient.maritalStatus,
+      city: patient.city,
+      state: patient.state,
+      zipCode: patient.zipCode,
+      rawAddress: patient.address,
+      emergencyContacts: patient.emergencyContacts || [],
+      // Add patient's own contact information
+      contactNumber: patient.contactNumber || 'N/A',
+      patientEmail: patient.patientEmail || 'N/A',
+      // Store password for updates (though it shouldn't be displayed)
+      password: patient.password || ''
+    }));
+  };
 
   // Fetch all patients from API
   const fetchPatients = async () => {
@@ -24,33 +77,9 @@ const PatientManagement = () => {
       const data = await response.json();
       
       if (data.success) {
-        // Transform backend data to match frontend format
-        const transformedPatients = data.data.map(patient => ({
-          id: patient.patientId,
-          name: patient.patientName,
-          age: patient.age,
-          gender: patient.gender,
-          // Use emergency contact phone for table display (backwards compatibility)
-          phone: patient.emergencyContacts?.[0]?.phone || 'N/A',
-          email: patient.emergencyContacts?.[0]?.email || 'N/A',
-          address: `${patient.address}, ${patient.city}, ${patient.state} ${patient.zipCode}`,
-          registrationDate: patient.createdAt ? new Date(patient.createdAt).toISOString().split('T')[0] : 'N/A',
-          lastVisit: patient.updatedAt ? new Date(patient.updatedAt).toISOString().split('T')[0] : 'N/A',
-          bloodGroup: patient.bloodGroup,
-          emergencyContact: patient.emergencyContacts?.[0]?.phone || 'N/A',
-          maritalStatus: patient.maritalStatus,
-          city: patient.city,
-          state: patient.state,
-          zipCode: patient.zipCode,
-          rawAddress: patient.address,
-          emergencyContacts: patient.emergencyContacts || [],
-          // Add patient's own contact information
-          contactNumber: patient.contactNumber || 'N/A',
-          patientEmail: patient.patientEmail || 'N/A',
-          // Store password for updates (though it shouldn't be displayed)
-          password: patient.password || ''
-        }));
-        setPatients(transformedPatients);
+        const transformedPatients = transformPatientData(data.data);
+        setAllPatients(transformedPatients); // Store all patients
+        setPatients(transformedPatients); // Display all patients initially
       } else {
         setError('Failed to fetch patients');
       }
@@ -67,12 +96,26 @@ const PatientManagement = () => {
     fetchPatients();
   }, []);
 
-  const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.phone.includes(searchTerm);
-    return matchesSearch;
-  });
+  // Local search filter effect
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setPatients(allPatients);
+    } else {
+      const filtered = allPatients.filter(patient => {
+        const term = searchTerm.toLowerCase();
+        return (
+          patient.name.toLowerCase().includes(term) ||
+          patient.id.toLowerCase().includes(term) ||
+          patient.phone.includes(term) ||
+          patient.contactNumber.includes(term) ||
+          patient.patientEmail.toLowerCase().includes(term) ||
+          patient.city.toLowerCase().includes(term) ||
+          patient.bloodGroup.toLowerCase().includes(term)
+        );
+      });
+      setPatients(filtered);
+    }
+  }, [searchTerm, allPatients]);
 
   const handleViewPatient = (patient) => {
     setSelectedPatient(patient);
@@ -322,50 +365,13 @@ const PatientManagement = () => {
     }
   };
 
-  const handleSearch = async (searchValue) => {
-    if (searchValue.trim() === '') {
-      fetchPatients();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/search?name=${encodeURIComponent(searchValue)}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        const transformedPatients = data.data.map(patient => ({
-          id: patient.patientId,
-          name: patient.patientName,
-          age: patient.age,
-          gender: patient.gender,
-          // Use emergency contact phone for table display
-          phone: patient.emergencyContacts?.[0]?.phone || 'N/A',
-          email: patient.emergencyContacts?.[0]?.email || 'N/A',
-          address: `${patient.address}, ${patient.city}, ${patient.state} ${patient.zipCode}`,
-          registrationDate: patient.createdAt ? new Date(patient.createdAt).toISOString().split('T')[0] : 'N/A',
-          lastVisit: patient.updatedAt ? new Date(patient.updatedAt).toISOString().split('T')[0] : 'N/A',
-          bloodGroup: patient.bloodGroup,
-          emergencyContact: patient.emergencyContacts?.[0]?.phone || 'N/A',
-          maritalStatus: patient.maritalStatus,
-          city: patient.city,
-          state: patient.state,
-          zipCode: patient.zipCode,
-          rawAddress: patient.address,
-          emergencyContacts: patient.emergencyContacts || [],
-          // Add patient's own contact information
-          contactNumber: patient.contactNumber || 'N/A',
-          patientEmail: patient.patientEmail || 'N/A',
-          password: patient.password || ''
-        }));
-        setPatients(transformedPatients);
-      }
-    } catch (error) {
-      console.error('Error searching patients:', error);
-      setError('Error searching patients');
-    } finally {
-      setLoading(false);
-    }
+  // Get today's date in YYYY-MM-DD format for comparison
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   if (loading && patients.length === 0) {
@@ -396,6 +402,8 @@ const PatientManagement = () => {
     );
   }
 
+  const todayDate = getTodayDate();
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -413,7 +421,7 @@ const PatientManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 group-hover:text-blue-700 transition-colors duration-300">Total Patients</p>
-                <p className="text-2xl font-bold text-blue-600 group-hover:text-blue-800 transition-all duration-300 group-hover:scale-110">{patients.length}</p>
+                <p className="text-2xl font-bold text-blue-600 group-hover:text-blue-800 transition-all duration-300 group-hover:scale-110">{allPatients.length}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full group-hover:bg-blue-200 transition-all duration-300 group-hover:rotate-12">
                 <User className="h-6 w-6 text-blue-600 group-hover:text-blue-800" />
@@ -425,7 +433,7 @@ const PatientManagement = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600 group-hover:text-green-700 transition-colors duration-300">Registered Today</p>
                 <p className="text-2xl font-bold text-green-600 group-hover:text-green-800 transition-all duration-300 group-hover:scale-110">
-                  {patients.filter(p => p.registrationDate === new Date().toISOString().split('T')[0]).length}
+                  {allPatients.filter(p => p.registrationDate === todayDate).length}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full group-hover:bg-green-200 transition-all duration-300 group-hover:rotate-12">
@@ -442,17 +450,28 @@ const PatientManagement = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-hover/search:text-blue-500 group-focus-within/search:text-blue-500 transition-all duration-300 group-focus-within/search:scale-110" />
               <input
                 type="text"
-                placeholder="Search by name, ID, or phone..."
+                placeholder="Search by name, ID, phone, email, city, or blood group..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  handleSearch(e.target.value);
-                }}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 focus:scale-[1.02] hover:border-blue-300"
               />
               <div className="absolute inset-0 rounded-md bg-blue-500 opacity-0 group-focus-within/search:opacity-5 transition-opacity duration-300 pointer-events-none"></div>
             </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </button>
+            )}
           </div>
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              Showing {patients.length} of {allPatients.length} patients
+            </div>
+          )}
         </div>
 
         {/* Patient Records Table */}
@@ -491,7 +510,7 @@ const PatientManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredPatients.map((patient) => (
+                {patients.map((patient) => (
                   <tr key={patient.id} className="hover:bg-gray-50 transition-all duration-200 hover:scale-[1.01] hover:shadow-sm group/row">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 group-hover/row:text-blue-600 transition-colors duration-200">
                       {patient.id}
@@ -543,12 +562,17 @@ const PatientManagement = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredPatients.length === 0 && (
+                {patients.length === 0 && (
                   <tr>
                     <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
                       <div className="flex flex-col items-center animate-pulse">
                         <User className="h-12 w-12 text-gray-300 mb-2" />
-                        <p>No patients found matching your search criteria.</p>
+                        <p>
+                          {searchTerm ? 
+                            `No patients found matching "${searchTerm}"` : 
+                            'No patients found'
+                          }
+                        </p>
                       </div>
                     </td>
                   </tr>

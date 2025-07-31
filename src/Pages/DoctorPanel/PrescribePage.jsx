@@ -75,7 +75,7 @@ const PrescriptionForm = ({ onClose }) => {
     if (!exists) {
       setSelectedMeds([
         ...selectedMeds,
-        { ...med, timing: [], duration: "", quantity: "", dosage: med.dosage },
+        { ...med, timing: [], duration: "", quantity: "" },
       ]);
     }
     setSearch("");
@@ -124,7 +124,12 @@ const PrescriptionForm = ({ onClose }) => {
     setSelectedMeds(updated);
   };
 
-
+  const handleAddInjection = () => {
+    setInjections([
+      ...injections,
+      { name: "", dosage: "", schedule: "", notes: "", quantity: "" },
+    ]);
+  };
 
   const updateInjection = (index, field, value) => {
     const updated = [...injections];                                                                                                                                                                                         
@@ -154,11 +159,18 @@ const PrescriptionForm = ({ onClose }) => {
         )}
 
         {/* Form Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold">Prescribe Medicines</h2>
             <p className="text-blue-100 text-sm mt-1">Create comprehensive medical prescriptions</p>
           </div>
+          <button 
+            onClick={handleClose}
+            className="text-white hover:text-gray-200 text-2xl font-bold hover:bg-blue-800 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+            title="Close"
+          >
+            ×
+          </button>
         </div>
 
         {/* Form Content */}
@@ -292,7 +304,12 @@ const PrescriptionForm = ({ onClose }) => {
                       </ul>
                     )}
                   </div>
-
+                  <button
+                    onClick={handleAddInjection}
+                    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200"
+                  >
+                    + Custom Injection
+                  </button>
                 </div>
               </div>
             </div>
@@ -324,24 +341,8 @@ const PrescriptionForm = ({ onClose }) => {
                             <td className="border-r border-gray-200 px-4 py-4">
                               <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">Med</span>
                             </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Medicine Name"
-                                value={med.name}
-                                onChange={(e) => updateMedField(index, "name", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm font-semibold text-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Dosage"
-                                value={med.dosage}
-                                onChange={(e) => updateMedField(index, "dosage", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
+                            <td className="border-r border-gray-200 px-4 py-4 font-semibold text-blue-600">{med.name}</td>
+                            <td className="border-r border-gray-200 px-4 py-4 text-gray-600">{med.type} - {med.dosage}</td>
                             <td className="border-r border-gray-200 px-4 py-4">
                               <input
                                 type="number"

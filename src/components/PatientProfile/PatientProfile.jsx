@@ -340,26 +340,12 @@ const PatientProfile = ({ onBackToHome }) => {
                 <span className="bg-secondary text-secondary-foreground px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm w-fit">{patientData.id}</span>
               </p>
               {/* Next Appointment Display */}
-              {nextAppointment && (
-                <div className="mt-3 flex items-center gap-2 text-muted-foreground text-sm">
-                  <Calendar className="w-4 h-4" />
-                  <span>Next: {nextAppointment.date} at {nextAppointment.time} - {nextAppointment.provider}</span>
-                </div>
-              )}
+             
             </div>
             {/* Appointment Summary and Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
               {/* Appointments Summary */}
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm">
-                <Calendar className="w-4 h-4" />
-                <span>{upcomingAppointments.length} upcoming</span>
-                {pendingAppointments.length > 0 && (
-                  <>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-yellow-600">{pendingAppointments.length} pending</span>
-                  </>
-                )}
-              </div>
+              
               <button
                 onClick={handleViewHistory}
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-secondary text-secondary-foreground rounded-lg sm:rounded-xl hover:bg-secondary/80 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"

@@ -1,3 +1,6 @@
+
+import React, { useState } from "react";
+import { User, Phone, Plus, X } from "lucide-react";
 import React, { useState,useEffect } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
 import { registerUser, registerPatientDetails } from "./api";
@@ -83,6 +86,31 @@ const Signup = ({ onClose, onLoginClick }) => {
     setError("");
   };
 
+
+  const handleSubmit = () => {
+    if (formData.age && (formData.age < 0 || formData.age > 120)) {
+      alert("Age must be between 0 and 120.");
+      return;
+    }
+
+    if (formData.zipCode && formData.zipCode.length !== 6) {
+      alert("Zip code must be exactly 6 digits.");
+      return;
+    }
+
+    const invalidPhone = emergencyContacts.some(
+      (contact) => contact.phone.length !== 10
+    );
+    if (invalidPhone) {
+      alert("Each emergency contact phone number must be exactly 10 digits.");
+      return;
+    }
+
+    console.log("Form Data:", formData);
+    console.log("Emergency Contacts:", emergencyContacts);
+    alert("Account created successfully!");
+    onClose();
+
   const handleSubmit = async () => {
     if (!formData.patientName || !formData.email || !formData.password) {
       setError("Name, email, and password are required");
@@ -116,6 +144,7 @@ const Signup = ({ onClose, onLoginClick }) => {
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (
@@ -164,7 +193,6 @@ const Signup = ({ onClose, onLoginClick }) => {
             </h3>
 
             <div className="space-y-6">
-              {/* Row 1 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -177,8 +205,8 @@ const Signup = ({ onClose, onLoginClick }) => {
                     onChange={(e) =>
                       handleInputChange("patientName", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
@@ -190,13 +218,14 @@ const Signup = ({ onClose, onLoginClick }) => {
                     placeholder="Enter your age"
                     value={formData.age}
                     onChange={(e) => handleInputChange("age", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    min={0}
+                    max={120}
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
 
-              {/* Row 2 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -207,17 +236,17 @@ const Signup = ({ onClose, onLoginClick }) => {
                     onChange={(e) =>
                       handleInputChange("bloodGroup", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white"
                   >
                     <option value="">Select blood group</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
+                    <option>A+</option>
+                    <option>A-</option>
+                    <option>B+</option>
+                    <option>B-</option>
+                    <option>AB+</option>
+                    <option>AB-</option>
+                    <option>O+</option>
+                    <option>O-</option>
                   </select>
                 </div>
                 <div>
@@ -229,13 +258,13 @@ const Signup = ({ onClose, onLoginClick }) => {
                     onChange={(e) =>
                       handleInputChange("gender", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white"
                   >
                     <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
                   </select>
                 </div>
                 <div>
@@ -247,18 +276,17 @@ const Signup = ({ onClose, onLoginClick }) => {
                     onChange={(e) =>
                       handleInputChange("maritalStatus", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white"
                   >
                     <option value="">Select status</option>
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    <option value="Divorced">Divorced</option>
-                    <option value="Widowed">Widowed</option>
+                    <option>Single</option>
+                    <option>Married</option>
+                    <option>Divorced</option>
+                    <option>Widowed</option>
                   </select>
                 </div>
               </div>
 
-              {/* Row 3 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -266,11 +294,10 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter city"
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
@@ -279,11 +306,12 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter state"
                     value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={(e) =>
+                      handleInputChange("state", e.target.value)
+                    }
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
@@ -292,33 +320,34 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter zip code"
                     value={formData.zipCode}
                     onChange={(e) =>
                       handleInputChange("zipCode", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    inputMode="numeric"
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
 
-              {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Address *
                 </label>
                 <textarea
-                  placeholder="Enter complete address"
                   value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("address", e.target.value)
+                  }
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
                   required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-vertical"
                 />
               </div>
 
-              {/* Email and Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -326,11 +355,12 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="email"
-                    placeholder="Enter your email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={(e) =>
+                      handleInputChange("email", e.target.value)
+                    }
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
                 <div>
@@ -339,13 +369,12 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="password"
-                    placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) =>
                       handleInputChange("password", e.target.value)
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
@@ -374,7 +403,7 @@ const Signup = ({ onClose, onLoginClick }) => {
                     <button
                       type="button"
                       onClick={() => removeEmergencyContact(contact.id)}
-                      className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                      className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50"
                     >
                       <X size={16} />
                     </button>
@@ -389,7 +418,6 @@ const Signup = ({ onClose, onLoginClick }) => {
                       </label>
                       <input
                         type="text"
-                        placeholder="Enter contact name"
                         value={contact.name}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -398,8 +426,8 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
@@ -408,7 +436,6 @@ const Signup = ({ onClose, onLoginClick }) => {
                       </label>
                       <input
                         type="tel"
-                        placeholder="Enter phone number"
                         value={contact.phone}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -417,8 +444,11 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        maxLength={10}
+                        pattern="[0-9]{10}"
+                        inputMode="numeric"
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                       />
                     </div>
                   </div>
@@ -437,16 +467,16 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
                         required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white"
                       >
                         <option value="">Select relation</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Parent">Parent</option>
-                        <option value="Sibling">Sibling</option>
-                        <option value="Child">Child</option>
-                        <option value="Friend">Friend</option>
-                        <option value="Other">Other</option>
+                        <option>Spouse</option>
+                        <option>Parent</option>
+                        <option>Sibling</option>
+                        <option>Child</option>
+                        <option>Friend</option>
+                        <option>Other</option>
                       </select>
                     </div>
                     <div>
@@ -455,7 +485,6 @@ const Signup = ({ onClose, onLoginClick }) => {
                       </label>
                       <input
                         type="email"
-                        placeholder="Enter email address"
                         value={contact.email}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -464,7 +493,7 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                       />
                     </div>
                   </div>
@@ -476,7 +505,7 @@ const Signup = ({ onClose, onLoginClick }) => {
               <button
                 type="button"
                 onClick={addEmergencyContact}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 <Plus size={16} />
                 Add Another Contact
@@ -484,26 +513,29 @@ const Signup = ({ onClose, onLoginClick }) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={clearForm}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
               Clear Form
             </button>
             <button
               type="button"
               onClick={handleSubmit}
+
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+
               disabled={isLoading}
               className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+
             >
               {isLoading ? "Processing..." : "CREATE ACCOUNT"}
             </button>
           </div>
 
-          {/* Login link */}
           <p className="text-center text-sm text-gray-600 pt-4 border-t border-gray-200">
             Already have an account?{" "}
             <button

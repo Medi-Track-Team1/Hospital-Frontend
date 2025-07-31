@@ -116,7 +116,7 @@ const Doctors = () => {
   const newId = doctors.length > 0 ? Math.max(...doctors.map(d => d.id)) + 1 : 1;
 
   // Remove confirmPassword before saving (it's only for validation)
-  const { confirmPassword, ...doctorData } = newDoctor;
+  const {  ...doctorData } = newDoctor;
 
   const profilePhoto = newDoctor.profilePhoto instanceof File 
     ? URL.createObjectURL(newDoctor.profilePhoto) 

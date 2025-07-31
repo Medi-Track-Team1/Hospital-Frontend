@@ -47,7 +47,7 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
                   Professional Information
                 </h4>
                 <div className="space-y-2">
-                  <p><span className="font-medium">Doctor ID:</span> {doctor.doctorId}</p>
+                  <p><span className="font-medium">NMR-ID:</span> {doctor.nmrId}</p>
                   <p><span className="font-medium">Availability:</span> {doctor.availability}</p>
                 </div>
               </div>

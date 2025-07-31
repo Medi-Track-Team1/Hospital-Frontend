@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
-import { registerUser, registerPatientDetails } from "./api";
+
+// Password encryption function using Web Crypto API
+const encryptPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+};
 
 const Signup = ({ onClose, onLoginClick }) => {
   const [emergencyContacts, setEmergencyContacts] = useState([
     { id: 1, name: "", phone: "", relation: "", email: "" },
   ]);
-  const [successMessage, setSuccessMessage] = useState("");
+
   const [formData, setFormData] = useState({
     patientName: "",
     age: "",
@@ -16,31 +24,24 @@ const Signup = ({ onClose, onLoginClick }) => {
     city: "",
     state: "",
     zipCode: "",
-    address: "",
-    email: "",
+    contactNumber: "",
+    patientEmail: "",
     password: "",
+    address: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
   const addEmergencyContact = () => {
-    const newContact = {
-      id: Date.now(),
-      name: "",
-      phone: "",
-      relation: "",
-      email: "",
-    };
-    setEmergencyContacts([...emergencyContacts, newContact]);
+    const newId = Math.max(...emergencyContacts.map((c) => c.id), 0) + 1;
+    setEmergencyContacts([
+      ...emergencyContacts,
+      {
+        id: newId,
+        name: "",
+        phone: "",
+        relation: "",
+        email: "",
+      },
+    ]);
   };
 
   const removeEmergencyContact = (id) => {
@@ -59,8 +60,9 @@ const Signup = ({ onClose, onLoginClick }) => {
     );
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const clearForm = () => {
@@ -73,56 +75,74 @@ const Signup = ({ onClose, onLoginClick }) => {
       city: "",
       state: "",
       zipCode: "",
-      address: "",
-      email: "",
+      contactNumber: "",
+      patientEmail: "",
       password: "",
+      address: "",
     });
     setEmergencyContacts([
       { id: 1, name: "", phone: "", relation: "", email: "" },
     ]);
-    setError("");
   };
 
   const handleSubmit = async () => {
-    if (!formData.patientName || !formData.email || !formData.password) {
-      setError("Name, email, and password are required");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
     try {
-      // Register user (authentication)
-      const authResponse = await registerUser({
-        username: formData.patientName,
-        email: formData.email,
-        password: formData.password,
-      });
-      console.log("Auth response:", formData.patientName);
-      // Register patient details
-      // await registerPatientDetails({
-      //   ...formData,
-      //   emergencyContacts
-      // }, authResponse.token);
+      // Encrypt password before sending
+      const encryptedPassword = await encryptPassword(formData.password);
 
-      setSuccessMessage("Account created successfully!");
-      setTimeout(() => onClose(), 4000);
+      // Prepare the data according to your backend Patient model
+      const patientData = {
+        patientName: formData.patientName,
+        age: parseInt(formData.age),
+        bloodGroup: formData.bloodGroup,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus || null,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode || "",
+        contactNumber: formData.contactNumber,
+        patientEmail: formData.patientEmail,
+        password: encryptedPassword, // Send encrypted password
+        address: formData.address,
+        emergencyContacts: emergencyContacts.filter(
+          (contact) =>
+            contact.name.trim() ||
+            contact.phone.trim() ||
+            contact.relation.trim() ||
+            contact.email.trim()
+        ),
+      };
+
+      // Make API call to your backend
+      const response = await fetch(
+        "http://localhost:8080/api/patient/registration",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(patientData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert("Patient registered successfully!" + result.data.patientId);
+        // Clear the form after successful registration
+        clearForm();
+        onClose();
+      } else {
+        alert("Registration failed: " + (result.message || "Unknown error"));
+      }
     } catch (error) {
-      setError(error.message || "Registration failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+      console.error("Error registering patient:", error);
+      alert("Registration failed: Network error or server is not responding");
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      {/* Success Message (shown temporarily) */}
-      {successMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 animate-fade-in-out">
-          {successMessage}
-        </div>
-      )}
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-xl">
@@ -145,13 +165,6 @@ const Signup = ({ onClose, onLoginClick }) => {
         </div>
 
         <div className="p-8 space-y-8">
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* Personal Details Section */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -160,19 +173,18 @@ const Signup = ({ onClose, onLoginClick }) => {
             </h3>
 
             <div className="space-y-6">
-              {/* Row 1 */}
+              {/* Row 1 - Patient Name and Age */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
+                    Patient Name *
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter your full name"
+                    name="patientName"
+                    placeholder="Patient Name *"
                     value={formData.patientName}
-                    onChange={(e) =>
-                      handleInputChange("patientName", e.target.value)
-                    }
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
                   />
@@ -183,29 +195,30 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="number"
-                    placeholder="Enter your age"
+                    name="age"
+                    placeholder="Age *"
                     value={formData.age}
-                    onChange={(e) => handleInputChange("age", e.target.value)}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
                   />
                 </div>
               </div>
 
-              {/* Row 2 */}
+              {/* Row 2 - Blood Group, Gender, Marital Status */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Blood Group
+                    Blood Group *
                   </label>
                   <select
+                    name="bloodGroup"
                     value={formData.bloodGroup}
-                    onChange={(e) =>
-                      handleInputChange("bloodGroup", e.target.value)
-                    }
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    required
                   >
-                    <option value="">Select blood group</option>
+                    <option value="">Blood Group *</option>
                     <option value="A+">A+</option>
                     <option value="A-">A-</option>
                     <option value="B+">B+</option>
@@ -221,14 +234,13 @@ const Signup = ({ onClose, onLoginClick }) => {
                     Gender *
                   </label>
                   <select
+                    name="gender"
                     value={formData.gender}
-                    onChange={(e) =>
-                      handleInputChange("gender", e.target.value)
-                    }
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
                     required
                   >
-                    <option value="">Select gender</option>
+                    <option value="">Gender *</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
@@ -239,13 +251,12 @@ const Signup = ({ onClose, onLoginClick }) => {
                     Marital Status
                   </label>
                   <select
+                    name="maritalStatus"
                     value={formData.maritalStatus}
-                    onChange={(e) =>
-                      handleInputChange("maritalStatus", e.target.value)
-                    }
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
                   >
-                    <option value="">Select status</option>
+                    <option value="">Marital Status</option>
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Divorced">Divorced</option>
@@ -254,7 +265,7 @@ const Signup = ({ onClose, onLoginClick }) => {
                 </div>
               </div>
 
-              {/* Row 3 */}
+              {/* Row 3 - City, State, Zip Code */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -262,9 +273,10 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter city"
+                    name="city"
+                    placeholder="City *"
                     value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
                   />
@@ -275,24 +287,69 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter state"
+                    name="state"
+                    placeholder="State *"
                     value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Zip Code *
+                    Zip Code
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter zip code"
+                    name="zipCode"
+                    placeholder="Zip Code"
                     value={formData.zipCode}
-                    onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
-                    }
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4 - Contact Number, Email, Password */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contact Number *
+                  </label>
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    placeholder="Contact Number *"
+                    value={formData.contactNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    name="patientEmail"
+                    placeholder="Email Address *"
+                    value={formData.patientEmail}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password *
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password *"
+                    value={formData.password}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required
                   />
@@ -305,45 +362,14 @@ const Signup = ({ onClose, onLoginClick }) => {
                   Address *
                 </label>
                 <textarea
-                  placeholder="Enter complete address"
+                  name="address"
+                  placeholder="Address *"
                   value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  onChange={handleInputChange}
                   rows={3}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
                   required
                 />
-              </div>
-
-              {/* Email and Password */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange("password", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -352,27 +378,27 @@ const Signup = ({ onClose, onLoginClick }) => {
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
               <Phone size={20} className="text-blue-600" />
-              Emergency Contact Information
+              Emergency Contact & Medical Information
             </h3>
 
             {emergencyContacts.map((contact, index) => (
               <div
                 key={contact.id}
-                className={`${
-                  index > 0 ? "border-t border-gray-200 pt-6 mt-6" : ""
+                className={`border border-gray-200 rounded-lg p-5 mb-4 bg-gray-50 ${
+                  index > 0 ? "mt-4" : ""
                 }`}
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-medium text-gray-800">
+                  <h4 className="text-lg font-medium text-blue-600">
                     Emergency Contact {index + 1}
                   </h4>
                   {emergencyContacts.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeEmergencyContact(contact.id)}
-                      className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
                     >
-                      <X size={16} />
+                      Remove Contact
                     </button>
                   )}
                 </div>
@@ -380,12 +406,9 @@ const Signup = ({ onClose, onLoginClick }) => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Name *
-                      </label>
                       <input
                         type="text"
-                        placeholder="Enter contact name"
+                        placeholder="Emergency Contact Name"
                         value={contact.name}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -395,16 +418,12 @@ const Signup = ({ onClose, onLoginClick }) => {
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                      </label>
                       <input
                         type="tel"
-                        placeholder="Enter phone number"
+                        placeholder="Emergency Contact Phone"
                         value={contact.phone}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -414,17 +433,15 @@ const Signup = ({ onClose, onLoginClick }) => {
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        required
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Relation *
-                      </label>
-                      <select
+                      <input
+                        type="text"
+                        placeholder="Relation"
                         value={contact.relation}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -433,25 +450,13 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
-                        required
-                      >
-                        <option value="">Select relation</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Parent">Parent</option>
-                        <option value="Sibling">Sibling</option>
-                        <option value="Child">Child</option>
-                        <option value="Friend">Friend</option>
-                        <option value="Other">Other</option>
-                      </select>
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
                       <input
                         type="email"
-                        placeholder="Enter email address"
+                        placeholder="Email"
                         value={contact.email}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -468,34 +473,32 @@ const Signup = ({ onClose, onLoginClick }) => {
               </div>
             ))}
 
-            <div className="mt-6 text-center">
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={addEmergencyContact}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
-                <Plus size={16} />
                 Add Another Contact
               </button>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={clearForm}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Clear Form
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isLoading}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {isLoading ? "Processing..." : "CREATE ACCOUNT"}
+              REGISTER PATIENT
             </button>
           </div>
 

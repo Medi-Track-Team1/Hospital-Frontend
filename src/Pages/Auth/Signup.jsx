@@ -299,7 +299,8 @@ const Signup = ({ onClose, onLoginClick }) => {
       toast.dismiss(loadingToastId);
 
       if (response.ok && result.success) {
-
+        
+         localStorage.setItem("id",result.data.patientId );
         toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
           autoClose: 5000,
         });

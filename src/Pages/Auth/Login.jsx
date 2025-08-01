@@ -106,18 +106,16 @@ const Login = ({ onClose, onSignupClick }) => {
 
 
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <div>
+        
+         <div>
           <label className="block text-sm text-black mb-1">Email:</label>
           <input
             type="email"
-            name="email"
             placeholder="Email Address"
-            value={formData.email}
-            onChange={handleInputChange}
-
-            required
+            className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none"
           />
-        </div>
+        </div>
+        
 
         <div>
           <label className="block text-sm text-black mb-1">Password:</label>

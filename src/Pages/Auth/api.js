@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:8080/api/auth';
+export const API_BASE_URL = 'https://authentication-n090.onrender.com/api/auth';
 
 // Add this missing JWT parsing function
 const parseJwt = (token) => {
@@ -63,7 +63,8 @@ export const registerUser = async (userData) => {
     password: userData.password,
     enabled: true,
     roles: Array.from(roles),
-    userid:"10232"
+    userid:localStorage.getItem("id")
+
   };
 
   const response = await fetch(`${API_BASE_URL}/register`, {
@@ -107,6 +108,7 @@ export const loginUser = async (email, password) => {
     email: email,
     role: role,
     username: data.username || email.split('@')[0],
+    userId:data.userid,
     ...data.userDetails 
   };
 
@@ -191,3 +193,5 @@ export const authFetch = async (url, options = {}) => {
   
   return data;
 };
+
+console.log(localStorage.getItem('currentUser'));

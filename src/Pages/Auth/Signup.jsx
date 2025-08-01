@@ -85,29 +85,7 @@ const toast = {
   }
 };
 
-    try {
-      // Register user (authentication)
-      const authResponse = await registerUser({
-        username: formData.patientName,
-        email: formData.email,
-        password: formData.password
-        
-        
-      });
-     console.log('Auth response:', formData.patientName);
-      // Register patient details
-      // await registerPatientDetails({
-      //   ...formData,
-      //   emergencyContacts
-      // }, authResponse.token);
-      
-    // setSuccessMessage("Account created successfully!");
-      //setTimeout(() => onClose(), 4000);
-   
-    } catch (error) {
-      console.log(error);
-    } 
-  
+
 
 // Password encryption function using Web Crypto API
 const encryptPassword = async (password) => {
@@ -282,7 +260,13 @@ const Signup = ({ onClose, onLoginClick }) => {
     try {
       // Encrypt password before sending
       const encryptedPassword = await encryptPassword(formData.password);
-
+      const authResponse = await registerUser({
+        username: formData.patientName,
+        email: formData.patientEmail,
+        password: formData.password
+      });
+      console.log('Auth response:', authResponse);
+    
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -351,12 +335,14 @@ const Signup = ({ onClose, onLoginClick }) => {
       toast.error('Registration failed: Network error or server is not responding', {
         autoClose: 7000,
       });
+       console.error('Registration error:', error);
+      toast.error(`Authentication registration failed: ${error.message}`);
     } finally {
       setIsSubmitting(false);
 
     }
   };
-
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">

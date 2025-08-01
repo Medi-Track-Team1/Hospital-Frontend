@@ -1,7 +1,17 @@
 import axios from 'axios';
 
-const REST_API_BASE_URL = 'http://localhost:8082/api/doctor';
+const REST_API_BASE_URL = 'https://doctorpanel-backend.onrender.com/api/doctor';
 
-const getDoctorById = (doctorId) => axios.get(`${REST_API_BASE_URL}/${doctorId}`);
+// Get doctor by ID
+export const getDoctorById = (doctorId) =>
+  axios.get(`${REST_API_BASE_URL}/${doctorId}`);
 
-export default getDoctorById;
+// Get all doctors
+export const getAllDoctors = () =>
+  axios.get(`${REST_API_BASE_URL}`);
+
+// Get doctors by specialty (e.g., Cardiology)
+export const getDoctorsBySpecialty = (specialty) =>
+  axios.get(`${REST_API_BASE_URL}/by-specialty`, {
+    params: { specialty },
+  });

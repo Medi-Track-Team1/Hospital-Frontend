@@ -1,63 +1,42 @@
-import React from "react";
+// src/components/Department/Cardio.jsx
+
+import React, { useEffect, useState } from "react";
 import { Heart, Phone, Mail } from "lucide-react";
 import cardio from "../../assets/Cardio.jpg";
-import Boo from "../../assets/boo.png";
-import Mahesh from "../../assets/Mahesh.png";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      delay: i * 0.2,
-      duration: 0.6,
-      ease: "easeOut",
-    },
+    transition: { delay: i * 0.2, duration: 0.6, ease: "easeOut" },
   }),
 };
 
 const Cardio = () => {
+  const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
 
-const handleBookClick = (doctor) => {
-  navigate("/departments/appointment", { state: { doctor } }); // ✅ full path
-};
+  useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const data = await getDoctorsBySpecialty("Cardiology");
+      console.log("Fetched doctors:", data); // ✅ should log an array
+      setDoctors(data || []);
+    } catch (err) {
+      console.error("Failed to fetch doctors:", err);
+    }
+  };
+  fetchDoctors();
+}, []);
 
-  const doctors = [
-    {
-      id: 201,
-      name: "Dr. Mahesh",
-      title: "Interventional Cardiologist",
-      rating: 4.9,
-      experience: "15 years",
-      education: "AIIMS Delhi",
-      specializations: ["Heart Failure", "Angioplasty"],
-      specialty: "Cardiology",
-      image: Mahesh,
-      email: "mahesh@hospital.com",
-      phone: "+91 98765 12345",
-      languages: ["English", "Hindi", "Tamil"],
-      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-    },
-    {
-      id: 202,
-      name: "Dr. Bhoopathi",
-      title: "Cardiothoracic Surgeon",
-      rating: 4.7,
-      experience: "12 years",
-      education: "CMC Vellore",
-      specializations: ["Bypass Surgery", "Valve Repair"],
-      specialty: "Cardiology",
-      image: Boo,
-      email: "bhoopathi@hospital.com",
-      phone: "+91 98765 67890",
-      languages: ["English", "Tamil"],
-      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
-    },
-  ];
+
+  const handleBookClick = (doctor) => {
+    navigate("/departments/appointment", { state: { doctor } });
+  };
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -127,7 +106,7 @@ const handleBookClick = (doctor) => {
         </div>
       </motion.div>
 
-      {/* Doctor List */}
+      {/* Doctor Section */}
       <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
         Meet Our <span className="text-blue-600">Cardiologists</span>
       </h1>
@@ -138,7 +117,7 @@ const handleBookClick = (doctor) => {
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
         {doctors.map((doctor, index) => (
           <motion.div
-            key={doctor.id}
+            key={doctor.doctorId}
             className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
             initial="hidden"
             animate="visible"
@@ -147,35 +126,25 @@ const handleBookClick = (doctor) => {
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
-                src={doctor.image}
-                alt={doctor.name}
+                src={doctor.photoUrl}
+                alt={doctor.doctorName}
                 className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doctor.name}</h2>
-              <p className="text-blue-600 text-sm">{doctor.title}</p>
+              <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+              <p className="text-blue-600 text-sm">{doctor.specialty}</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
+                ★★★★☆ <span className="text-black ml-2">4.8</span>
               </div>
             </div>
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.id}</p>
-              <p><strong>Experience:</strong> {doctor.experience}</p>
-              <p><strong>Education:</strong> {doctor.education}</p>
-              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
+              <p><strong>ID:</strong> #{doctor.doctorId}</p>
+              <p><strong>Experience:</strong> {doctor.experience || "Not specified"}</p>
+              <p><strong>Education:</strong> {doctor.education || "Not specified"}</p>
+              <p><strong>Languages:</strong> {Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "Not specified"}</p>
               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
-            </div>
-            <div className="mt-4 w-full px-4">
-              <p className="font-semibold text-sm mb-1">Specializations</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {doctor.specializations.map((spec, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-                    {spec}
-                  </span>
-                ))}
-              </div>
             </div>
             <div className="mt-6 w-full px-4">
               <button

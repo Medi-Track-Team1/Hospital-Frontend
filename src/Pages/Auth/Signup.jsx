@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
-
+import { registerUser, registerPatientDetails } from "./api";
 // Mock toast implementation since react-toastify isn't available in this environment
 const toast = {
   success: (message, options) => {
@@ -84,6 +84,8 @@ const toast = {
     }
   }
 };
+
+
 
 // Password encryption function using Web Crypto API
 const encryptPassword = async (password) => {
@@ -189,7 +191,7 @@ const Signup = ({ onClose, onLoginClick }) => {
     
     if (!formData.age) {
       newErrors.age = "Age is required";
-    } else if (formData.age < 1 || formData.age > 120) {
+    } else if (formData.age < 10 || formData.age > 70) {
       newErrors.age = "Age must be between 1 and 120";
     }
     
@@ -258,7 +260,13 @@ const Signup = ({ onClose, onLoginClick }) => {
     try {
       // Encrypt password before sending
       const encryptedPassword = await encryptPassword(formData.password);
-
+      const authResponse = await registerUser({
+        username: formData.patientName,
+        email: formData.patientEmail,
+        password: formData.password
+      });
+      console.log('Auth response:', authResponse);
+    
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -299,7 +307,8 @@ const Signup = ({ onClose, onLoginClick }) => {
       toast.dismiss(loadingToastId);
 
       if (response.ok && result.success) {
-
+        
+         localStorage.setItem("id",result.data.patientId );
         toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
           autoClose: 5000,
         });
@@ -326,12 +335,14 @@ const Signup = ({ onClose, onLoginClick }) => {
       toast.error('Registration failed: Network error or server is not responding', {
         autoClose: 7000,
       });
+       console.error('Registration error:', error);
+      toast.error(`Authentication registration failed: ${error.message}`);
     } finally {
       setIsSubmitting(false);
 
     }
   };
-
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">

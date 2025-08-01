@@ -1,66 +1,42 @@
-import React from "react";
-import { Eye, Phone, Mail } from "lucide-react";
-import eye from "../../assets/Eyecare.jpeg";
-import rakesh from "../../assets/rakesh.png";
-import ds from "../../assets/ds.png";
+import React, { useEffect, useState } from "react";
+import { Smile, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
+import dcare from "../../assets/dcare.jpeg";
 import { useNavigate } from "react-router-dom";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 30 },
   visible: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      delay: i * 0.2,
-      duration: 0.6,
-      ease: "easeOut",
-    },
+    transition: { delay: i * 0.2, duration: 0.6, ease: "easeOut" },
   }),
 };
 
-const Eyecare = () => {
+const Dental = () => {
+  const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await getDoctorsBySpecialty("Dental");
+        setDoctors(response || []);
+
+      } catch (error) {
+        console.error("Error fetching dental doctors:", error);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   const handleBookClick = (doctor) => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
-  const doctors = [
-    {
-      id: 301,
-      name: "Dr. Rakesh",
-      title: "Ophthalmologist",
-      rating: 4.8,
-      experience: "10 years",
-      education: "AIIMS Delhi",
-      specializations: ["Cataract Surgery", "Glaucoma"],
-      specialty: "Eyecare",
-      image: rakesh,
-      email: "rakesh@hospital.com",
-      phone: "+91 99999 12345",
-      languages: ["English", "Hindi", "Tamil"],
-      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-    },
-    {
-      id: 302,
-      name: "Dr. Sakthi",
-      title: "Retina Specialist",
-      rating: 4.6,
-      experience: "8 years",
-      education: "CMC Vellore",
-      specializations: ["Retinal Detachment", "Macular Degeneration"],
-      specialty: "Eyecare",
-      image: ds,
-      email: "sakthi@hospital.com",
-      phone: "+91 99999 67890",
-      languages: ["English", "Tamil"],
-      timing: "Mon - Fri: 2:00 PM - 6:00 PM",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
+    <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -69,10 +45,10 @@ const Eyecare = () => {
         className="rounded-lg px-4 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-center w-full max-w-6xl mb-6 bg-gradient-to-r from-blue-200 via-blue-100 to-white shadow-md"
       >
         <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-          <Eye className="w-10 h-10 text-blue-600" />
+          <Smile className="w-10 h-10 text-blue-600" />
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-black">Eyecare</h2>
-            <p className="text-lg sm:text-xl font-bold text-gray-500">Vision with Precision</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-black">Dental</h2>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">Smile with Confidence</p>
           </div>
         </div>
         <button
@@ -97,47 +73,48 @@ const Eyecare = () => {
       >
         <div className="lg:w-1/2 flex justify-center items-center transition-transform duration-700 hover:scale-105">
           <img
-            src={eye}
-            alt="Eyecare Department"
-            className="rounded-lg w-full max-w-[500px] h-auto max-h-[320px] object-cover shadow-lg"
+            src={dcare}
+            alt="Dental Department"
+            className="rounded-lg w-full h-auto max-h-[320px] object-cover shadow-lg"
           />
         </div>
-        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-10">
+        <div className="lg:w-1/2 text-black space-y-4 text-sm sm:text-base mb-8">
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
-            Department of Eyecare
+            Department of Dental Care
           </motion.h2>
-          {["Our Eyecare department specializes in the treatment of eye diseases and visual disorders.",
-            "We offer advanced diagnostics, cataract surgeries, retina treatment, and more.",
-            "Our ophthalmologists ensure precise and patient-centric vision care.",
-            "Modern surgical technologies and compassionate care define our approach.",
-            "We strive to restore and maintain clear vision for every patient we serve."]
-            .map((text, i) => (
-              <motion.p
-                key={i}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                custom={i + 1}
-                className="text-justify"
-              >
-                {text}
-              </motion.p>
-            ))}
+          {[
+            "Our Dental department offers comprehensive oral health services, from regular check-ups and cleanings to complex dental surgeries.",
+            "We specialize in restorative dentistry, cosmetic procedures, orthodontics, and pediatric care to ensure confident and healthy smiles.",
+            "Using advanced imaging and minimally invasive techniques, our experienced dental professionals deliver pain-free and effective treatments.",
+            "We are committed to providing family-centered dental care that prioritizes your comfort and long-term oral wellness.",
+            "Let us help you maintain strong teeth and a beautiful smile that lasts a lifetime.",
+          ].map((text, i) => (
+            <motion.p
+              key={i}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              custom={i + 1}
+              className="text-justify"
+            >
+              {text}
+            </motion.p>
+          ))}
         </div>
       </motion.div>
 
       {/* Doctor List */}
-      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28 mt-10 pt-6" id="Doctors">
-        Meet Our <span className="text-blue-600">Eye Specialists</span>
+      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+        Meet Your <span className="text-blue-600">Dentists</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
-        Connect with skilled eye doctors for personalized vision care.
+        Book appointments with top dental specialists for preventive and cosmetic treatments.
       </p>
 
-      <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
-        {doctors.map((doctor, index) => (
+      <div className="flex flex-wrap justify-center gap-6">
+        {doctors.map((doc, index) => (
           <motion.div
-            key={doctor.id}
+            key={doc.doctorId}
             className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
             initial="hidden"
             animate="visible"
@@ -146,39 +123,32 @@ const Eyecare = () => {
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
-                src={doctor.image}
-                alt={doctor.name}
+                src={doc.photoUrl}
+                alt={doc.doctorName}
                 className="w-full h-full object-cover object-top"
               />
             </div>
+
             <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doctor.name}</h2>
-              <p className="text-blue-600 text-sm">{doctor.title}</p>
+              <h2 className="text-xl font-semibold">{doc.doctorName}</h2>
+              <p className="text-blue-600 text-sm">{doc.specialty}</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
+                ★★★★☆<span className="text-black ml-2">4.8</span>
               </div>
             </div>
+
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.id}</p>
-              <p><strong>Experience:</strong> {doctor.experience}</p>
-              <p><strong>Education:</strong> {doctor.education}</p>
-              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
-              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+              <p><strong>ID:</strong> #{doc.doctorId}</p>
+              <p><strong>Experience:</strong> {doc.experience}</p>
+              <p><strong>Education:</strong> {doc.education}</p>
+              <p><strong>Languages:</strong> {doc.languages}</p>
+              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
+              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
             </div>
-            <div className="mt-4 w-full px-4">
-              <p className="font-semibold text-sm mb-1">Specializations</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {doctor.specializations.map((spec, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-                    {spec}
-                  </span>
-                ))}
-              </div>
-            </div>
+
             <div className="mt-6 w-full px-4">
               <button
-                onClick={() => handleBookClick(doctor)}
+                onClick={() => handleBookClick(doc)}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
               >
                 Book Appointment
@@ -193,4 +163,4 @@ const Eyecare = () => {
   );
 };
 
-export default Eyecare;
+export default Dental;

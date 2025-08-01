@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AppointmentPage = () => {
   const location = useLocation();
@@ -44,6 +46,18 @@ const AppointmentPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    toast.success("Appointment booked successfully!", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
+
     setShowConfirmation(true);
   };
 
@@ -86,14 +100,14 @@ const AppointmentPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <input type="text" value={form.doctor} readOnly className="w-full border px-4 py-2 rounded-lg" />
               <input type="text" value={form.specialty} readOnly className="w-full border px-4 py-2 rounded-lg" />
-<input
-  type="date"
-  name="date"
-  value={form.date}
-  onChange={handleChange}
-  min={new Date().toISOString().split("T")[0]}
-  className="w-full border px-4 py-2 rounded-lg"
-/>
+              <input
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                min={new Date().toISOString().split("T")[0]}
+                className="w-full border px-4 py-2 rounded-lg"
+              />
               <input type="time" name="time" required value={form.time} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
             </div>
             <div className="mt-4">
@@ -105,7 +119,6 @@ const AppointmentPage = () => {
           </div>
 
           {/* Medical Info */}
-
           <div className="bg-blue-100 p-4 rounded-md">
             <h3 className="text-lg font-medium mb-4">❤️ Medical Information</h3>
             <textarea
@@ -153,6 +166,9 @@ const AppointmentPage = () => {
           </div>
         </div>
       )}
+
+      {/* Toast Notification Container */}
+      <ToastContainer />
     </div>
   );
 };

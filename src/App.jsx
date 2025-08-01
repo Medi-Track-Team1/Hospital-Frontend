@@ -36,9 +36,9 @@ function App() {
         />
         <Route path="/doctor/:id" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
-        <Route path="/patient/*" element={<Patient />} />
+        <Route path="/patient/:patientId" element={<Patient />} />
         <Route path="/doctor/:id/patienthistory" element={<CompletedTreatments/>}/>
-        <Route path="/reception/*" element={<Reception />} />
+        <Route path="/reception/" element={<Reception />} />
         <Route path="/admin/*" element={<Admin/>}/>
 
         {/* Don't touch below code or remove comment */}

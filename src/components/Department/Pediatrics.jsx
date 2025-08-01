@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Droplet, Phone, Mail } from "lucide-react";
 import Pedia from "../../assets/Pedia.png";
-import Sunil from "../../assets/Sunil.jpeg";
-import Naveen from "../../assets/Naveen.png";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -21,41 +20,23 @@ const fadeInUp = {
 
 const Pediatrics = () => {
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
 
   const handleBookClick = (doctor) => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
-  const doctors = [
-    {
-      id: 701,
-      name: "Dr. Naveen",
-      education: "Namakkal Medical College",
-      experience: "12 years",
-      specialization: ["Neonatal Care", "Child Nutrition", "Immunizations"],
-      specialty: "Pediatrician Specialist",
-      email: "naveen@medilab.com",
-      phone: "+91 98765 43210",
-      languages: ["English", "Tamil"],
-      image: Naveen,
-      rating: 4.8,
-      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-    },
-    {
-      id: 702,
-      name: "Dr. Saranesh Pandian",
-      education: "Perambalur Medical Institute",
-      experience: "8 years",
-      specialization: ["Pediatric Allergies", "Growth Disorders"],
-      specialty: "Pediatrician Specialist",
-      email: "saranesh@medilab.com",
-      phone: "+91 98765 09876",
-      languages: ["English", "Tamil", "Hindi"],
-      image: Sunil,
-      rating: 4.3,
-      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
-    },
-  ];
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await getDoctorsBySpecialty("Pediatrics");
+        setDoctors(res);
+      } catch (err) {
+        console.error("Error fetching pediatricians:", err);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -136,7 +117,7 @@ const Pediatrics = () => {
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
         {doctors.map((doctor, index) => (
           <motion.div
-            key={doctor.id}
+            key={doctor.doctorId}
             className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
             initial="hidden"
             animate="visible"
@@ -145,35 +126,25 @@ const Pediatrics = () => {
           >
             <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
               <img
-                src={doctor.image}
-                alt={doctor.name}
+                src={doctor.photoUrl}
+                alt={doctor.doctorName}
                 className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doctor.name}</h2>
+              <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
               <p className="text-blue-600 text-sm">{doctor.specialty}</p>
               <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
+                ★★★★☆<span className="text-black ml-2">4.3</span>
               </div>
             </div>
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.id}</p>
+              <p><strong>ID:</strong> #{doctor.doctorId}</p>
               <p><strong>Experience:</strong> {doctor.experience}</p>
               <p><strong>Education:</strong> {doctor.education}</p>
-              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
+              <p><strong>Languages:</strong> {doctor.languages}</p>
               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
-            </div>
-            <div className="mt-4 w-full px-4">
-              <p className="font-semibold text-sm mb-1">Specializations</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {doctor.specialization.map((spec, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-                    {spec}
-                  </span>
-                ))}
-              </div>
             </div>
             <div className="mt-6 w-full px-4">
               <button

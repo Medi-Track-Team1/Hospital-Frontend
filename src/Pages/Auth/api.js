@@ -193,5 +193,3 @@ export const authFetch = async (url, options = {}) => {
   
   return data;
 };
-
-console.log(localStorage.getItem('currentUser'));

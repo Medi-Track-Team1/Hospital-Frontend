@@ -35,7 +35,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
       const user = await loginUser(formData.email, formData.password);
       
       setSuccessMessage('Login successful!');
-      
+      console.log(localStorage.getItem('currentUser'))
       // Determine where to redirect based on role
       let redirectPath = '/';
       if (isAdmin()) {

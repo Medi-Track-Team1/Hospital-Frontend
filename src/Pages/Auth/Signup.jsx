@@ -85,6 +85,30 @@ const toast = {
   }
 };
 
+    try {
+      // Register user (authentication)
+      const authResponse = await registerUser({
+        username: formData.patientName,
+        email: formData.email,
+        password: formData.password
+        
+        
+      });
+     console.log('Auth response:', formData.patientName);
+      // Register patient details
+      // await registerPatientDetails({
+      //   ...formData,
+      //   emergencyContacts
+      // }, authResponse.token);
+      
+    // setSuccessMessage("Account created successfully!");
+      setTimeout(() => onClose(), 4000);
+   
+    } catch (error) {
+      console.log(error);
+    } 
+  
+
 // Password encryption function using Web Crypto API
 const encryptPassword = async (password) => {
   const encoder = new TextEncoder();

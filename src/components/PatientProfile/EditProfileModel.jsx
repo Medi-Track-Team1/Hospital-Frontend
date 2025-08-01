@@ -10,10 +10,10 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
     phone: patient?.phone || '',
     email: patient?.email || '',
     dateOfBirth: patient?.dateOfBirth || '',
+    age: patient?.age || '',
     gender: patient?.gender || '',
     bloodType: patient?.bloodType || '',
     maritalStatus: patient?.maritalStatus || '',
-    preferredLanguage: patient?.preferredLanguage || '',
     address: {
       street: patient?.address?.street || '',
       city: patient?.address?.city || '',
@@ -211,6 +211,13 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
                       error={errors.dateOfBirth}
                     />
                     <InputField
+                      label="Age"
+                      value={formData.age}
+                      onChange={(value) => handleInputChange(null, 'age', value)}
+                      type="number"
+                      placeholder="Enter age"
+                    />
+                    <InputField
                       label="Gender"
                       value={formData.gender}
                       onChange={(value) => handleInputChange(null, 'gender', value)}
@@ -256,12 +263,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
                       type="email"
                       required
                       error={errors.email}
-                    />
-                    <InputField
-                      label="Preferred Language"
-                      value={formData.preferredLanguage}
-                      onChange={(value) => handleInputChange(null, 'preferredLanguage', value)}
-                      placeholder="English"
                     />
                   </div>
 

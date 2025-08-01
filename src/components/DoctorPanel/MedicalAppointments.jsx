@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-
+import DatePicker from "react-datepicker";
 
 import {
   MdCalendarToday,
@@ -17,6 +17,7 @@ import {
   MdDescription,
   MdEditCalendar,
   MdVisibility,
+  MdRefresh,
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
@@ -33,6 +34,10 @@ export const MedicalAppointments = () => {
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [revisitAppointment, setRevisitAppointment] = useState(null);
+  const [revisitDate, setRevisitDate] = useState("");
+  const [revisitTime, setRevisitTime] = useState("");
+  const [revisitReason, setRevisitReason] = useState("");
   
   const [appointments, setAppointments] = useState([
     {
@@ -260,6 +265,48 @@ export const MedicalAppointments = () => {
     });
   };
 
+  const handleRevisit = (appointment) => {
+    setRevisitAppointment(appointment);
+    setRevisitDate("");
+    setRevisitTime("");
+    setRevisitReason("");
+  };
+
+  const handleRevisitConfirm = () => {
+    if (!revisitDate || !revisitTime || !revisitReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields for the revisit appointment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newAppointment = {
+      id: `new-${Date.now()}`,
+      patient: revisitAppointment.patient,
+      dateTime: `${format(new Date(revisitDate), "MMM dd")} ${revisitTime}`,
+      duration: "30 min",
+      type: "Follow-up",
+      reason: revisitReason,
+      priority: "medium",
+      status: "pending",
+      isAccepted: false
+    };
+
+    setAppointments((prev) => [...prev, newAppointment]);
+    
+    toast({
+      title: "Revisit Scheduled",
+      description: `New appointment scheduled for ${revisitAppointment.patient.name} on ${format(new Date(revisitDate), "MMM dd")} at ${revisitTime}.`,
+    });
+
+    setRevisitAppointment(null);
+    setRevisitDate("");
+    setRevisitTime("");
+    setRevisitReason("");
+  };
+
   
   const getStatusBadge = (status) => {
     const variants = {
@@ -389,6 +436,14 @@ export const MedicalAppointments = () => {
                               </Button>
 
                               <button
+                                className="px-3 py-1 text-xs border rounded-md bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
+                                onClick={() => handleRevisit(appointment)}
+                              >
+                                <MdRefresh className="h-3 w-3 mr-1 inline" />
+                                Revisit
+                              </button>
+
+                              <button
                                 className="px-3 py-1 text-xs border rounded-md bg-red-500 text-white border-red-500 hover:bg-red-600"
                                 onClick={() => setCancelAppointment(appointment)}
                               >
@@ -512,6 +567,78 @@ export const MedicalAppointments = () => {
     isOpen={showPrescribeModal}
     onClose={() => setShowPrescribeModal(false)}
   />
+)}
+
+{/* Revisit Modal */}
+{revisitAppointment && (
+  <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
+    <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-blue-600">Schedule Revisit</h2>
+      <p className="text-sm text-gray-600">
+        Schedule a follow-up appointment for <strong>{revisitAppointment.patient.name}</strong>.
+      </p>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Date
+          </label>
+          <input
+            type="date"
+            className="w-full border rounded p-2 text-sm"
+            value={revisitDate}
+            onChange={(e) => setRevisitDate(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Time
+          </label>
+          <input
+            type="time"
+            className="w-full border rounded p-2 text-sm"
+            value={revisitTime}
+            onChange={(e) => setRevisitTime(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Reason for Revisit
+          </label>
+          <textarea
+            rows={3}
+            className="w-full border rounded p-2 text-sm"
+            placeholder="Enter reason for follow-up appointment..."
+            value={revisitReason}
+            onChange={(e) => setRevisitReason(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          onClick={() => setRevisitAppointment(null)}
+        >
+          Cancel
+        </button>
+        <button
+          className={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${
+            !revisitDate || !revisitTime || !revisitReason.trim() 
+              ? "opacity-50 cursor-not-allowed" 
+              : ""
+          }`}
+          disabled={!revisitDate || !revisitTime || !revisitReason.trim()}
+          onClick={handleRevisitConfirm}
+        >
+          Schedule Revisit
+        </button>
+      </div>
+    </div>
+  </div>
 )}
 
 {cancelAppointment && (

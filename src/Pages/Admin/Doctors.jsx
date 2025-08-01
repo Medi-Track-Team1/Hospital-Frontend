@@ -22,7 +22,8 @@ import {
   getAllDoctors,
   createDoctor,
   updateDoctor,
-  deleteDoctor
+  deleteDoctor,
+  getDoctorProfile
 } from '../Admin/services/doctorService';
 import LoadingSpinner from '../../components/Admin/LoadingSpinner';
 
@@ -38,9 +39,9 @@ const Doctors = () => {
   const [doctorToDelete, setDoctorToDelete] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch doctors on component mount
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -64,14 +65,12 @@ const Doctors = () => {
       const { confirmPassword, ...doctorData } = newDoctor;
       const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
       
-      // Ensure required fields are included with defaults
       const doctorToCreate = {
         ...doctorData,
         status: doctorData.status || 'Active',
         departmentId: doctorData.departmentId || 'DEP-00001'
       };
 
-      console.log('Creating doctor:', doctorToCreate);
       const createdDoctor = await createDoctor(doctorToCreate, profilePhoto);
       
       setDoctors([...doctors, createdDoctor]);
@@ -79,7 +78,6 @@ const Doctors = () => {
       toast.success('Doctor added successfully!');
     } catch (err) {
       toast.error(`Failed to add doctor: ${err.message}`);
-      console.error('Error details:', err);
     }
   };
 
@@ -91,14 +89,12 @@ const Doctors = () => {
       
       const { id, ...doctorData } = updatedDoctor;
       
-      // Ensure required fields are included
       const doctorToUpdate = {
         ...doctorData,
         status: doctorData.status || 'Active',
         departmentId: doctorData.departmentId || 'DEP-00001'
       };
 
-      console.log('Updating doctor:', doctorToUpdate);
       const updated = await updateDoctor(id, doctorToUpdate, profilePhoto);
       
       setDoctors(doctors.map(doctor => 
@@ -110,7 +106,6 @@ const Doctors = () => {
       toast.success('Doctor updated successfully!');
     } catch (err) {
       toast.error(`Failed to update doctor: ${err.message}`);
-      console.error('Error details:', err);
     }
   };
 
@@ -127,9 +122,22 @@ const Doctors = () => {
     setIsModalOpen(true);
   };
 
-  const handleViewProfile = (doctor) => {
-    setSelectedDoctor(doctor);
-    setIsProfileModalOpen(true);
+  const handleViewProfile = async (doctor) => {
+    try {
+      setProfileLoading(true);
+      const profileData = await getDoctorProfile(doctor.doctorId);
+      setSelectedDoctor({
+        ...doctor,
+        ...profileData
+      });
+      setIsProfileModalOpen(true);
+    } catch (err) {
+      toast.error(`Profile details couldn't load: ${err.message}`);
+      setSelectedDoctor(doctor);
+      setIsProfileModalOpen(true);
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   const handleDeleteDoctor = (doctorId) => {
@@ -148,6 +156,24 @@ const Doctors = () => {
     } catch (err) {
       toast.error(`Failed to delete doctor: ${err.message}`);
     }
+  };
+
+  const renderDoctorImage = (doctor) => {
+    const handleImageError = (e) => {
+      e.target.onerror = null;
+      e.target.src = '/default-doctor.png';
+    };
+
+    return doctor.photoUrl ? (
+      <img 
+        src={doctor.photoUrl} 
+        alt={doctor.doctorName}
+        className="w-10 h-10 rounded-full object-cover"
+        onError={handleImageError}
+      />
+    ) : (
+      <HiUserCircle className="w-10 h-10 text-gray-400" />
+    );
   };
 
   const filteredDoctors = doctors.filter(doctor => {
@@ -178,6 +204,7 @@ const Doctors = () => {
 
   return (
     <div className="p-4 md:p-6">
+      {/* Header and Add Doctor Button */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-3">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800">Doctors Management</h1>
         <button
@@ -252,15 +279,7 @@ const Doctors = () => {
           filteredDoctors.map((doctor) => (
             <div key={doctor.doctorId} className="bg-white p-4 rounded-lg shadow border border-gray-200">
               <div className="flex items-center space-x-3">
-                {doctor.photoUrl ? (
-                  <img 
-                    src={doctor.photoUrl} 
-                    alt={doctor.doctorName}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <HiUserCircle className="w-10 h-10 text-gray-400" />
-                )}
+                {renderDoctorImage(doctor)}
                 <div className="flex-1">
                   <div className="flex justify-between">
                     <h3 className="font-medium">{doctor.doctorName}</h3>
@@ -326,15 +345,7 @@ const Doctors = () => {
             >
               {/* Photo */}
               <div className="col-span-2">
-                {doctor.photoUrl ? (
-                  <img 
-                    src={doctor.photoUrl} 
-                    alt={doctor.doctorName}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <HiUserCircle className="w-10 h-10 text-gray-400" />
-                )}
+                {renderDoctorImage(doctor)}
               </div>
 
               {/* Name */}
@@ -476,6 +487,7 @@ const Doctors = () => {
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           doctor={selectedDoctor}
+          isLoading={profileLoading}
         />
       )}
 

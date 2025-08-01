@@ -1,12 +1,11 @@
 const API_BASE_URL = 'https://doctorpanel-backend.onrender.com/api/doctor';
 
-// Helper function to handle API responses
 const handleResponse = async (response) => {
+  const data = await response.json();
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Something went wrong');
+    throw new Error(data.message || `HTTP error! status: ${response.status}`);
   }
-  return response.json();
+  return data;
 };
 
 export const getAllDoctors = async () => {
@@ -19,12 +18,12 @@ export const getAllDoctors = async () => {
   }
 };
 
-export const getDoctorById = async (id) => {
+export const getDoctorProfile = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
+    const response = await fetch(`${API_BASE_URL}/${id}/profile`);
     return handleResponse(response);
   } catch (error) {
-    console.error('Error fetching doctor:', error);
+    console.error('Error fetching doctor profile:', error);
     throw error;
   }
 };
@@ -33,13 +32,11 @@ export const createDoctor = async (doctorData, profilePhoto) => {
   try {
     const formData = new FormData();
     
-    // Append all doctor data as JSON string
     formData.append('doctor', new Blob([JSON.stringify({
       ...doctorData,
-      status: 'Active' // Default status
+      status: 'Active'
     })], { type: 'application/json' }));
     
-    // Append photo if exists
     if (profilePhoto) {
       formData.append('photo', profilePhoto);
     }
@@ -60,12 +57,10 @@ export const updateDoctor = async (id, doctorData, profilePhoto) => {
   try {
     const formData = new FormData();
     
-    // Append all doctor data as JSON string
     formData.append('doctor', new Blob([JSON.stringify(doctorData)], {
       type: 'application/json'
     }));
     
-    // Append photo if exists
     if (profilePhoto) {
       formData.append('photo', profilePhoto);
     }
@@ -87,20 +82,9 @@ export const deleteDoctor = async (id) => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'DELETE',
     });
-
     return handleResponse(response);
   } catch (error) {
     console.error('Error deleting doctor:', error);
-    throw error;
-  }
-};
-
-export const getDoctorsBySpecialty = async (specialty) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/names/by-specialty?specialty=${encodeURIComponent(specialty)}`);
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error fetching doctors by specialty:', error);
     throw error;
   }
 };

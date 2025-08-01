@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import getDoctorById from "../../services/DoctorPanel/DoctorService";
+import { getDoctorById } from "../../services/DoctorPanel/DoctorService";
+
 
 const DoctorInfoBar = () => {
   const [doctor, setDoctor] = useState(null);

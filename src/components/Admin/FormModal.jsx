@@ -1,13 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 
-const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData = {} }) => {
+const FormModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  title, 
+  fields = [], 
+  initialData = {} 
+}) => {
   const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
   const fileInputRefs = useRef({});
 
   useEffect(() => {
     if (isOpen) {
       setFormData(initialData || {});
-      
+      setErrors({});
+      // Reset file inputs when modal opens
       Object.keys(fileInputRefs.current).forEach(key => {
         if (fileInputRefs.current[key]) {
           fileInputRefs.current[key].value = '';
@@ -17,27 +26,71 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData 
   }, [isOpen, initialData]);
 
   const handleChange = (e) => {
-   const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked, files } = e.target;
   
-  if (type === 'file') {
-    // Create a preview URL for the image
-    const file = files[0];
-    setFormData(prev => ({
-      ...prev,
-      [name]: file,
-      [`${name}Preview`]: file ? URL.createObjectURL(file) : null
-    }));
-  } else {
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  }
+    if (type === 'file') {
+      // Create a preview URL for the image
+      const file = files[0];
+      setFormData(prev => ({
+        ...prev,
+        [name]: file,
+        [`${name}Preview`]: file ? URL.createObjectURL(file) : null
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
+
+    // Clear error when field is changed
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateField = (field, value) => {
+    if (field.required && !value) {
+      return 'This field is required';
+    }
+
+    if (field.pattern && value) {
+      const regex = new RegExp(field.pattern);
+      if (!regex.test(value)) {
+        return field.title || 'Invalid format';
+      }
+    }
+
+    if (field.validate && typeof field.validate === 'function') {
+      const validationResult = field.validate(value, formData);
+      if (validationResult !== true) {
+        return field.errorMessage || validationResult;
+      }
+    }
+
+    return '';
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Validate all fields
+    const newErrors = {};
+    let isValid = true;
+
+    fields.forEach(field => {
+      const error = validateField(field, formData[field.name]);
+      if (error) {
+        newErrors[field.name] = error;
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (isValid) {
+      onSubmit(formData);
+    }
   };
 
   if (!isOpen) return null;
@@ -70,41 +123,41 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData 
                     {field.required && <span className="text-red-500">*</span>}
                   </label>
                   
-                {field.type === 'file' ? (
-  <div className="space-y-2">
-    {(formData[`${field.name}Preview`] || field.currentValue) && (
-      <div className="flex items-center space-x-4">
-        <img 
-          src={formData[`${field.name}Preview`] || field.currentValue} 
-          alt="Profile preview" 
-          className="h-16 w-16 rounded-full object-cover"
-        />
-        <span className="text-sm text-gray-500">
-          {formData[field.name]?.name || 'Current photo'}
-        </span>
-      </div>
-    )}
-                       <input
-      type="file"
-      id={field.name}
-      name={field.name}
-      ref={el => fileInputRefs.current[field.name] = el}
-      onChange={handleChange}
-      accept={field.accept || "image/*"}
-      className="block w-full text-sm text-gray-500
-        file:mr-4 file:py-2 file:px-4
-        file:rounded-md file:border-0
-        file:text-sm file:font-semibold
-        file:bg-blue-50 file:text-blue-700
-        hover:file:bg-blue-100"
-    />
-  </div>
-) : field.type === 'select' ? (
+                  {field.type === 'file' ? (
+                    <div className="space-y-2">
+                      {(formData[`${field.name}Preview`] || field.currentValue) && (
+                        <div className="flex items-center space-x-4">
+                          <img 
+                            src={formData[`${field.name}Preview`] || field.currentValue} 
+                            alt="Preview" 
+                            className="h-16 w-16 rounded-full object-cover"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {formData[field.name]?.name || 'Current photo'}
+                          </span>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        id={field.name}
+                        name={field.name}
+                        ref={el => fileInputRefs.current[field.name] = el}
+                        onChange={handleChange}
+                        accept={field.accept || "image/*"}
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100"
+                      />
+                    </div>
+                  ) : field.type === 'select' ? (
                     <select
                       name={field.name}
                       value={formData[field.name] || ''}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+                      className={`w-full px-3 py-2 border ${errors[field.name] ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base`}
                       required={field.required}
                     >
                       <option value="">Select {field.label}</option>
@@ -119,7 +172,7 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData 
                       name={field.name}
                       value={formData[field.name] || ''}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+                      className={`w-full px-3 py-2 border ${errors[field.name] ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base`}
                       required={field.required}
                       rows={4}
                     />
@@ -129,9 +182,14 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [], initialData 
                       name={field.name}
                       value={formData[field.name] || ''}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+                      className={`w-full px-3 py-2 border ${errors[field.name] ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base`}
                       required={field.required}
+                      placeholder={field.placeholder}
+                      pattern={field.pattern}
                     />
+                  )}
+                  {errors[field.name] && (
+                    <p className="mt-1 text-sm text-red-600">{errors[field.name]}</p>
                   )}
                 </div>
               ))}

@@ -23,7 +23,7 @@ const FormModal = ({
         }
       });
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, fields]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -119,6 +119,7 @@ const FormModal = ({
                   className={field.type === 'textarea' || field.type === 'file' ? 'md:col-span-2' : ''}
                 >
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {field.icon && field.icon}
                     {field.label}
                     {field.required && <span className="text-red-500">*</span>}
                   </label>
@@ -175,6 +176,7 @@ const FormModal = ({
                       className={`w-full px-3 py-2 border ${errors[field.name] ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base`}
                       required={field.required}
                       rows={4}
+                      placeholder={field.placeholder}
                     />
                   ) : (
                     <input

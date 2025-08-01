@@ -562,7 +562,7 @@ const CompletedTreatments = () => {
     p.medications.some(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleBack = () => navigate('/doctor-panel');
+  const handleBack = () => navigate('/doctor/doc_10002');
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {

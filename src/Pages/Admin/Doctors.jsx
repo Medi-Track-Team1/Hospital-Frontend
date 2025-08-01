@@ -25,6 +25,7 @@ import {
   deleteDoctor
 } from '../Admin/services/doctorService';
 import LoadingSpinner from '../../components/Admin/LoadingSpinner';
+
 const Doctors = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -63,13 +64,22 @@ const Doctors = () => {
       const { confirmPassword, ...doctorData } = newDoctor;
       const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
       
-      const createdDoctor = await createDoctor(doctorData, profilePhoto);
+      // Ensure required fields are included with defaults
+      const doctorToCreate = {
+        ...doctorData,
+        status: doctorData.status || 'Active',
+        departmentId: doctorData.departmentId || 'DEP-00001'
+      };
+
+      console.log('Creating doctor:', doctorToCreate);
+      const createdDoctor = await createDoctor(doctorToCreate, profilePhoto);
       
       setDoctors([...doctors, createdDoctor]);
       setIsModalOpen(false);
       toast.success('Doctor added successfully!');
     } catch (err) {
       toast.error(`Failed to add doctor: ${err.message}`);
+      console.error('Error details:', err);
     }
   };
 
@@ -80,7 +90,16 @@ const Doctors = () => {
         null;
       
       const { id, ...doctorData } = updatedDoctor;
-      const updated = await updateDoctor(id, doctorData, profilePhoto);
+      
+      // Ensure required fields are included
+      const doctorToUpdate = {
+        ...doctorData,
+        status: doctorData.status || 'Active',
+        departmentId: doctorData.departmentId || 'DEP-00001'
+      };
+
+      console.log('Updating doctor:', doctorToUpdate);
+      const updated = await updateDoctor(id, doctorToUpdate, profilePhoto);
       
       setDoctors(doctors.map(doctor => 
         doctor.doctorId === updated.doctorId ? updated : doctor
@@ -91,15 +110,18 @@ const Doctors = () => {
       toast.success('Doctor updated successfully!');
     } catch (err) {
       toast.error(`Failed to update doctor: ${err.message}`);
+      console.error('Error details:', err);
     }
   };
 
   const handleEditDoctor = (doctor) => {
     setSelectedDoctor({
       ...doctor,
-      id: doctor.doctorId, // Map doctorId to id for the form
+      id: doctor.doctorId,
       languages: Array.isArray(doctor.languages) ? doctor.languages.join(', ') : doctor.languages || '',
-      confirmPassword: doctor.password // For form validation
+      confirmPassword: doctor.password,
+      status: doctor.status || 'Active',
+      departmentId: doctor.departmentId || 'DEP-00001'
     });
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -398,8 +420,8 @@ const Doctors = () => {
             required: true 
           },
           {
-            name: 'mmrId',
-            label: 'MMR-ID',
+            name: 'nmrId',
+            label: 'NMR-ID',
             type: 'text',
             required: true,
           },
@@ -429,6 +451,21 @@ const Doctors = () => {
           { name: 'education', label: 'Education', type: 'text', required: false },
           { name: 'experience', label: 'Experience', type: 'textarea', required: false },
           { name: 'languages', label: 'Languages (comma separated)', type: 'text', required: false },
+          { 
+            name: 'status', 
+            label: 'Status', 
+            type: 'select',
+            options: ['Active', 'On Leave'],
+            required: true,
+            defaultValue: 'Active'
+          },
+          {
+            name: 'departmentId',
+            label: 'Department ID',
+            type: 'text',
+            required: true,
+            defaultValue: 'DEP-00001'
+          },
         ]}
         initialData={isEditMode ? selectedDoctor : {}}
       />

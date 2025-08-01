@@ -1,69 +1,89 @@
 import React, { useState } from 'react';
-import { loginUser, isAdmin, isDoctor, isNurse, isPatient } from './api';
 
-const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
+
+// Password encryption function using Web Crypto API
+const encryptPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
+const Login = ({ onClose, onSignupClick }) => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccessMessage('');
     
     if (!formData.email || !formData.password) {
-      setError('Email and password are required');
+      alert('Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Use the loginUser function from api.js
-      const user = await loginUser(formData.email, formData.password);
-      
-      setSuccessMessage('Login successful!');
-      
-      // Determine where to redirect based on role
-      let redirectPath = '/';
-      if (isAdmin()) {
-        redirectPath = '/admin/dashboard';
-      } else if (isDoctor()) {
-        redirectPath = '/doctor/dashboard';
-      } else if (isNurse()) {
-        redirectPath = '/nurse/dashboard';
-      } else if (isPatient()) {
-        redirectPath = '/patient/dashboard';
-      }
+      // Encrypt password before sending
+      const encryptedPassword = await encryptPassword(formData.password);
 
-      // Notify parent component about successful login
-      if (onLoginSuccess) {
-        onLoginSuccess(redirectPath);
-      }
+      // Prepare login data
+      const loginData = {
+        patientEmail: formData.email,
+        password: encryptedPassword, // Send encrypted password
+      };
 
-      // Close the modal after 2 seconds
-      setTimeout(() => {
+      // Make API call to your backend
+      const response = await fetch('http://localhost:8080/api/patient/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Login successful!');
+        
+        // Store authentication token if provided
+        if (result.token) {
+          localStorage.setItem('authToken', result.token);
+        }
+        
+        // Store user data if needed
+        if (result.user) {
+          localStorage.setItem('userData', JSON.stringify(result.user));
+        }
+
+        // Clear form and close modal
+        setFormData({ email: "", password: "" });
         onClose();
-      }, 2000);
-      
+        
+        // Redirect or update app state as needed
+        // window.location.href = '/dashboard'; // or use your routing logic
+      } else {
+        alert('Login failed: ' + (result.message || 'Invalid email or password'));
+      }
     } catch (error) {
-      setError(error.message || 'Login failed. Please try again.');
+      console.error('Error during login:', error);
+      alert('Login failed: Network error or server is not responding');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="relative bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -84,17 +104,6 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
       <h2 className="text-2xl font-bold text-center text-black mb-2">Welcome Back!</h2>
       <p className="text-black text-center mb-6">Login with your details to continue</p>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
-          {error}
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
-          {successMessage}
-        </div>
-      )}
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
@@ -105,7 +114,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+
             required
           />
         </div>
@@ -118,7 +127,9 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
             placeholder="Password"
             value={formData.password}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+            className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
             required
           />
         </div>
@@ -126,9 +137,18 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          {isLoading ? 'Logging in...' : 'Login'}
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
+
         </button>
       </form>
 

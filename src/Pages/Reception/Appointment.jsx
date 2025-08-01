@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, User, Phone, Mail, Search, Filter, Plus,
@@ -81,7 +82,6 @@ const Appointment = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeView, setActiveView] = useState('today');
 
   // New appointment form state
   const [newAppointment, setNewAppointment] = useState({
@@ -96,8 +96,7 @@ const Appointment = () => {
     age: '',
     symptoms: '',
     isEmergency: false,
-    insurance: '',
-    notes: ''
+    insurance: ''
   });
 
   // Edit appointment form state
@@ -114,8 +113,7 @@ const Appointment = () => {
     age: '',
     symptoms: '',
     isEmergency: false,
-    insurance: '',
-    notes: ''
+    insurance: ''
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -242,12 +240,12 @@ const Appointment = () => {
 
     const appointment = {
       ...newAppointment,
-      id: appointments.length + 1,
+      id: Math.max(...appointments.map(a => a.id), 0) + 1,
       age: parseInt(newAppointment.age),
       isEmergency: newAppointment.status === 'Emergency'
     };
 
-    setAppointments(prev => [...prev, appointment]);
+    setAppointments(prev => [appointment, ...prev]);
     setNewAppointment({
       patientName: '',
       doctor: '',
@@ -260,8 +258,7 @@ const Appointment = () => {
       age: '',
       symptoms: '',
       isEmergency: false,
-      insurance: '',
-      notes: ''
+      insurance: ''
     });
     setFormErrors({});
     setShowNewAppointmentModal(false);
@@ -281,8 +278,7 @@ const Appointment = () => {
       age: appointment.age.toString(),
       symptoms: appointment.symptoms,
       isEmergency: appointment.isEmergency,
-      insurance: appointment.insurance,
-      notes: appointment.notes || ''
+      insurance: appointment.insurance
     });
     setEditFormErrors({});
     setShowEditAppointmentModal(true);
@@ -297,7 +293,7 @@ const Appointment = () => {
       isEmergency: editAppointment.status === 'Emergency'
     };
 
-    setAppointments(prev => prev.map(app => 
+    setAppointments(prev => prev.map(app =>
       app.id === editAppointment.id ? updatedAppointment : app
     ));
 
@@ -314,8 +310,7 @@ const Appointment = () => {
       age: '',
       symptoms: '',
       isEmergency: false,
-      insurance: '',
-      notes: ''
+      insurance: ''
     });
     setEditFormErrors({});
     setShowEditAppointmentModal(false);
@@ -372,209 +367,24 @@ const Appointment = () => {
   const confirmedCount = appointments.filter(app => app.status === 'Confirmed').length;
   const pendingCount = appointments.filter(app => app.status === 'Pending').length;
 
-  const styles = {
-    container: {
+  return (
+    <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    },
-    responsiveContainer: {
-      maxWidth: '1400px',
-      margin: '0 auto',
-      padding: '15px'
-    },
-    statsGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-      gap: '20px',
-      marginBottom: '30px'
-    },
-    statCard: {
-      background: 'white',
-      padding: '20px',
-      borderRadius: '20px',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
-      border: '1px solid rgba(59, 130, 246, 0.1)',
-      transition: 'all 0.3s ease',
-      cursor: 'pointer'
-    },
-    controlsContainer: {
-      background: 'white',
-      padding: '20px',
-      borderRadius: '20px',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
-      marginBottom: '25px',
-      border: '1px solid rgba(59, 130, 246, 0.1)'
-    },
-    controlsWrapper: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '15px',
-      alignItems: 'center',
-      justifyContent: 'space-between'
-    },
-    searchFilters: {
-      display: 'flex',
-      flex: 1,
-      gap: '15px',
-      alignItems: 'center',
-      minWidth: '300px'
-    },
-    searchContainer: {
-      position: 'relative',
-      flex: 1,
-      minWidth: '250px'
-    },
-    searchInput: {
-      width: '100%',
-      padding: '12px 12px 12px 45px',
-      borderRadius: '12px',
-      border: '2px solid #e2e8f0',
-      fontSize: '16px',
-      transition: 'all 0.3s ease',
-      background: '#f8fafc',
-      boxSizing: 'border-box'
-    },
-    select: {
-      padding: '12px 16px',
-      borderRadius: '12px',
-      border: '2px solid #e2e8f0',
-      fontSize: '16px',
-      background: 'white',
-      cursor: 'pointer',
-      minWidth: '130px'
-    },
-    newAppointmentBtn: {
-      background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-      color: 'white',
-      border: 'none',
-      padding: '12px 24px',
-      borderRadius: '12px',
-      fontSize: '16px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-      whiteSpace: 'nowrap'
-    },
-    appointmentsContainer: {
-      background: 'white',
-      borderRadius: '20px',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
-      border: '1px solid rgba(59, 130, 246, 0.1)',
-      overflow: 'hidden'
-    },
-    appointmentsHeader: {
-      padding: '25px',
-      borderBottom: '1px solid #e2e8f0',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-    },
-    appointmentsGrid: {
-      display: 'grid',
-      gap: '1px',
-      background: '#e2e8f0'
-    },
-    appointmentCard: {
-      background: 'white',
-      padding: '20px',
-      transition: 'all 0.3s ease',
-      cursor: 'pointer'
-    },
-    appointmentContent: {
-      display: 'grid',
-      gridTemplateColumns: '1fr auto',
-      gap: '15px',
-      alignItems: 'flex-start'
-    },
-    appointmentInfo: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '25px'
-    },
-    patientSection: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px'
-    },
-    actionsContainer: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: '15px',
-      flexShrink: 0
-    },
-    actionButtons: {
-      display: 'flex',
-      gap: '8px'
-    },
-    modalOverlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      background: 'rgba(0, 0, 0, 0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      backdropFilter: 'blur(8px)',
-      padding: '15px',
-      boxSizing: 'border-box'
-    },
-    modalContent: {
-      background: 'rgba(255, 255, 255, 0.98)',
-      borderRadius: '24px',
-      padding: '30px',
-      width: '100%',
-      maxWidth: '900px',
-      maxHeight: 'calc(100vh - 30px)',
-      overflow: 'auto',
-      boxShadow: '0 24px 48px rgba(0, 0, 0, 0.2)',
-      border: '1px solid rgba(255, 255, 255, 0.3)',
-      backdropFilter: 'blur(20px)'
-    },
-    formGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-      gap: '20px'
-    },
-    formSection: {
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-      borderRadius: '16px',
-      padding: '20px',
-      marginBottom: '20px'
-    },
-    formInput: {
-      padding: '10px 14px',
-      borderRadius: '10px',
-      border: '2px solid rgba(148, 163, 184, 0.2)',
-      fontSize: '1rem',
-      transition: 'all 0.3s ease',
-      outline: 'none',
-      background: 'rgba(255, 255, 255, 0.8)',
-      fontFamily: 'inherit'
-    },
-    formLabel: {
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      color: '#374151',
-      marginBottom: '6px'
-    },
-    errorText: {
-      color: '#ef4444',
-      fontSize: '0.8rem',
-      marginTop: '4px'
-    }
-  };
-
-  return (
-    <div style={styles.container}>
-      <div style={styles.responsiveContainer}>
+    }}>
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: '15px'
+      }}>
         {/* Stats Cards */}
-        <div style={styles.statsGrid}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '20px',
+          marginBottom: '30px'
+        }}>
           {[
             {
               title: 'Today\'s Appointments',
@@ -607,14 +417,14 @@ const Appointment = () => {
           ].map((stat, index) => (
             <div
               key={index}
-              style={styles.statCard}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.12)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.08)';
+              style={{
+                background: 'white',
+                padding: '20px',
+                borderRadius: '20px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.1)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -651,10 +461,33 @@ const Appointment = () => {
         </div>
 
         {/* Controls */}
-        <div style={styles.controlsContainer}>
-          <div style={styles.controlsWrapper}>
-            <div style={styles.searchFilters}>
-              <div style={styles.searchContainer}>
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '20px',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+          marginBottom: '25px',
+          border: '1px solid rgba(59, 130, 246, 0.1)'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '15px',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{
+              display: 'flex',
+              flex: 1,
+              gap: '15px',
+              alignItems: 'center',
+              minWidth: '300px'
+            }}>
+              <div style={{
+                position: 'relative',
+                flex: 1,
+                minWidth: '250px'
+              }}>
                 <Search
                   size={18}
                   style={{
@@ -670,16 +503,15 @@ const Appointment = () => {
                   placeholder="Search patients, doctors..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={styles.searchInput}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                    e.target.style.background = 'white';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e2e8f0';
-                    e.target.style.boxShadow = 'none';
-                    e.target.style.background = '#f8fafc';
+                  style={{
+                    width: '100%',
+                    padding: '12px 12px 12px 45px',
+                    borderRadius: '12px',
+                    border: '2px solid #e2e8f0',
+                    fontSize: '16px',
+                    transition: 'all 0.3s ease',
+                    background: '#f8fafc',
+                    boxSizing: 'border-box'
                   }}
                 />
               </div>
@@ -687,7 +519,15 @@ const Appointment = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                style={styles.select}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e2e8f0',
+                  fontSize: '16px',
+                  background: 'white',
+                  cursor: 'pointer',
+                  minWidth: '130px'
+                }}
               >
                 <option value="All">All Status</option>
                 <option value="Confirmed">Confirmed</option>
@@ -701,20 +541,35 @@ const Appointment = () => {
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                style={styles.select}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '2px solid #e2e8f0',
+                  fontSize: '16px',
+                  background: 'white',
+                  cursor: 'pointer',
+                  minWidth: '130px'
+                }}
               />
             </div>
 
             <button
               onClick={() => setShowNewAppointmentModal(true)}
-              style={styles.newAppointmentBtn}
-              onMouseOver={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+                whiteSpace: 'nowrap'
               }}
             >
               <Plus size={18} />
@@ -723,9 +578,19 @@ const Appointment = () => {
           </div>
         </div>
 
-        {/* Appointments Table */}
-        <div style={styles.appointmentsContainer}>
-          <div style={styles.appointmentsHeader}>
+        {/* Appointments List */}
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+          border: '1px solid rgba(59, 130, 246, 0.1)',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            padding: '25px',
+            borderBottom: '1px solid #e2e8f0',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+          }}>
             <h2 style={{
               color: '#1e293b',
               fontSize: '22px',
@@ -767,26 +632,42 @@ const Appointment = () => {
                 </p>
               </div>
             ) : (
-              <div style={styles.appointmentsGrid}>
+              <div style={{
+                display: 'grid',
+                gap: '1px',
+                background: '#e2e8f0'
+              }}>
                 {filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    style={styles.appointmentCard}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = '#f8fafc';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = 'white';
+                    style={{
+                      background: 'white',
+                      padding: '20px',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
                     }}
                     onClick={() => {
                       setSelectedAppointment(appointment);
                       setShowModal(true);
                     }}
                   >
-                    <div style={styles.appointmentContent}>
-                      <div style={styles.appointmentInfo}>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      gap: '15px',
+                      alignItems: 'flex-start'
+                    }}>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                        gap: '25px'
+                      }}>
                         {/* Patient Info */}
-                        <div style={styles.patientSection}>
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px'
+                        }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                             <div style={{
                               background: appointment.isEmergency
@@ -833,7 +714,11 @@ const Appointment = () => {
                         </div>
 
                         {/* Appointment Details */}
-                        <div style={styles.patientSection}>
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px'
+                        }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                             <div style={{
                               background: 'linear-gradient(135deg, #10b981, #059669)',
@@ -878,7 +763,11 @@ const Appointment = () => {
                         </div>
 
                         {/* Symptoms */}
-                        <div style={styles.patientSection}>
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px'
+                        }}>
                           <h4 style={{
                             color: '#1e293b',
                             fontSize: '13px',
@@ -903,7 +792,12 @@ const Appointment = () => {
                       </div>
 
                       {/* Actions */}
-                      <div style={styles.actionsContainer}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '15px',
+                        flexShrink: 0
+                      }}>
                         <div style={{
                           background: getStatusColor(appointment.status),
                           color: 'white',
@@ -922,7 +816,10 @@ const Appointment = () => {
                           {appointment.status}
                         </div>
 
-                        <div style={styles.actionButtons}>
+                        <div style={{
+                          display: 'flex',
+                          gap: '8px'
+                        }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -938,14 +835,6 @@ const Appointment = () => {
                               cursor: 'pointer',
                               transition: 'all 0.3s ease',
                               boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)'
-                            }}
-                            onMouseOver={(e) => {
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-                            }}
-                            onMouseOut={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
                             }}
                           >
                             <Eye size={14} />
@@ -966,14 +855,6 @@ const Appointment = () => {
                               transition: 'all 0.3s ease',
                               boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
                             }}
-                            onMouseOver={(e) => {
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
-                            }}
-                            onMouseOut={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
-                            }}
                           >
                             <Edit3 size={14} />
                           </button>
@@ -993,14 +874,6 @@ const Appointment = () => {
                               transition: 'all 0.3s ease',
                               boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
                             }}
-                            onMouseOver={(e) => {
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
-                            }}
-                            onMouseOut={(e) => {
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
-                            }}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -1015,9 +888,1131 @@ const Appointment = () => {
         </div>
       </div>
 
+      {/* New Appointment Modal */}
+      {showNewAppointmentModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)',
+          padding: '15px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.98)',
+            borderRadius: '24px',
+            padding: '30px',
+            width: '100%',
+            maxWidth: '900px',
+            maxHeight: 'calc(100vh - 30px)',
+            overflow: 'auto',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            backdropFilter: 'blur(20px)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '25px',
+              paddingBottom: '15px',
+              borderBottom: '2px solid rgba(148, 163, 184, 0.1)',
+            }}>
+              <h2 style={{
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: '#1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                margin: 0,
+              }}>
+                <UserPlus size={28} />
+                Create New Appointment
+              </h2>
+              <button
+                onClick={() => {
+                  setShowNewAppointmentModal(false);
+                  setNewAppointment({
+                    patientName: '',
+                    doctor: '',
+                    department: '',
+                    date: '',
+                    time: '',
+                    phone: '',
+                    email: '',
+                    age: '',
+                    symptoms: '',
+                    insurance: '',
+                    isEmergency: false
+                  });
+                  setFormErrors({});
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  transition: 'color 0.3s ease',
+                  padding: '6px',
+                  borderRadius: '8px',
+                }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div>
+              {/* Patient Information */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <User size={18} />
+                  Patient Information
+                </h3>
+               
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '20px'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Patient Name *</label>
+                    <input
+                      type="text"
+                      value={newAppointment.patientName}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, patientName: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.patientName ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Enter patient full name"
+                    />
+                    {formErrors.patientName && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.patientName}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Age *</label>
+                    <input
+                      type="number"
+                      value={newAppointment.age}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, age: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.age ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Enter age"
+                    />
+                    {formErrors.age && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.age}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={newAppointment.phone}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, phone: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.phone ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    {formErrors.phone && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.phone}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Email Address *</label>
+                    <input
+                      type="email"
+                      value={newAppointment.email}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, email: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.email ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="patient@email.com"
+                    />
+                    {formErrors.email && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.email}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <Calendar size={18} />
+                  Appointment Details
+                </h3>
+               
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '20px'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Department *</label>
+                    <select
+                      value={newAppointment.department}
+                      onChange={(e) => {
+                        setNewAppointment(prev => ({
+                          ...prev,
+                          department: e.target.value,
+                          doctor: ''
+                        }));
+                      }}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.department ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                    {formErrors.department && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.department}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Doctor *</label>
+                    <select
+                      value={newAppointment.doctor}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, doctor: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.doctor ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Doctor</option>
+                      {doctors.map(doctor => (
+                        <option key={doctor} value={doctor}>{doctor}</option>
+                      ))}
+                    </select>
+                    {formErrors.doctor && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.doctor}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Date *</label>
+                    <input
+                      type="date"
+                      value={newAppointment.date}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, date: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.date ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    {formErrors.date && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.date}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Time *</label>
+                    <select
+                      value={newAppointment.time}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, time: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.time ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Time</option>
+                      {timeSlots.map(time => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                    {formErrors.time && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.time}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <Heart size={18} />
+                  Medical Information
+                </h3>
+               
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Symptoms / Reason for Visit *</label>
+                    <textarea
+                      value={newAppointment.symptoms}
+                      onChange={(e) => setNewAppointment(prev => ({ ...prev, symptoms: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${formErrors.symptoms ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        resize: 'vertical',
+                        minHeight: '80px'
+                      }}
+                      placeholder="Describe the symptoms or reason for the appointment..."
+                    />
+                    {formErrors.symptoms && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{formErrors.symptoms}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end',
+                paddingTop: '15px',
+                borderTop: '2px solid rgba(148, 163, 184, 0.1)',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowNewAppointmentModal(false);
+                    setNewAppointment({
+                      patientName: '',
+                      doctor: '',
+                      department: '',
+                      date: '',
+                      time: '',
+                      phone: '',
+                      email: '',
+                      age: '',
+                      symptoms: '',
+                      insurance: '',
+                      isEmergency: false
+                    });
+                    setFormErrors({});
+                  }}
+                  style={{
+                    background: 'white',
+                    color: '#64748b',
+                    border: '2px solid rgba(148, 163, 184, 0.2)',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    minHeight: '44px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateAppointment}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
+                    minHeight: '44px'
+                  }}
+                >
+                  <Save size={16} />
+                  Create Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Appointment Modal */}
+      {showEditAppointmentModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)',
+          padding: '15px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.98)',
+            borderRadius: '24px',
+            padding: '30px',
+            width: '100%',
+            maxWidth: '900px',
+            maxHeight: 'calc(100vh - 30px)',
+            overflow: 'auto',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            backdropFilter: 'blur(20px)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '25px',
+              paddingBottom: '15px',
+              borderBottom: '2px solid rgba(148, 163, 184, 0.1)',
+            }}>
+              <h2 style={{
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: '#1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                margin: 0,
+              }}>
+                <Edit3 size={28} />
+                Edit Appointment
+              </h2>
+              <button
+                onClick={() => {
+                  setShowEditAppointmentModal(false);
+                  setEditAppointment({
+                    id: null,
+                    patientName: '',
+                    doctor: '',
+                    department: '',
+                    date: '',
+                    time: '',
+                    phone: '',
+                    email: '',
+                    age: '',
+                    symptoms: '',
+                    insurance: '',
+                    isEmergency: false
+                  });
+                  setEditFormErrors({});
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  transition: 'color 0.3s ease',
+                  padding: '6px',
+                  borderRadius: '8px',
+                }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div>
+              {/* Patient Information */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <User size={18} />
+                  Patient Information
+                </h3>
+               
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '20px'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Patient Name *</label>
+                    <input
+                      type="text"
+                      value={editAppointment.patientName}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, patientName: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.patientName ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Enter patient full name"
+                    />
+                    {editFormErrors.patientName && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.patientName}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Age *</label>
+                    <input
+                      type="number"
+                      value={editAppointment.age}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, age: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.age ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Enter age"
+                    />
+                    {editFormErrors.age && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.age}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={editAppointment.phone}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, phone: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.phone ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    {editFormErrors.phone && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.phone}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Email Address *</label>
+                    <input
+                      type="email"
+                      value={editAppointment.email}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, email: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.email ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="patient@email.com"
+                    />
+                    {editFormErrors.email && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.email}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <Calendar size={18} />
+                  Appointment Details
+                </h3>
+               
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '20px'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Department *</label>
+                    <select
+                      value={editAppointment.department}
+                      onChange={(e) => {
+                        setEditAppointment(prev => ({
+                          ...prev,
+                          department: e.target.value,
+                          doctor: ''
+                        }));
+                      }}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.department ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                    {editFormErrors.department && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.department}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Doctor *</label>
+                    <select
+                      value={editAppointment.doctor}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, doctor: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.doctor ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Doctor</option>
+                      {doctors.map(doctor => (
+                        <option key={doctor} value={doctor}>{doctor}</option>
+                      ))}
+                    </select>
+                    {editFormErrors.doctor && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.doctor}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Date *</label>
+                    <input
+                      type="date"
+                      value={editAppointment.date}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, date: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.date ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    {editFormErrors.date && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.date}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Time *</label>
+                    <select
+                      value={editAppointment.time}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, time: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.time ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Time</option>
+                      {timeSlots.map(time => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                    {editFormErrors.time && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.time}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Status</label>
+                    <select
+                      value={editAppointment.status}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, status: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '2px solid rgba(148, 163, 184, 0.2)',
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  color: '#1e293b',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <Heart size={18} />
+                  Medical Information
+                </h3>
+               
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label style={{
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#374151',
+                      marginBottom: '6px'
+                    }}>Symptoms / Reason for Visit *</label>
+                    <textarea
+                      value={editAppointment.symptoms}
+                      onChange={(e) => setEditAppointment(prev => ({ ...prev, symptoms: e.target.value }))}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: `2px solid ${editFormErrors.symptoms ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
+                        fontSize: '1rem',
+                        transition: 'all 0.3s ease',
+                        outline: 'none',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        fontFamily: 'inherit',
+                        resize: 'vertical',
+                        minHeight: '80px'
+                      }}
+                      placeholder="Describe the symptoms or reason for the appointment..."
+                    />
+                    {editFormErrors.symptoms && (
+                      <span style={{
+                        color: '#ef4444',
+                        fontSize: '0.8rem',
+                        marginTop: '4px'
+                      }}>{editFormErrors.symptoms}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end',
+                paddingTop: '15px',
+                borderTop: '2px solid rgba(148, 163, 184, 0.1)',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowEditAppointmentModal(false);
+                    setEditAppointment({
+                      id: null,
+                      patientName: '',
+                      doctor: '',
+                      department: '',
+                      date: '',
+                      time: '',
+                      phone: '',
+                      email: '',
+                      age: '',
+                      symptoms: '',
+                      insurance: '',
+                      isEmergency: false
+                    });
+                    setEditFormErrors({});
+                  }}
+                  style={{
+                    background: 'white',
+                    color: '#64748b',
+                    border: '2px solid rgba(148, 163, 184, 0.2)',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    minHeight: '44px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateAppointment}
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                    minHeight: '44px'
+                  }}
+                >
+                  <Save size={16} />
+                  Update Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmModal && appointmentToDelete && (
-        <div style={styles.modalOverlay}>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)',
+          padding: '15px',
+          boxSizing: 'border-box'
+        }}>
           <div style={{
             background: 'white',
             borderRadius: '20px',
@@ -1039,7 +2034,7 @@ const Appointment = () => {
             }}>
               <AlertTriangle size={40} color="#ef4444" />
             </div>
-            
+           
             <h2 style={{
               color: '#1e293b',
               fontSize: '24px',
@@ -1048,7 +2043,7 @@ const Appointment = () => {
             }}>
               Delete Appointment
             </h2>
-            
+           
             <p style={{
               color: '#64748b',
               fontSize: '16px',
@@ -1108,14 +2103,6 @@ const Appointment = () => {
                   transition: 'all 0.3s ease',
                   minHeight: '48px'
                 }}
-                onMouseOver={(e) => {
-                  e.target.style.background = '#f8fafc';
-                  e.target.style.borderColor = '#cbd5e1';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = 'white';
-                  e.target.style.border = '2px solid #e2e8f0';
-                }}
               >
                 Cancel
               </button>
@@ -1137,14 +2124,6 @@ const Appointment = () => {
                   alignItems: 'center',
                   gap: '8px'
                 }}
-                onMouseOver={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 25px rgba(239, 68, 68, 0.4)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.3)';
-                }}
               >
                 <Trash2 size={16} />
                 Delete Appointment
@@ -1154,816 +2133,23 @@ const Appointment = () => {
         </div>
       )}
 
-      {/* New Appointment Modal */}
-      {showNewAppointmentModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '25px',
-              paddingBottom: '15px',
-              borderBottom: '2px solid rgba(148, 163, 184, 0.1)',
-            }}>
-              <h2 style={{
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                color: '#1e293b',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                margin: 0,
-              }}>
-                <UserPlus size={28} />
-                Create New Appointment
-              </h2>
-              <button
-                onClick={() => {
-                  setShowNewAppointmentModal(false);
-                  setNewAppointment({
-                    patientName: '',
-                    doctor: '',
-                    department: '',
-                    date: '',
-                    time: '',
-                    phone: '',
-                    email: '',
-                    age: '',
-                    symptoms: '',
-                    insurance: '',
-                    notes: '',
-                    isEmergency: false
-                  });
-                  setFormErrors({});
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  transition: 'color 0.3s ease',
-                  padding: '6px',
-                  borderRadius: '8px',
-                }}
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            <div>
-              {/* Patient Information */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <User size={18} />
-                  Patient Information
-                </h3>
-               
-                <div style={styles.formGrid}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Patient Name *</label>
-                    <input
-                      type="text"
-                      value={newAppointment.patientName}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, patientName: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.patientName ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="Enter patient full name"
-                    />
-                    {formErrors.patientName && (
-                      <span style={styles.errorText}>{formErrors.patientName}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Age *</label>
-                    <input
-                      type="number"
-                      value={newAppointment.age}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, age: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.age ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="Enter age"
-                    />
-                    {formErrors.age && (
-                      <span style={styles.errorText}>{formErrors.age}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Phone Number *</label>
-                    <input
-                      type="tel"
-                      value={newAppointment.phone}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, phone: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.phone ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                    {formErrors.phone && (
-                      <span style={styles.errorText}>{formErrors.phone}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Email Address *</label>
-                    <input
-                      type="email"
-                      value={newAppointment.email}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, email: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.email ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="patient@email.com"
-                    />
-                    {formErrors.email && (
-                      <span style={styles.errorText}>{formErrors.email}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Appointment Details */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <Calendar size={18} />
-                  Appointment Details
-                </h3>
-               
-                <div style={styles.formGrid}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Department *</label>
-                    <select
-                      value={newAppointment.department}
-                      onChange={(e) => {
-                        setNewAppointment(prev => ({
-                          ...prev,
-                          department: e.target.value,
-                          doctor: ''
-                        }));
-                      }}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.department ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map(dept => (
-                        <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
-                    {formErrors.department && (
-                      <span style={styles.errorText}>{formErrors.department}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Doctor *</label>
-                    <select
-                      value={newAppointment.doctor}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, doctor: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.doctor ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Doctor</option>
-                      {doctors.map(doctor => (
-                        <option key={doctor} value={doctor}>{doctor}</option>
-                      ))}
-                    </select>
-                    {formErrors.doctor && (
-                      <span style={styles.errorText}>{formErrors.doctor}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Date *</label>
-                    <input
-                      type="date"
-                      value={newAppointment.date}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, date: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.date ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                    {formErrors.date && (
-                      <span style={styles.errorText}>{formErrors.date}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Time *</label>
-                    <select
-                      value={newAppointment.time}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, time: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.time ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Time</option>
-                      {timeSlots.map(time => (
-                        <option key={time} value={time}>{time}</option>
-                      ))}
-                    </select>
-                    {formErrors.time && (
-                      <span style={styles.errorText}>{formErrors.time}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '15px' }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={newAppointment.isEmergency}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, isEmergency: e.target.checked }))}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    <AlertTriangle size={16} color={newAppointment.isEmergency ? '#ef4444' : '#64748b'} />
-                    Mark as Emergency Appointment
-                  </label>
-                </div>
-              </div>
-
-              {/* Medical Information */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <Heart size={18} />
-                  Medical Information
-                </h3>
-               
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Symptoms / Reason for Visit *</label>
-                    <textarea
-                      value={newAppointment.symptoms}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, symptoms: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${formErrors.symptoms ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        resize: 'vertical',
-                        minHeight: '80px'
-                      }}
-                      placeholder="Describe the symptoms or reason for the appointment..."
-                    />
-                    {formErrors.symptoms && (
-                      <span style={styles.errorText}>{formErrors.symptoms}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Additional Notes</label>
-                    <textarea
-                      value={newAppointment.notes}
-                      onChange={(e) => setNewAppointment(prev => ({ ...prev, notes: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        resize: 'vertical',
-                        minHeight: '60px'
-                      }}
-                      placeholder="Any additional notes or special requirements..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{
-                display: 'flex',
-                gap: '12px',
-                justifyContent: 'flex-end',
-                paddingTop: '15px',
-                borderTop: '2px solid rgba(148, 163, 184, 0.1)',
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  onClick={() => {
-                    setShowNewAppointmentModal(false);
-                    setNewAppointment({
-                      patientName: '',
-                      doctor: '',
-                      department: '',
-                      date: '',
-                      time: '',
-                      phone: '',
-                      email: '',
-                      age: '',
-                      symptoms: '',
-                      insurance: '',
-                      notes: '',
-                      isEmergency: false
-                    });
-                    setFormErrors({});
-                  }}
-                  style={{
-                    background: 'white',
-                    color: '#64748b',
-                    border: '2px solid rgba(148, 163, 184, 0.2)',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    minHeight: '44px'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateAppointment}
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
-                    minHeight: '44px'
-                  }}
-                >
-                  <Save size={16} />
-                  Create Appointment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Appointment Modal */}
-      {showEditAppointmentModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '25px',
-              paddingBottom: '15px',
-              borderBottom: '2px solid rgba(148, 163, 184, 0.1)',
-            }}>
-              <h2 style={{
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                color: '#1e293b',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                margin: 0,
-              }}>
-                <Edit3 size={28} />
-                Edit Appointment
-              </h2>
-              <button
-                onClick={() => {
-                  setShowEditAppointmentModal(false);
-                  setEditAppointment({
-                    id: null,
-                    patientName: '',
-                    doctor: '',
-                    department: '',
-                    date: '',
-                    time: '',
-                    phone: '',
-                    email: '',
-                    age: '',
-                    symptoms: '',
-                    insurance: '',
-                    notes: '',
-                    isEmergency: false
-                  });
-                  setEditFormErrors({});
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  transition: 'color 0.3s ease',
-                  padding: '6px',
-                  borderRadius: '8px',
-                }}
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            <div>
-              {/* Patient Information */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <User size={18} />
-                  Patient Information
-                </h3>
-               
-                <div style={styles.formGrid}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Patient Name *</label>
-                    <input
-                      type="text"
-                      value={editAppointment.patientName}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, patientName: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.patientName ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="Enter patient full name"
-                    />
-                    {editFormErrors.patientName && (
-                      <span style={styles.errorText}>{editFormErrors.patientName}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Age *</label>
-                    <input
-                      type="number"
-                      value={editAppointment.age}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, age: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.age ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="Enter age"
-                    />
-                    {editFormErrors.age && (
-                      <span style={styles.errorText}>{editFormErrors.age}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Phone Number *</label>
-                    <input
-                      type="tel"
-                      value={editAppointment.phone}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, phone: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.phone ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                    {editFormErrors.phone && (
-                      <span style={styles.errorText}>{editFormErrors.phone}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Email Address *</label>
-                    <input
-                      type="email"
-                      value={editAppointment.email}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, email: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.email ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`
-                      }}
-                      placeholder="patient@email.com"
-                    />
-                    {editFormErrors.email && (
-                      <span style={styles.errorText}>{editFormErrors.email}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Insurance *</label>
-                    <select
-                      value={editAppointment.insurance}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, insurance: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.insurance ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Insurance</option>
-                      {insuranceOptions.map(insurance => (
-                        <option key={insurance} value={insurance}>{insurance}</option>
-                      ))}
-                    </select>
-                    {editFormErrors.insurance && (
-                      <span style={styles.errorText}>{editFormErrors.insurance}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Appointment Details */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <Calendar size={18} />
-                  Appointment Details
-                </h3>
-               
-                <div style={styles.formGrid}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Department *</label>
-                    <select
-                      value={editAppointment.department}
-                      onChange={(e) => {
-                        setEditAppointment(prev => ({
-                          ...prev,
-                          department: e.target.value,
-                          doctor: ''
-                        }));
-                      }}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.department ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map(dept => (
-                        <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
-                    {editFormErrors.department && (
-                      <span style={styles.errorText}>{editFormErrors.department}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Doctor *</label>
-                    <select
-                      value={editAppointment.doctor}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, doctor: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.doctor ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Doctor</option>
-                      {doctors.map(doctor => (
-                        <option key={doctor} value={doctor}>{doctor}</option>
-                      ))}
-                    </select>
-                    {editFormErrors.doctor && (
-                      <span style={styles.errorText}>{editFormErrors.doctor}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Date *</label>
-                    <input
-                      type="date"
-                      value={editAppointment.date}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, date: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.date ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                    {editFormErrors.date && (
-                      <span style={styles.errorText}>{editFormErrors.date}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Time *</label>
-                    <select
-                      value={editAppointment.time}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, time: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.time ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">Select Time</option>
-                      {timeSlots.map(time => (
-                        <option key={time} value={time}>{time}</option>
-                      ))}
-                    </select>
-                    {editFormErrors.time && (
-                      <span style={styles.errorText}>{editFormErrors.time}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '15px' }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={editAppointment.isEmergency}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, isEmergency: e.target.checked }))}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    <AlertTriangle size={16} color={editAppointment.isEmergency ? '#ef4444' : '#64748b'} />
-                    Mark as Emergency Appointment
-                  </label>
-                </div>
-              </div>
-
-              {/* Medical Information */}
-              <div style={styles.formSection}>
-                <h3 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '600',
-                  color: '#1e293b',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}>
-                  <Heart size={18} />
-                  Medical Information
-                </h3>
-               
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Symptoms / Reason for Visit *</label>
-                    <textarea
-                      value={editAppointment.symptoms}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, symptoms: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        border: `2px solid ${editFormErrors.symptoms ? '#ef4444' : 'rgba(148, 163, 184, 0.2)'}`,
-                        resize: 'vertical',
-                        minHeight: '80px'
-                      }}
-                      placeholder="Describe the symptoms or reason for the appointment..."
-                    />
-                    {editFormErrors.symptoms && (
-                      <span style={styles.errorText}>{editFormErrors.symptoms}</span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <label style={styles.formLabel}>Additional Notes</label>
-                    <textarea
-                      value={editAppointment.notes}
-                      onChange={(e) => setEditAppointment(prev => ({ ...prev, notes: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        resize: 'vertical',
-                        minHeight: '60px'
-                      }}
-                      placeholder="Any additional notes or special requirements..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{
-                display: 'flex',
-                gap: '12px',
-                justifyContent: 'flex-end',
-                paddingTop: '15px',
-                borderTop: '2px solid rgba(148, 163, 184, 0.1)',
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  onClick={() => {
-                    setShowEditAppointmentModal(false);
-                    setEditAppointment({
-                      id: null,
-                      patientName: '',
-                      doctor: '',
-                      department: '',
-                      date: '',
-                      time: '',
-                      phone: '',
-                      email: '',
-                      age: '',
-                      symptoms: '',
-                      insurance: '',
-                      notes: '',
-                      isEmergency: false
-                    });
-                    setEditFormErrors({});
-                  }}
-                  style={{
-                    background: 'white',
-                    color: '#64748b',
-                    border: '2px solid rgba(148, 163, 184, 0.2)',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    minHeight: '44px'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateAppointment}
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    color: 'white',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
-                    minHeight: '44px'
-                  }}
-                >
-                  <Save size={16} />
-                  Update Appointment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* View Appointment Modal */}
       {showModal && selectedAppointment && (
-        <div style={styles.modalOverlay}>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)',
+          padding: '15px',
+          boxSizing: 'border-box'
+        }}>
           <div style={{
             background: 'white',
             borderRadius: '20px',
@@ -2072,7 +2258,7 @@ const Appointment = () => {
                   <Calendar size={18} color="#3b82f6" />
                   Appointment Information
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minMax(200px, 1fr))', gap: '12px' }}>
                   <div>
                     <label style={{ color: '#64748b', fontSize: '13px', fontWeight: '600' }}>Doctor</label>
                     <p style={{ color: '#1e293b', fontSize: '14px', margin: '4px 0 0 0', fontWeight: '500' }}>

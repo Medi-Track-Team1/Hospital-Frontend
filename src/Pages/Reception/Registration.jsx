@@ -1,5 +1,97 @@
 import React, { useState } from "react";
 
+// Mock toast implementation since react-toastify isn't available in this environment
+const toast = {
+  success: (message, options) => {
+    console.log('SUCCESS:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 5000);
+  },
+  error: (message, options) => {
+    console.log('ERROR:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 7000);
+  },
+  info: (message) => {
+    console.log('INFO:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 4000);
+  },
+  loading: (message) => {
+    console.log('LOADING:', message);
+    const notification = document.createElement('div');
+    notification.id = 'loading-toast';
+    notification.className = 'fixed top-4 right-4 bg-gray-600 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    return 'loading-toast';
+  },
+  dismiss: (id) => {
+    const notification = document.getElementById(id);
+    if (notification) {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+  }
+};
+
+// Password encryption function using Web Crypto API
+const encryptPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
 const PatientRegistrationForm = () => {
   const [formData, setFormData] = useState({
     patientName: "",
@@ -20,12 +112,20 @@ const PatientRegistrationForm = () => {
     { id: 1, name: "", phone: "", relation: "", email: "" },
   ]);
 
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleEmergencyContactChange = (id, field, value) => {
@@ -52,6 +152,65 @@ const PatientRegistrationForm = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Required field validation
+    if (!formData.patientName.trim()) {
+      newErrors.patientName = "Patient name is required";
+    }
+    
+    if (!formData.age) {
+      newErrors.age = "Age is required";
+    } else if (formData.age < 1 || formData.age > 120) {
+      newErrors.age = "Age must be between 1 and 120";
+    }
+    
+    if (!formData.bloodGroup) {
+      newErrors.bloodGroup = "Blood group is required";
+    }
+    
+    if (!formData.gender) {
+      newErrors.gender = "Gender is required";
+    }
+    
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+    
+    if (!formData.state.trim()) {
+      newErrors.state = "State is required";
+    }
+    
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = "Contact number is required";
+    } else if (formData.contactNumber.length < 10) {
+      newErrors.contactNumber = "Contact number must be at least 10 digits";
+    }
+    
+    if (!formData.patientEmail.trim()) {
+      newErrors.patientEmail = "Email address is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.patientEmail)) {
+        newErrors.patientEmail = "Please enter a valid email address";
+      }
+    }
+    
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+    
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleClearForm = () => {
     setFormData({
       patientName: "",
@@ -70,10 +229,31 @@ const PatientRegistrationForm = () => {
     setEmergencyContacts([
       { id: 1, name: "", phone: "", relation: "", email: "" },
     ]);
+    setErrors({});
+    toast.info("Form cleared successfully!");
   };
 
   const handleRegisterPatient = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+
+    // Validate form first
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields correctly");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Show loading toast
+    const loadingToastId = toast.loading("Registering patient...");
+
     try {
+      // Encrypt password before sending
+      const encryptedPassword = await encryptPassword(formData.password);
+      
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -86,7 +266,7 @@ const PatientRegistrationForm = () => {
         zipCode: formData.zipCode || "",
         contactNumber: formData.contactNumber,
         patientEmail: formData.patientEmail,
-        password: formData.password,
+        password: encryptedPassword, // Send encrypted password
         address: formData.address,
         emergencyContacts: emergencyContacts.filter(contact => 
           contact.name.trim() || contact.phone.trim() || contact.relation.trim() || contact.email.trim()
@@ -94,7 +274,7 @@ const PatientRegistrationForm = () => {
       };
 
       // Make API call to your backend
-      const response = await fetch('http://localhost:8080/api/patient/registration', {
+      const response = await fetch('https://patient-service-ntk0.onrender.com/api/patient/registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,29 +284,52 @@ const PatientRegistrationForm = () => {
 
       const result = await response.json();
 
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+
       if (response.ok && result.success) {
-        alert('Patient registered successfully!');
+        toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
+          autoClose: 5000,
+        });
         // Clear the form after successful registration
         handleClearForm();
       } else {
-        alert('Registration failed: ' + (result.message || 'Unknown error'));
+        toast.error(`Registration failed: ${result.message || 'Unknown error'}`, {
+          autoClose: 7000,
+        });
       }
     } catch (error) {
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
       console.error('Error registering patient:', error);
-      alert('Registration failed: Network error or server is not responding');
+      toast.error('Registration failed: Network error or server is not responding', {
+        autoClose: 7000,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const inputStyle = {
+  const getInputStyle = (fieldName) => ({
     width: "100%",
     padding: "12px 16px",
-    border: "1px solid #e5e7eb",
+    border: `1px solid ${errors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
     borderRadius: "8px",
     fontSize: "14px",
     backgroundColor: "#ffffff",
     outline: "none",
     boxSizing: "border-box",
     transition: "border-color 0.2s, box-shadow 0.2s",
+    opacity: isSubmitting ? 0.5 : 1,
+    cursor: isSubmitting ? 'not-allowed' : 'text',
+  });
+
+  const errorTextStyle = {
+    color: "#ef4444",
+    fontSize: "12px",
+    marginTop: "4px",
+    display: "block",
   };
 
   const sectionStyle = {
@@ -161,12 +364,12 @@ const PatientRegistrationForm = () => {
     marginBottom: "20px",
   };
 
-  const textareaStyle = {
-    ...inputStyle,
+  const getTextareaStyle = (fieldName) => ({
+    ...getInputStyle(fieldName),
     minHeight: "100px",
     resize: "vertical",
     fontFamily: "Arial, sans-serif",
-  };
+  });
 
   const buttonStyle = {
     padding: "14px 28px",
@@ -174,10 +377,15 @@ const PatientRegistrationForm = () => {
     borderRadius: "8px",
     fontSize: "14px",
     fontWeight: "600",
-    cursor: "pointer",
+    cursor: isSubmitting ? "not-allowed" : "pointer",
     transition: "all 0.3s ease",
     textTransform: "uppercase",
     letterSpacing: "0.5px",
+    opacity: isSubmitting ? 0.6 : 1,
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    justifyContent: "center",
   };
 
   const clearButtonStyle = {
@@ -248,12 +456,6 @@ const PatientRegistrationForm = () => {
     color: "#1e40af",
   };
 
-  const requiredStyle = {
-    color: "#ef4444",
-    marginLeft: "4px",
-    fontSize: "16px",
-  };
-
   return (
     <div style={containerStyle}>
       <div style={sectionStyle}>
@@ -266,9 +468,13 @@ const PatientRegistrationForm = () => {
               placeholder="Patient Name *"
               value={formData.patientName}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('patientName')}
+              disabled={isSubmitting}
               required
             />
+            {errors.patientName && (
+              <span style={errorTextStyle}>{errors.patientName}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <input
@@ -277,9 +483,15 @@ const PatientRegistrationForm = () => {
               placeholder="Age *"
               value={formData.age}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('age')}
+              disabled={isSubmitting}
+              min="1"
+              max="120"
               required
             />
+            {errors.age && (
+              <span style={errorTextStyle}>{errors.age}</span>
+            )}
           </div>
         </div>
         <div style={rowStyle}>
@@ -288,7 +500,8 @@ const PatientRegistrationForm = () => {
               name="bloodGroup"
               value={formData.bloodGroup}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('bloodGroup')}
+              disabled={isSubmitting}
               required
             >
               <option value="">Blood Group *</option>
@@ -301,13 +514,17 @@ const PatientRegistrationForm = () => {
               <option value="O+">O+</option>
               <option value="O-">O-</option>
             </select>
+            {errors.bloodGroup && (
+              <span style={errorTextStyle}>{errors.bloodGroup}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <select
               name="gender"
               value={formData.gender}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('gender')}
+              disabled={isSubmitting}
               required
             >
               <option value="">Gender *</option>
@@ -315,13 +532,17 @@ const PatientRegistrationForm = () => {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+            {errors.gender && (
+              <span style={errorTextStyle}>{errors.gender}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <select
               name="maritalStatus"
               value={formData.maritalStatus}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('maritalStatus')}
+              disabled={isSubmitting}
             >
               <option value="">Marital Status</option>
               <option value="Single">Single</option>
@@ -339,20 +560,28 @@ const PatientRegistrationForm = () => {
               placeholder="City *"
               value={formData.city}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('city')}
+              disabled={isSubmitting}
               required
             />
+            {errors.city && (
+              <span style={errorTextStyle}>{errors.city}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <input
               type="text"
               name="state"
-              placeholder="State*"
+              placeholder="State *"
               value={formData.state}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('state')}
+              disabled={isSubmitting}
               required
             />
+            {errors.state && (
+              <span style={errorTextStyle}>{errors.state}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <input
@@ -361,7 +590,8 @@ const PatientRegistrationForm = () => {
               placeholder="Zip Code"
               value={formData.zipCode}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('zipCode')}
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -373,20 +603,28 @@ const PatientRegistrationForm = () => {
               placeholder="Contact Number *"
               value={formData.contactNumber}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('contactNumber')}
+              disabled={isSubmitting}
               required
             />
+            {errors.contactNumber && (
+              <span style={errorTextStyle}>{errors.contactNumber}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <input
-              type="patientEmail"
+              type="email"
               name="patientEmail"
               placeholder="Email Address *"
               value={formData.patientEmail}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('patientEmail')}
+              disabled={isSubmitting}
               required
             />
+            {errors.patientEmail && (
+              <span style={errorTextStyle}>{errors.patientEmail}</span>
+            )}
           </div>
           <div style={columnStyle}>
             <input
@@ -395,9 +633,13 @@ const PatientRegistrationForm = () => {
               placeholder="Password *"
               value={formData.password}
               onChange={handleInputChange}
-              style={inputStyle}
+              style={getInputStyle('password')}
+              disabled={isSubmitting}
               required
             />
+            {errors.password && (
+              <span style={errorTextStyle}>{errors.password}</span>
+            )}
           </div>
         </div>
         <div style={fullWidthStyle}>
@@ -406,9 +648,13 @@ const PatientRegistrationForm = () => {
             placeholder="Address *"
             value={formData.address}
             onChange={handleInputChange}
-            style={textareaStyle}
+            style={getTextareaStyle('address')}
+            disabled={isSubmitting}
             required
           />
+          {errors.address && (
+            <span style={errorTextStyle}>{errors.address}</span>
+          )}
         </div>
       </div>
 
@@ -426,6 +672,7 @@ const PatientRegistrationForm = () => {
                 <button
                   style={removeContactButtonStyle}
                   onClick={() => removeEmergencyContact(contact.id)}
+                  disabled={isSubmitting}
                 >
                   Remove Contact
                 </button>
@@ -444,7 +691,8 @@ const PatientRegistrationForm = () => {
                       e.target.value
                     )
                   }
-                  style={inputStyle}
+                  style={getInputStyle('')}
+                  disabled={isSubmitting}
                 />
               </div>
               <div style={columnStyle}>
@@ -459,7 +707,8 @@ const PatientRegistrationForm = () => {
                       e.target.value
                     )
                   }
-                  style={inputStyle}
+                  style={getInputStyle('')}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -476,7 +725,8 @@ const PatientRegistrationForm = () => {
                       e.target.value
                     )
                   }
-                  style={inputStyle}
+                  style={getInputStyle('')}
+                  disabled={isSubmitting}
                 />
               </div>
               <div style={columnStyle}>
@@ -491,25 +741,61 @@ const PatientRegistrationForm = () => {
                       e.target.value
                     )
                   }
-                  style={inputStyle}
+                  style={getInputStyle('')}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
           </div>
         ))}
-        <button style={addContactButtonStyle} onClick={addEmergencyContact}>
+        <button 
+          style={addContactButtonStyle} 
+          onClick={addEmergencyContact}
+          disabled={isSubmitting}
+        >
           Add Another Contact
         </button>
       </div>
 
       <div style={buttonContainerStyle}>
-        <button style={clearButtonStyle} onClick={handleClearForm}>
+        <button 
+          style={clearButtonStyle} 
+          onClick={handleClearForm}
+          disabled={isSubmitting}
+        >
           Clear Form
         </button>
-        <button style={registerButtonStyle} onClick={handleRegisterPatient}>
-          REGISTER PATIENT
+        <button 
+          style={registerButtonStyle} 
+          onClick={handleRegisterPatient}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <div style={{
+                width: '16px',
+                height: '16px',
+                border: '2px solid transparent',
+                borderTop: '2px solid currentColor',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              Processing...
+            </>
+          ) : (
+            'REGISTER PATIENT'
+          )}
         </button>
       </div>
+
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };

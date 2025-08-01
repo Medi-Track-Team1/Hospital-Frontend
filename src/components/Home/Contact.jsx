@@ -65,14 +65,8 @@ const Contact = () => {
           transition={{ duration: 1 }}
           viewport={{ once: true }}
         >
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1841581068067!2d-73.98784152404069!3d40.75889117138208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square%2C%20New%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1683654830295!5m2!1sen!2s"
-            className="w-full h-72"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
+          <iframe width="1400" height="400"  id="gmap_canvas" src="https://maps.google.com/maps?width=1207&amp;height=400&amp;hl=en&amp;q=Karpagam%20Medical%20College%20Hospital%20-%20Rural%20Health%20Training%20Centre%20V3J5+VQF,%20Othakkalmandapam,%20Pachapalayam,%20Coimbatore,%20Tamil%20Nadu%20641032%20Coimbatore,%20Tamil%20Nadu,%20India+(Karpagam%20Hospital)&amp;t=&amp;z=12&amp;ie=UTF8&amp;iwloc=B&amp;output=embed">
+          </iframe>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -81,7 +75,7 @@ const Contact = () => {
             {[{
               icon: <MapPin className="h-6 w-6 text-white" />,
               title: "Location",
-              lines: ["123 Medical Center Drive", "KCE, Coimbatore 10001"]
+              lines: ["V3J5+VQF, Othakkalmandapam, Pachapalayam, Coimbatore, Tamil Nadu 641032"]
             },
             {
               icon: <Phone className="h-6 w-6 text-white" />,

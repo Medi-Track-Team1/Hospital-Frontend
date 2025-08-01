@@ -22,19 +22,19 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1 flex flex-col items-center">
-              {doctor.profilePhoto ? (
+              {doctor.photoUrl ? (
                 <img 
-                  src={doctor.profilePhoto} 
-                  alt={doctor.name}
+                  src={doctor.photoUrl} 
+                  alt={doctor.doctorName}
                   className="w-32 h-32 rounded-full object-cover mb-4"
                 />
               ) : (
                 <HiUserCircle className="w-32 h-32 text-gray-400 mb-4" />
               )}
-              <h3 className="text-xl font-bold text-center">{doctor.name}</h3>
+              <h3 className="text-xl font-bold text-center">{doctor.doctorName}</h3>
               <p className="text-blue-600 font-medium">{doctor.specialty}</p>
               <div className={`mt-2 px-3 py-1 rounded-full text-xs ${
-                doctor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                doctor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
               }`}>
                 {doctor.status}
               </div>
@@ -47,8 +47,8 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
                   Professional Information
                 </h4>
                 <div className="space-y-2">
-                  <p><span className="font-medium">NMR-ID:</span> {doctor.nmrId}</p>
-                  <p><span className="font-medium">Availability:</span> {doctor.availability}</p>
+                  <p><span className="font-medium">Doctor ID:</span> {doctor.doctorId}</p>
+                  <p><span className="font-medium">MMR ID:</span> {doctor.mmrId}</p>
                 </div>
               </div>
 
@@ -85,8 +85,13 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
                     <HiGlobe className="mr-2 text-blue-500" />
                     Languages
                   </h4>
-                  <p>{Array.isArray(doctor.languages) ? doctor.languages.join(', ') : doctor.languages || 'Not specified'}</p>
+                  <p>{doctor.languages || 'Not specified'}</p>
                 </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-gray-800 mb-3">Bio</h4>
+                <p>{doctor.bio || 'Not specified'}</p>
               </div>
             </div>
           </div>

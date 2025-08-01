@@ -15,3 +15,7 @@ export const getDoctorsBySpecialty = (specialty) =>
   axios.get(`${REST_API_BASE_URL}/by-specialty`, {
     params: { specialty },
   });
+export const getDoctorCount = async () => {
+  const response = await axios.get(`${REST_API_BASE_URL}/count`);
+  return response.data;
+};

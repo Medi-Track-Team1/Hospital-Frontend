@@ -1,6 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Edit, Eye, Trash2, Phone, Mail, MapPin, X, Save, User, Calendar, Heart, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
+// Mock toast implementation - same as signup
+const toast = {
+  success: (message, options) => {
+    console.log('SUCCESS:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 5000);
+  },
+  error: (message, options) => {
+    console.log('ERROR:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 7000);
+  },
+  info: (message) => {
+    console.log('INFO:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 4000);
+  },
+  loading: (message) => {
+    console.log('LOADING:', message);
+    const notification = document.createElement('div');
+    notification.id = 'loading-toast';
+    notification.className = 'fixed top-4 right-4 bg-gray-600 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    return 'loading-toast';
+  },
+  dismiss: (id) => {
+    const notification = document.getElementById(id);
+    if (notification) {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+  }
+};
+
 const PatientManagement = () => {
   const [patients, setPatients] = useState([]);
   const [allPatients, setAllPatients] = useState([]); // Store all patients for local filtering
@@ -71,21 +154,30 @@ const PatientManagement = () => {
 
   // Fetch all patients from API
   const fetchPatients = async () => {
+    const loadingToastId = toast.loading("Loading patients...");
+    
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/get`);
       const data = await response.json();
       
+      toast.dismiss(loadingToastId);
+      
       if (data.success) {
         const transformedPatients = transformPatientData(data.data);
         setAllPatients(transformedPatients); // Store all patients
         setPatients(transformedPatients); // Display all patients initially
+        setError(null);
+        toast.success(`Successfully loaded ${transformedPatients.length} patients`);
       } else {
         setError('Failed to fetch patients');
+        toast.error('Failed to fetch patients from server');
       }
     } catch (error) {
+      toast.dismiss(loadingToastId);
       console.error('Error fetching patients:', error);
       setError('Error connecting to server');
+      toast.error('Error connecting to server. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -114,12 +206,17 @@ const PatientManagement = () => {
         );
       });
       setPatients(filtered);
+      
+      if (searchTerm.trim() !== '') {
+        toast.info(`Found ${filtered.length} patients matching "${searchTerm}"`);
+      }
     }
   }, [searchTerm, allPatients]);
 
   const handleViewPatient = (patient) => {
     setSelectedPatient(patient);
     setIsViewPatientOpen(true);
+    toast.info(`Viewing patient record: ${patient.name}`);
   };
 
   const handleEditPatient = (patient) => {
@@ -150,6 +247,7 @@ const PatientManagement = () => {
     });
     setIsEditPatientOpen(true);
     setSubmitStatus(null);
+    toast.info(`Editing patient: ${patient.name}`);
   };
 
   const handleEditFormChange = (field, value) => {
@@ -176,6 +274,7 @@ const PatientManagement = () => {
       ...prev,
       emergencyContacts: [...prev.emergencyContacts, { phone: '', email: '', name: '', relation: '' }]
     }));
+    toast.info("Emergency contact field added");
   };
 
   const removeEmergencyContact = (index) => {
@@ -184,28 +283,43 @@ const PatientManagement = () => {
         ...prev,
         emergencyContacts: prev.emergencyContacts.filter((_, i) => i !== index)
       }));
+      toast.info("Emergency contact removed");
+    } else {
+      toast.error("At least one emergency contact is required");
     }
   };
 
   const validateForm = () => {
-    const requiredFields = ['patientName', 'age', 'gender', 'bloodGroup', 'city', 'state', 'zipCode', 'address', 'patientEmail', 'contactNumber'];
-    for (let field of requiredFields) {
+    const requiredFields = [
+      { field: 'patientName', label: 'Patient Name' },
+      { field: 'age', label: 'Age' },
+      { field: 'gender', label: 'Gender' },
+      { field: 'bloodGroup', label: 'Blood Group' },
+      { field: 'city', label: 'City' },
+      { field: 'state', label: 'State' },
+      { field: 'zipCode', label: 'ZIP Code' },
+      { field: 'address', label: 'Address' },
+      { field: 'patientEmail', label: 'Patient Email' },
+      { field: 'contactNumber', label: 'Contact Number' }
+    ];
+
+    for (let {field, label} of requiredFields) {
       if (!editFormData[field] || editFormData[field].toString().trim() === '') {
-        alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field.`);
+        toast.error(`Please fill in the ${label} field`);
         return false;
       }
     }
     
     // Age validation
     if (editFormData.age < 0 || editFormData.age > 150) {
-      alert('Please enter a valid age between 0 and 150.');
+      toast.error('Please enter a valid age between 0 and 150');
       return false;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(editFormData.patientEmail)) {
-      alert('Please enter a valid email address.');
+      toast.error('Please enter a valid email address');
       return false;
     }
 
@@ -215,7 +329,7 @@ const PatientManagement = () => {
     );
     
     if (!hasValidContact) {
-      alert('Please provide at least one emergency contact with a phone number.');
+      toast.error('Please provide at least one emergency contact with a phone number');
       return false;
     }
 
@@ -223,7 +337,7 @@ const PatientManagement = () => {
     for (let contact of editFormData.emergencyContacts) {
       if (contact.email && contact.email.trim() !== '') {
         if (!emailRegex.test(contact.email)) {
-          alert('Please enter a valid email address for emergency contact.');
+          toast.error('Please enter a valid email address for emergency contact');
           return false;
         }
       }
@@ -238,6 +352,8 @@ const PatientManagement = () => {
     try {
       setIsSubmitting(true);
       setSubmitStatus(null);
+      
+      const loadingToastId = toast.loading("Updating patient information...");
       
       // Clean up emergency contacts - remove empty ones and ensure proper structure
       const cleanedEmergencyContacts = editFormData.emergencyContacts
@@ -296,6 +412,8 @@ const PatientManagement = () => {
       const responseText = await response.text();
       console.log('Raw response:', responseText);
 
+      toast.dismiss(loadingToastId);
+
       // Check if response is ok
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}, response: ${responseText}`);
@@ -313,7 +431,7 @@ const PatientManagement = () => {
       
       if (data.success === true || response.status === 200) {
         setSubmitStatus('success');
-        alert('Patient information updated successfully!');
+        toast.success(`Patient ${editFormData.patientName} updated successfully!`);
         setTimeout(() => {
           setIsEditPatientOpen(false);
           fetchPatients(); // Refresh the patient list
@@ -321,7 +439,7 @@ const PatientManagement = () => {
       } else {
         setSubmitStatus('error');
         console.error('Backend returned error:', data);
-        alert(`Operation failed: ${data.message || 'Unknown error occurred'}`);
+        toast.error(`Update failed: ${data.message || 'Unknown error occurred'}`);
       }
     } catch (error) {
       console.error('Error saving patient:', error);
@@ -329,11 +447,11 @@ const PatientManagement = () => {
       
       // More detailed error messages
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        alert('Network error: Unable to connect to server. Please check if the backend is running.');
+        toast.error('Network error: Unable to connect to server. Please check if the backend is running.');
       } else if (error.message.includes('HTTP error')) {
-        alert(`Server error: ${error.message}. Please check the backend logs.`);
+        toast.error(`Server error: ${error.message}. Please check the backend logs.`);
       } else {
-        alert(`Error saving patient information: ${error.message}`);
+        toast.error(`Error saving patient information: ${error.message}`);
       }
     } finally {
       setIsSubmitting(false);
@@ -341,7 +459,16 @@ const PatientManagement = () => {
   };
 
   const handleDeletePatient = async (patientId) => {
-    if (window.confirm('Are you sure you want to delete this patient?')) {
+    // Find patient name for better UX
+    const patient = allPatients.find(p => p.id === patientId);
+    const patientName = patient ? patient.name : patientId;
+
+    // Custom confirmation using toast
+    const confirmDelete = window.confirm(`Are you sure you want to delete patient "${patientName}"? This action cannot be undone.`);
+    
+    if (confirmDelete) {
+      const loadingToastId = toast.loading(`Deleting patient ${patientName}...`);
+      
       try {
         setLoading(true);
         const response = await fetch(`${API_BASE_URL}/delete/${patientId}`, {
@@ -350,18 +477,23 @@ const PatientManagement = () => {
 
         const data = await response.json();
         
+        toast.dismiss(loadingToastId);
+        
         if (data.success) {
-          alert('Patient deleted successfully');
+          toast.success(`Patient ${patientName} deleted successfully`);
           await fetchPatients(); // Refresh the patient list
         } else {
-          alert(`Delete failed: ${data.message}`);
+          toast.error(`Delete failed: ${data.message}`);
         }
       } catch (error) {
+        toast.dismiss(loadingToastId);
         console.error('Error deleting patient:', error);
-        alert('Error deleting patient');
+        toast.error(`Error deleting patient ${patientName}. Please try again.`);
       } finally {
         setLoading(false);
       }
+    } else {
+      toast.info('Delete operation cancelled');
     }
   };
 
@@ -459,7 +591,10 @@ const PatientManagement = () => {
             </div>
             {searchTerm && (
               <button
-                onClick={() => setSearchTerm('')}
+                onClick={() => {
+                  setSearchTerm('');
+                  toast.info('Search cleared');
+                }}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors flex items-center gap-2"
               >
                 <X className="h-4 w-4" />
@@ -599,6 +734,7 @@ const PatientManagement = () => {
                   onClick={() => {
                     setIsEditPatientOpen(false);
                     setSubmitStatus(null);
+                    toast.info('Edit cancelled');
                   }}
                   className="text-white hover:bg-blue-700 rounded-lg p-2 transition-colors"
                 >
@@ -915,6 +1051,7 @@ const PatientManagement = () => {
                       onClick={() => {
                         setIsEditPatientOpen(false);
                         setSubmitStatus(null);
+                        toast.info('Edit cancelled');
                       }}
                       className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
@@ -960,7 +1097,10 @@ const PatientManagement = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsViewPatientOpen(false)}
+                  onClick={() => {
+                    setIsViewPatientOpen(false);
+                    toast.info('Patient view closed');
+                  }}
                   className="text-white hover:bg-blue-700 rounded-lg p-2 transition-colors"
                 >
                   <X className="h-5 w-5" />

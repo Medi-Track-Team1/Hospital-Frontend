@@ -1,12 +1,106 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
 import { registerUser, registerPatientDetails } from "./api";
+// Mock toast implementation since react-toastify isn't available in this environment
+const toast = {
+  success: (message, options) => {
+    console.log('SUCCESS:', message);
+    // Create a temporary success notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 5000);
+  },
+  error: (message, options) => {
+    console.log('ERROR:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, options?.autoClose || 7000);
+  },
+  info: (message) => {
+    console.log('INFO:', message);
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 4000);
+  },
+  loading: (message) => {
+    console.log('LOADING:', message);
+    const notification = document.createElement('div');
+    notification.id = 'loading-toast';
+    notification.className = 'fixed top-4 right-4 bg-gray-600 text-white p-4 rounded-lg shadow-lg z-50 transition-all duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    return 'loading-toast';
+  },
+  dismiss: (id) => {
+    const notification = document.getElementById(id);
+    if (notification) {
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+  }
+};
+
+
+
+// Password encryption function using Web Crypto API
+const encryptPassword = async (password) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "healthcare_salt_2024"); // Add salt
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+};
 
 const Signup = ({ onClose, onLoginClick }) => {
   const [emergencyContacts, setEmergencyContacts] = useState([
     { id: 1, name: "", phone: "", relation: "", email: "" },
   ]);
-  const [successMessage, setSuccessMessage] = useState("");
+
   const [formData, setFormData] = useState({
     patientName: "",
     age: "",
@@ -16,31 +110,27 @@ const Signup = ({ onClose, onLoginClick }) => {
     city: "",
     state: "",
     zipCode: "",
-    address: "",
-    email: "",
+    contactNumber: "",
+    patientEmail: "",
     password: "",
+    address: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addEmergencyContact = () => {
-    const newContact = {
-      id: Date.now(),
-      name: "",
-      phone: "",
-      relation: "",
-      email: "",
-    };
-    setEmergencyContacts([...emergencyContacts, newContact]);
+    const newId = Math.max(...emergencyContacts.map((c) => c.id), 0) + 1;
+    setEmergencyContacts([
+      ...emergencyContacts,
+      {
+        id: newId,
+        name: "",
+        phone: "",
+        relation: "",
+        email: "",
+      },
+    ]);
   };
 
   const removeEmergencyContact = (id) => {
@@ -59,8 +149,14 @@ const Signup = ({ onClose, onLoginClick }) => {
     );
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const clearForm = () => {
@@ -73,56 +169,182 @@ const Signup = ({ onClose, onLoginClick }) => {
       city: "",
       state: "",
       zipCode: "",
-      address: "",
-      email: "",
+      contactNumber: "",
+      patientEmail: "",
       password: "",
+      address: "",
     });
     setEmergencyContacts([
       { id: 1, name: "", phone: "", relation: "", email: "" },
     ]);
-    setError("");
+    setErrors({});
+    toast.info("Form cleared successfully!");
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Required field validation
+    if (!formData.patientName.trim()) {
+      newErrors.patientName = "Patient name is required";
+    }
+    
+    if (!formData.age) {
+      newErrors.age = "Age is required";
+    } else if (formData.age < 10 || formData.age > 70) {
+      newErrors.age = "Age must be between 1 and 120";
+    }
+    
+    if (!formData.bloodGroup) {
+      newErrors.bloodGroup = "Blood group is required";
+    }
+    
+    if (!formData.gender) {
+      newErrors.gender = "Gender is required";
+    }
+    
+    if (!formData.city.trim()) {
+      newErrors.city = "City is required";
+    }
+    
+    if (!formData.state.trim()) {
+      newErrors.state = "State is required";
+    }
+    
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = "Contact number is required";
+    } else if (formData.contactNumber.length < 10) {
+      newErrors.contactNumber = "Contact number must be at least 10 digits";
+    }
+    
+    if (!formData.patientEmail.trim()) {
+      newErrors.patientEmail = "Email address is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.patientEmail)) {
+        newErrors.patientEmail = "Please enter a valid email address";
+      }
+    }
+    
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+    
+    if (!formData.address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!formData.patientName || !formData.email || !formData.password) {
-      setError("Name, email, and password are required");
+    // Prevent multiple submissions
+    if (isSubmitting) {
       return;
     }
 
-    setIsLoading(true);
-    setError("");
+    // Validate form first
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields correctly");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Show loading toast
+    const loadingToastId = toast.loading("Registering patient...");
 
     try {
-      // Register user (authentication)
+      // Encrypt password before sending
+      const encryptedPassword = await encryptPassword(formData.password);
       const authResponse = await registerUser({
         username: formData.patientName,
-        email: formData.email,
-        password: formData.password,
+        email: formData.patientEmail,
+        password: formData.password
       });
-      console.log("Auth response:", formData.patientName);
-      // Register patient details
-      // await registerPatientDetails({
-      //   ...formData,
-      //   emergencyContacts
-      // }, authResponse.token);
+      console.log('Auth response:', authResponse);
+    
+      // Prepare the data according to your backend Patient model
+      const patientData = {
+        patientName: formData.patientName,
+        age: parseInt(formData.age),
+        bloodGroup: formData.bloodGroup,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus || null,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode || "",
+        contactNumber: formData.contactNumber,
+        patientEmail: formData.patientEmail,
+        password: encryptedPassword, // Send encrypted password
+        address: formData.address,
+        emergencyContacts: emergencyContacts.filter(
+          (contact) =>
+            contact.name.trim() ||
+            contact.phone.trim() ||
+            contact.relation.trim() ||
+            contact.email.trim()
+        ),
+      };
 
-      setSuccessMessage("Account created successfully!");
-      setTimeout(() => onClose(), 4000);
+      // Make API call to your backend
+
+      const response = await fetch('https://patient-service-ntk0.onrender.com/api/patient/registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
+
+
+      const result = await response.json();
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+
+      if (response.ok && result.success) {
+        
+         localStorage.setItem("id",result.data.patientId );
+        toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
+          autoClose: 5000,
+        });
+        
+
+        // Clear the form after successful registration
+        clearForm();
+        
+        // Close the modal after a short delay to let user see the success message
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+
+        toast.error(`Registration failed: ${result.message || 'Unknown error'}`, {
+          autoClose: 7000,
+        });
+      }
     } catch (error) {
-      setError(error.message || "Registration failed. Please try again.");
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
+      console.error('Error registering patient:', error);
+      toast.error('Registration failed: Network error or server is not responding', {
+        autoClose: 7000,
+      });
+       console.error('Registration error:', error);
+      toast.error(`Authentication registration failed: ${error.message}`);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
+
     }
   };
-
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      {/* Success Message (shown temporarily) */}
-      {successMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 animate-fade-in-out">
-          {successMessage}
-        </div>
-      )}
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 rounded-t-xl">
@@ -138,6 +360,7 @@ const Signup = ({ onClose, onLoginClick }) => {
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+              disabled={isSubmitting}
             >
               <X size={24} />
             </button>
@@ -145,13 +368,6 @@ const Signup = ({ onClose, onLoginClick }) => {
         </div>
 
         <div className="p-8 space-y-8">
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* Personal Details Section */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
@@ -160,22 +376,27 @@ const Signup = ({ onClose, onLoginClick }) => {
             </h3>
 
             <div className="space-y-6">
-              {/* Row 1 */}
+              {/* Row 1 - Patient Name and Age */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
+                    Patient Name *
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter your full name"
+                    name="patientName"
+                    placeholder="Enter patient name"
                     value={formData.patientName}
-                    onChange={(e) =>
-                      handleInputChange("patientName", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.patientName ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {errors.patientName && (
+                    <p className="text-red-500 text-sm mt-1">{errors.patientName}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -183,27 +404,39 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="number"
-                    placeholder="Enter your age"
+                    name="age"
+                    placeholder="Enter age"
                     value={formData.age}
-                    onChange={(e) => handleInputChange("age", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    min="1"
+                    max="120"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.age ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {errors.age && (
+                    <p className="text-red-500 text-sm mt-1">{errors.age}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Row 2 */}
+              {/* Row 2 - Blood Group, Gender, Marital Status */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Blood Group
+                    Blood Group *
                   </label>
                   <select
+                    name="bloodGroup"
                     value={formData.bloodGroup}
-                    onChange={(e) =>
-                      handleInputChange("bloodGroup", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.bloodGroup ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    required
                   >
                     <option value="">Select blood group</option>
                     <option value="A+">A+</option>
@@ -215,17 +448,22 @@ const Signup = ({ onClose, onLoginClick }) => {
                     <option value="O+">O+</option>
                     <option value="O-">O-</option>
                   </select>
+                  {errors.bloodGroup && (
+                    <p className="text-red-500 text-sm mt-1">{errors.bloodGroup}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Gender *
                   </label>
                   <select
+                    name="gender"
                     value={formData.gender}
-                    onChange={(e) =>
-                      handleInputChange("gender", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.gender ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   >
                     <option value="">Select gender</option>
@@ -233,19 +471,22 @@ const Signup = ({ onClose, onLoginClick }) => {
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
+                  {errors.gender && (
+                    <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Marital Status
                   </label>
                   <select
+                    name="maritalStatus"
                     value={formData.maritalStatus}
-                    onChange={(e) =>
-                      handleInputChange("maritalStatus", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select status</option>
+                    <option value="">Select marital status</option>
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Divorced">Divorced</option>
@@ -254,7 +495,7 @@ const Signup = ({ onClose, onLoginClick }) => {
                 </div>
               </div>
 
-              {/* Row 3 */}
+              {/* Row 3 - City, State, Zip Code */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -262,12 +503,19 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
+                    name="city"
                     placeholder="Enter city"
                     value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.city ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {errors.city && (
+                    <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -275,27 +523,97 @@ const Signup = ({ onClose, onLoginClick }) => {
                   </label>
                   <input
                     type="text"
+                    name="state"
                     placeholder="Enter state"
                     value={formData.state}
-                    onChange={(e) => handleInputChange("state", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {errors.state && (
+                    <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Zip Code *
+                    Zip Code
                   </label>
                   <input
                     type="text"
+                    name="zipCode"
                     placeholder="Enter zip code"
                     value={formData.zipCode}
-                    onChange={(e) =>
-                      handleInputChange("zipCode", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4 - Contact Number, Email, Password */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contact Number *
+                  </label>
+                  <input
+                    type="tel"
+                    name="contactNumber"
+                    placeholder="Enter contact number"
+                    value={formData.contactNumber}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.contactNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {errors.contactNumber && (
+                    <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    name="patientEmail"
+                    placeholder="Enter email address"
+                    value={formData.patientEmail}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.patientEmail ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    required
+                  />
+                  {errors.patientEmail && (
+                    <p className="text-red-500 text-sm mt-1">{errors.patientEmail}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password *
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Enter password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    required
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  )}
                 </div>
               </div>
 
@@ -305,45 +623,20 @@ const Signup = ({ onClose, onLoginClick }) => {
                   Address *
                 </label>
                 <textarea
-                  placeholder="Enter complete address"
+                  name="address"
+                  placeholder="Enter full address"
                   value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  onChange={handleInputChange}
+                  disabled={isSubmitting}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical disabled:opacity-50 disabled:cursor-not-allowed ${
+                    errors.address ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                 />
-              </div>
-
-              {/* Email and Password */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange("password", e.target.value)
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  />
-                </div>
+                {errors.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                )}
               </div>
             </div>
           </div>
@@ -358,21 +651,22 @@ const Signup = ({ onClose, onLoginClick }) => {
             {emergencyContacts.map((contact, index) => (
               <div
                 key={contact.id}
-                className={`${
-                  index > 0 ? "border-t border-gray-200 pt-6 mt-6" : ""
+                className={`border border-gray-200 rounded-lg p-5 mb-4 bg-white ${
+                  index > 0 ? "mt-4" : ""
                 }`}
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-medium text-gray-800">
+                  <h4 className="text-lg font-medium text-blue-600">
                     Emergency Contact {index + 1}
                   </h4>
                   {emergencyContacts.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeEmergencyContact(contact.id)}
-                      className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                      disabled={isSubmitting}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <X size={16} />
+                      Remove Contact
                     </button>
                   )}
                 </div>
@@ -380,12 +674,9 @@ const Signup = ({ onClose, onLoginClick }) => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Name *
-                      </label>
                       <input
                         type="text"
-                        placeholder="Enter contact name"
+                        placeholder="Emergency contact name"
                         value={contact.name}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -394,17 +685,14 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        required
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                      </label>
                       <input
                         type="tel"
-                        placeholder="Enter phone number"
+                        placeholder="Emergency contact phone"
                         value={contact.phone}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -413,18 +701,17 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        required
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Relation *
-                      </label>
-                      <select
+                      <input
+                        type="text"
+                        placeholder="Relationship (e.g., Mother, Father, Spouse)"
                         value={contact.relation}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -433,25 +720,14 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
-                        required
-                      >
-                        <option value="">Select relation</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Parent">Parent</option>
-                        <option value="Sibling">Sibling</option>
-                        <option value="Child">Child</option>
-                        <option value="Friend">Friend</option>
-                        <option value="Other">Other</option>
-                      </select>
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
                       <input
                         type="email"
-                        placeholder="Enter email address"
+                        placeholder="Emergency contact email"
                         value={contact.email}
                         onChange={(e) =>
                           updateEmergencyContact(
@@ -460,7 +736,8 @@ const Signup = ({ onClose, onLoginClick }) => {
                             e.target.value
                           )
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -468,11 +745,12 @@ const Signup = ({ onClose, onLoginClick }) => {
               </div>
             ))}
 
-            <div className="mt-6 text-center">
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={addEmergencyContact}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                disabled={isSubmitting}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <Plus size={16} />
                 Add Another Contact
@@ -481,21 +759,29 @@ const Signup = ({ onClose, onLoginClick }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={clearForm}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              disabled={isSubmitting}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Clear Form
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isLoading}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
             >
-              {isLoading ? "Processing..." : "CREATE ACCOUNT"}
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Processing...
+                </>
+              ) : (
+                'REGISTER PATIENT'
+              )}
             </button>
           </div>
 
@@ -505,7 +791,8 @@ const Signup = ({ onClose, onLoginClick }) => {
             <button
               type="button"
               onClick={onLoginClick}
-              className="text-blue-600 hover:text-blue-800 underline font-medium"
+              disabled={isSubmitting}
+              className="text-blue-600 hover:text-blue-800 underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Login
             </button>

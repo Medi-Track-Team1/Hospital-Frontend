@@ -35,7 +35,7 @@ const Doctors = () => {
       name: 'Dr. Subeer', 
       specialty: 'Cardiology', 
       availability: 'Available',
-      doctorId: 'DOC-98403',
+      nmrId: 'NMR-98403',
       email: 's.johnson@hospital.com',
       phone: '(555) 123-4567',
       bio: 'Board-certified cardiologist with 10 years of experience. Specializes in interventional cardiology.',
@@ -51,7 +51,7 @@ const Doctors = () => {
       name: 'Dr. Darshan', 
       specialty: 'Neurology', 
       availability: 'Available',
-      doctorId: 'DOC-78251',
+      nmrId: 'NMR-78251',
       email: 'm.chen@hospital.com',
       phone: '(555) 234-5678',
       bio: 'Neurologist specializing in movement disorders and neurodegenerative diseases.',
@@ -67,7 +67,7 @@ const Doctors = () => {
       name: 'Dr. Guna', 
       specialty: 'Pediatrics', 
       availability: 'On Leave',
-      doctorId: 'DOC-63942',
+     nmrId: 'NMR-63942',
       email: 'p.patel@hospital.com',
       phone: '(555) 345-6789',
       bio: 'Pediatrician with special interest in childhood immunology and allergies.',
@@ -83,7 +83,7 @@ const Doctors = () => {
       name: 'Dr. Pojith', 
       specialty: 'Orthopedics', 
       availability: 'Busy',
-      doctorId: 'DOC-45781',
+      nmrId: 'NMR-45781',
       email: 'r.williams@hospital.com',
       phone: '(555) 456-7890',
       bio: 'Orthopedic surgeon specializing in sports medicine and joint replacements.',
@@ -99,7 +99,7 @@ const Doctors = () => {
       name: 'Dr. Lisa Rodriguez', 
       specialty: 'Dermatology', 
       availability: 'Available',
-      doctorId: 'DOC-56823',
+      nmrId: 'NMR-56823',
       email: 'l.rodriguez@hospital.com',
       phone: '(555) 567-8901',
       bio: 'Cosmetic dermatologist with expertise in laser treatments and skin rejuvenation.',
@@ -316,7 +316,7 @@ const Doctors = () => {
         <div className="grid grid-cols-12 bg-gray-50 p-4 border-b border-gray-200 font-medium text-gray-700 text-sm">
           <div className="col-span-2">Photo</div>
           <div className="col-span-2">Name</div>
-          <div className="col-span-2">DoctorID</div>
+          <div className="col-span-2">Doc-Id</div>
           <div className="col-span-2">Specialty</div>
           <div className="col-span-2">Contact</div>
           <div className="col-span-1 text-left">Status</div>
@@ -345,7 +345,7 @@ const Doctors = () => {
             <div className="col-span-2 font-medium truncate">{doctor.name}</div>
 
             {/* Doctor ID */}
-            <div className="col-span-2 text-gray-600 truncate">{doctor.doctorId}</div>
+            <div className="col-span-2 text-gray-600 truncate">{doctor.docId}</div>
 
             {/* Specialty */}
             <div className="col-span-2 text-gray-600 truncate">{doctor.specialty}</div>
@@ -423,8 +423,8 @@ const Doctors = () => {
             required: true 
           },
           {
-            name: 'doctorId',
-            label: 'Doctor ID',
+            name: 'nmrId',
+            label: 'NMR-ID',
             type: 'text',
             required: true,
           },

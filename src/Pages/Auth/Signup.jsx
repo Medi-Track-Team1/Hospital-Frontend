@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { User, Phone, Mail, MapPin, Plus, X } from "lucide-react";
-
+import { registerUser, registerPatientDetails } from "./api";
 // Mock toast implementation since react-toastify isn't available in this environment
 const toast = {
   success: (message, options) => {
@@ -102,7 +102,7 @@ const toast = {
       // }, authResponse.token);
       
     // setSuccessMessage("Account created successfully!");
-      setTimeout(() => onClose(), 4000);
+      //setTimeout(() => onClose(), 4000);
    
     } catch (error) {
       console.log(error);
@@ -213,7 +213,7 @@ const Signup = ({ onClose, onLoginClick }) => {
     
     if (!formData.age) {
       newErrors.age = "Age is required";
-    } else if (formData.age < 1 || formData.age > 120) {
+    } else if (formData.age < 10 || formData.age > 70) {
       newErrors.age = "Age must be between 1 and 120";
     }
     

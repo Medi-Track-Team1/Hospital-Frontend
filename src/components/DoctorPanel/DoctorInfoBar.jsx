@@ -23,6 +23,8 @@ const DoctorInfoBar = () => {
 
 
   if (!doctor) return <div className="text-center py-10">Loading...</div>;
+if (doctor === null) return <div>No Doctor found</div>;
+
 
   return (
     <div className="w-full bg-white shadow-md rounded-xl p-6 md:p-10 max-w-6xl mx-auto mt-8 mb-8">

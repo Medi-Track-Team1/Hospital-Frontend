@@ -9,7 +9,7 @@ import Reception from "./components/Reception/Reception";
 import Admin from "./components/Admin/Admin";
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
-import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
+
 
 
 

@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AppointmentPage = () => {
-  const location = useLocation();
+  const location = useLocation();  
   const navigate = useNavigate();
   const doctor = location.state?.doctor;
 
@@ -26,19 +26,33 @@ const AppointmentPage = () => {
 
   useEffect(() => {
     if (doctor) {
+      localStorage.setItem("selectedDoctor", JSON.stringify(doctor));
       setForm((prev) => ({
         ...prev,
         doctor: doctor.name || "",
         specialty: doctor.specialty || "",
       }));
+    } else {
+      const storedDoctor = JSON.parse(localStorage.getItem("selectedDoctor"));
+      if (storedDoctor) {
+        setForm((prev) => ({
+          ...prev,
+          doctor: storedDoctor.name || "",
+          specialty: storedDoctor.specialty || "",
+        }));
+      }
     }
   }, [doctor]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     if (name === "phone") {
       const numericValue = value.replace(/\D/g, "");
       setForm({ ...form, phone: numericValue });
+    } else if (name === "age") {
+      const numericValue = value.replace(/\D/g, "").slice(0, 3);
+      setForm({ ...form, age: numericValue });
     } else {
       setForm({ ...form, [name]: type === "checkbox" ? checked : value });
     }
@@ -62,15 +76,16 @@ const AppointmentPage = () => {
   };
 
   const handleConfirmClose = () => {
+    localStorage.removeItem("selectedDoctor");
     setShowConfirmation(false);
-    navigate("/departments/appointment", { state: { doctor } });
+    navigate("/departments/appointment");
   };
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-6 mt-12">
       <div className="bg-white max-w-5xl mx-auto shadow-xl rounded-lg p-6 space-y-6">
         <h2 className="text-2xl font-semibold pb-4">
-          Appointment with {doctor?.name || "Doctor"}
+          Appointment with {form.doctor || "Doctor"}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,10 +93,45 @@ const AppointmentPage = () => {
           <div className="bg-blue-100 p-4 rounded-md">
             <h3 className="text-lg font-medium mb-4">👤 Patient Information</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <input name="name" required placeholder="Full name" value={form.name} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
-              <input name="age" required placeholder="Age" value={form.age} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
-              <input name="phone" required type="tel" placeholder="+91" value={form.phone} onChange={handleChange} maxLength={10} pattern="[0-9]{10}" className="w-full border px-4 py-2 rounded-lg" />
-              <input name="email" required type="email" placeholder="Email" value={form.email} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+              <input
+                name="name"
+                required
+                placeholder="Full name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+              <input
+                name="age"
+                required
+                type="text"
+                inputMode="numeric"
+                maxLength={3}
+                placeholder="Age"
+                value={form.age}
+                onChange={handleChange}
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+              <input
+                name="phone"
+                required
+                type="tel"
+                placeholder="+91"
+                value={form.phone}
+                onChange={handleChange}
+                maxLength={10}
+                pattern="[0-9]{10}"
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+              <input
+                name="email"
+                required
+                type="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border px-4 py-2 rounded-lg"
+              />
             </div>
           </div>
 
@@ -98,8 +148,18 @@ const AppointmentPage = () => {
               </span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <input type="text" value={form.doctor} readOnly className="w-full border px-4 py-2 rounded-lg" />
-              <input type="text" value={form.specialty} readOnly className="w-full border px-4 py-2 rounded-lg" />
+              <input
+                type="text"
+                value={form.doctor}
+                readOnly
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+              <input
+                type="text"
+                value={form.specialty}
+                readOnly
+                className="w-full border px-4 py-2 rounded-lg"
+              />
               <input
                 type="date"
                 name="date"
@@ -108,11 +168,24 @@ const AppointmentPage = () => {
                 min={new Date().toISOString().split("T")[0]}
                 className="w-full border px-4 py-2 rounded-lg"
               />
-              <input type="time" name="time" required value={form.time} onChange={handleChange} className="w-full border px-4 py-2 rounded-lg" />
+              <input
+                type="time"
+                name="time"
+                required
+                value={form.time}
+                onChange={handleChange}
+                className="w-full border px-4 py-2 rounded-lg"
+              />
             </div>
             <div className="mt-4">
               <label className="inline-flex items-center">
-                <input type="checkbox" name="emergency" checked={form.emergency} onChange={handleChange} className="mr-2" />
+                <input
+                  type="checkbox"
+                  name="emergency"
+                  checked={form.emergency}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
                 Mark as Emergency Appointment
               </label>
             </div>
@@ -141,10 +214,17 @@ const AppointmentPage = () => {
 
           {/* Buttons */}
           <div className="flex justify-end space-x-3">
-            <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 bg-blue-200 rounded-md hover:bg-blue-300">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-blue-200 rounded-md hover:bg-blue-300"
+            >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
               Book Appointment
             </button>
           </div>
@@ -160,7 +240,10 @@ const AppointmentPage = () => {
             <p className="mb-2"><strong>Doctor:</strong> {form.doctor}</p>
             <p className="mb-2"><strong>Department:</strong> {form.specialty}</p>
             <p className="mb-4"><strong>Time:</strong> {form.date} at {form.time}</p>
-            <button onClick={handleConfirmClose} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <button
+              onClick={handleConfirmClose}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
               Close
             </button>
           </div>

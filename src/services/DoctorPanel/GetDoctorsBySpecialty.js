@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8082/api/doctor';
+const BASE_URL = 'https://doctorpanel-backend.onrender.com/api/doctor';
 
 export const getDoctorsBySpecialty = (specialty) => {
   return axios

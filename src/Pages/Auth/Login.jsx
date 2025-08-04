@@ -37,16 +37,16 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
       setSuccessMessage('Login successful!');
       console.log(localStorage.getItem('currentUser'))
       // Determine where to redirect based on role
-      let redirectPath = '/';
-      if (isAdmin()) {
-        redirectPath = '/admin/dashboard';
-      } else if (isDoctor()) {
-        redirectPath = '/doctor/dashboard';
-      } else if (isNurse()) {
-        redirectPath = '/nurse/dashboard';
-      } else if (isPatient()) {
-        redirectPath = '/patient/dashboard';
-      }
+      // let redirectPath = '/';
+      // if (isAdmin()) {
+      //   redirectPath = '/admin/dashboard';
+      // } else if (isDoctor()) {
+      //   redirectPath = '/doctor/dashboard';
+      // } else if (isNurse()) {
+      //   redirectPath = '/nurse/dashboard';
+      // } else if (isPatient()) {
+      //   redirectPath = '/reception/';
+      // }
 
       // Notify parent component about successful login
       if (onLoginSuccess) {

@@ -65,18 +65,13 @@ const Doctors = () => {
       const { confirmPassword, ...doctorData } = newDoctor;
       const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
       
-      const doctorToCreate = {
-        ...doctorData,
-        status: doctorData.status || 'Active',
-        departmentId: doctorData.departmentId || 'DEP-00001'
-      };
-
-      const createdDoctor = await createDoctor(doctorToCreate, profilePhoto);
+      const createdDoctor = await createDoctor(doctorData, profilePhoto);
       
       setDoctors([...doctors, createdDoctor]);
       setIsModalOpen(false);
       toast.success('Doctor added successfully!');
     } catch (err) {
+      console.error('Error details:', err);
       toast.error(`Failed to add doctor: ${err.message}`);
     }
   };
@@ -87,15 +82,9 @@ const Doctors = () => {
         updatedDoctor.profilePhoto : 
         null;
       
-      const { id, ...doctorData } = updatedDoctor;
+      const { id, confirmPassword, ...doctorData } = updatedDoctor;
       
-      const doctorToUpdate = {
-        ...doctorData,
-        status: doctorData.status || 'Active',
-        departmentId: doctorData.departmentId || 'DEP-00001'
-      };
-
-      const updated = await updateDoctor(id, doctorToUpdate, profilePhoto);
+      const updated = await updateDoctor(id, doctorData, profilePhoto);
       
       setDoctors(doctors.map(doctor => 
         doctor.doctorId === updated.doctorId ? updated : doctor
@@ -105,6 +94,7 @@ const Doctors = () => {
       setSelectedDoctor(null);
       toast.success('Doctor updated successfully!');
     } catch (err) {
+      console.error('Error details:', err);
       toast.error(`Failed to update doctor: ${err.message}`);
     }
   };

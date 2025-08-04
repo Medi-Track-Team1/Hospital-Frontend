@@ -1,11 +1,11 @@
 const API_BASE_URL = 'https://doctorpanel-backend.onrender.com/api/doctor';
 
 const handleResponse = async (response) => {
-  const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
-  return data;
+  return response.json();
 };
 
 export const getAllDoctors = async () => {
@@ -32,9 +32,10 @@ export const createDoctor = async (doctorData, profilePhoto) => {
   try {
     const formData = new FormData();
     
+    // Stringify the doctor data and append as 'doctor'
     formData.append('doctor', new Blob([JSON.stringify({
       ...doctorData,
-      status: 'Active'
+      status: doctorData.status || 'Active'
     })], { type: 'application/json' }));
     
     if (profilePhoto) {
@@ -57,9 +58,10 @@ export const updateDoctor = async (id, doctorData, profilePhoto) => {
   try {
     const formData = new FormData();
     
-    formData.append('doctor', new Blob([JSON.stringify(doctorData)], {
-      type: 'application/json'
-    }));
+    formData.append('doctor', new Blob([JSON.stringify({
+      ...doctorData,
+      status: doctorData.status || 'Active'
+    })], { type: 'application/json' }));
     
     if (profilePhoto) {
       formData.append('photo', profilePhoto);

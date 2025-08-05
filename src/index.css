@@ -8,6 +8,10 @@ All colors MUST be HSL.
 html {
   scroll-behavior: smooth;
 }
+body {
+  /* font-family: 'Roboto', sans-serif; */
+}
+
 
 @layer base {
   :root {

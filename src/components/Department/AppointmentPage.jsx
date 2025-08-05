@@ -76,9 +76,9 @@ const AppointmentPage = () => {
       });
       return;
     }
-
+localStorage.setItem('pat','PAT-1002')
     const appointmentDateTime = `${form.date}T${form.time}`;
-    const patientId = localStorage.getItem("patientId");
+    const patientId = localStorage.getItem("pat");
 
     if (!patientId) {
       toast.error("Patient not logged in. Please login again.", {

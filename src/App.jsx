@@ -9,7 +9,7 @@ import Reception from "./components/Reception/Reception";
 import Admin from "./components/Admin/Admin";
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
-import PrescribePage from "./Pages/DoctorPanel/PrescribePage";
+
 
 
 
@@ -34,10 +34,10 @@ function App() {
             />
           }
         />
-        <Route path="/doctor-panel" element={<DoctorPanelPage />} />
+        <Route path="/doctor/:id" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
-        <Route path="/patient/*" element={<Patient />} />
-        <Route path="/doctor-panel/patienthistory" element={<CompletedTreatments/>}/>
+        <Route path="/patient/:patientId" element={<Patient />} />
+        <Route path="/doctor/:id/patienthistory" element={<CompletedTreatments/>}/>
         <Route path="/reception/*" element={<Reception />} />
         <Route path="/admin/*" element={<Admin/>}/>
 

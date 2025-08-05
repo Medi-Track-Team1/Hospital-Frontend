@@ -1,66 +1,167 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const availableMeds = [
-  { name: "Paracetamol", type: "Tablet", dosage: "500mg" },
-  { name: "Amoxicillin", type: "Capsule", dosage: "250mg" },
-  { name: "Ibuprofen", type: "Syrup", dosage: "100mg/5ml" },
-  { name: "Loratadine", type: "Injection", dosage: "10mg/ml" },
-  { name: "Omeprazole", type: "Tablet", dosage: "20mg" }
-];
-
-const availableInjections = [
-  { name: "Insulin", dosage: "100 units/ml" },
-  { name: "Vitamin B12", dosage: "1000mcg/ml" },
-  { name: "Morphine", dosage: "10mg/ml" },
-  { name: "Diclofenac", dosage: "25mg/ml" },
-  { name: "Dexamethasone", dosage: "4mg/ml" },
-  { name: "Adrenaline", dosage: "1mg/ml" },
-  { name: "Furosemide", dosage: "10mg/ml" }
-];
-
-const testOptions = [
-  "Blood Test",
-  "ECG",
-  "Chest X-Ray",
-  "Urine Test",
-  "MRI Scan",
-  "CT Scan",
-];
-
-const PrescriptionForm = ({ onClose }) => {
+const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
   const [search, setSearch] = useState("");
   const [selectedMeds, setSelectedMeds] = useState([]);
   const [injections, setInjections] = useState([]);
   const [injectionSearch, setInjectionSearch] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showInjectionSuggestions, setShowInjectionSuggestions] = useState(false);
-  const [foodPlan, setFoodPlan] = useState("");
-  const [tests, setTests] = useState([]);
-  const [toast, setToast] = useState({ show: false, message: "" });
+  const [dietPlan, setDietPlan] = useState("");
+  const [recommendedTests, setRecommendedTests] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [allMedicines, setAllMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const showToast = (message) => {
-    setToast({ show: true, message });
+  const testOptions = [
+    "Blood Test",
+    "ECG", 
+    "Chest X-Ray",
+    "Urine Test",
+    "MRI Scan",
+    "CT Scan",
+    "Complete Blood Count",
+    "Lipid Profile",
+    "Liver Function Test",
+    "Kidney Function Test"
+  ];
+
+  // Debug log to verify the correct appointmentId is being received
+  useEffect(() => {
+    console.log("PrescriptionForm received appointmentId:", appointmentId);
+    console.log("PrescriptionForm received doctorId:", doctorId);
+  }, [appointmentId, doctorId]);
+
+  // Fetch medicines from backend
+  useEffect(() => {
+    const fetchMedicines = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://pharmacy-backend-r88x.onrender.com/api/medicines');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched medicines:", data.length, "items");
+        setAllMedicines(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching medicines:', err);
+        setError('Failed to load medicines from server');
+        setAllMedicines([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedicines();
+  }, []);
+
+  // Separate medicines and injections based on batch prefix
+  const medicines = allMedicines.filter(med => 
+    med.batch && med.batch.toUpperCase().startsWith('B')
+  );
+  
+  const availableInjections = allMedicines.filter(med => 
+    med.batch && med.batch.toUpperCase().startsWith('I')
+  );
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
     setTimeout(() => {
-      setToast({ show: false, message: "" });
+      setToast({ show: false, message: "", type: "success" });
     }, 3000);
   };
 
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      console.log("Form should close");
+  const handleSavePrescription = async () => {
+    try {
+      setSubmitting(true);
+
+      // Validate required fields
+      if (!appointmentId || !doctorId) {
+        showToast("Missing appointment or doctor information", "error");
+        console.error("Missing data - appointmentId:", appointmentId, "doctorId:", doctorId);
+        return;
+      }
+
+      // Validate that we have at least some prescription data
+      if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
+        showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
+        return;
+      }
+
+      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
+
+      // Prepare prescription data
+      const prescriptionData = {
+        appointmentId: appointmentId, // This should now be the correct appointmentId (like "apt_1237")
+        doctorId: doctorId,
+        medicines: selectedMeds.map(med => ({
+          name: med.name,
+          batch: med.batch,
+          dosage: med.dosage || "",
+          quantity: med.quantity || "",
+          duration: med.duration || "",
+          timing: med.timing || []
+        })),
+        injections: injections.map(inj => ({
+          name: inj.name,
+          batch: inj.batch,
+          dosage: inj.dosage || "",
+          quantity: inj.quantity || "",
+          schedule: inj.schedule || "",
+          notes: inj.notes || ""
+        })),
+        dietPlan: dietPlan,
+        recommendedTests: recommendedTests
+      };
+
+      console.log('Sending prescription data:', prescriptionData);
+
+      // Send to backend
+      const response = await fetch('http://localhost:8082/api/prescriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(prescriptionData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to save prescription: ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('Prescription saved successfully:', result);
+      
+      showToast("Prescription saved successfully!");
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess(result);
+      }
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error saving prescription:', error);
+      showToast(`Error saving prescription: ${error.message}`, "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSavePrescription = () => {
-    showToast("Prescription saved successfully!");
-    setTimeout(() => {
-      handleClose();
-    }, 2000);
-  };
-
-  const filteredSuggestions = availableMeds.filter((med) =>
+  const filteredSuggestions = medicines.filter((med) =>
     med.name.toLowerCase().includes(search.trim().toLowerCase())
   );
 
@@ -75,7 +176,14 @@ const PrescriptionForm = ({ onClose }) => {
     if (!exists) {
       setSelectedMeds([
         ...selectedMeds,
-        { ...med, timing: [], duration: "", quantity: "" },
+        { 
+          ...med, 
+          timing: [], 
+          duration: "", 
+          quantity: "", 
+          dosage: med.dosage || "",
+          batch: med.batch || ""
+        },
       ]);
     }
     setSearch("");
@@ -86,11 +194,11 @@ const PrescriptionForm = ({ onClose }) => {
     setInjections([
       ...injections,
       { 
-        name: injection.name, 
-        dosage: injection.dosage, 
+        ...injection,
         schedule: "", 
         notes: "",
-        quantity: ""
+        quantity: "",
+        batch: injection.batch || ""
       },
     ]);
     setInjectionSearch("");
@@ -124,53 +232,82 @@ const PrescriptionForm = ({ onClose }) => {
     setSelectedMeds(updated);
   };
 
-  const handleAddInjection = () => {
-    setInjections([
-      ...injections,
-      { name: "", dosage: "", schedule: "", notes: "", quantity: "" },
-    ]);
-  };
-
   const updateInjection = (index, field, value) => {
-    const updated = [...injections];                                                                                                                                                                                         
+    const updated = [...injections];
     updated[index][field] = value;
     setInjections(updated);
   };
 
   const handleTestToggle = (testName) => {
-    setTests((prev) =>
+    setRecommendedTests((prev) =>
       prev.includes(testName)
         ? prev.filter((t) => t !== testName)
         : [...prev, testName]
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6">
+            <h2 className="text-2xl font-bold">Loading Medicines...</h2>
+          </div>
+          <div className="p-8 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-4 text-gray-600">Fetching medicines from server...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden">
         {/* Toast Notification */}
         {toast.show && (
-          <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3">
+          <div className={`fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
+            toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+          }`}>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              {toast.type === 'success' ? (
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              ) : (
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              )}
             </svg>
             {toast.message}
           </div>
         )}
 
-        {/* Form Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">Prescribe Medicines</h2>
-            <p className="text-blue-100 text-sm mt-1">Create comprehensive medical prescriptions</p>
+        {/* Error Notification */}
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
           </div>
-          <button 
-            onClick={handleClose}
-            className="text-white hover:text-gray-200 text-2xl font-bold hover:bg-blue-800 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
-            title="Close"
-          >
-            ×
-          </button>
+        )}
+
+        {/* Form Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6">
+          <div>
+            <h2 className="text-2xl font-bold">Create Prescription</h2>
+            <p className="text-blue-100 text-sm mt-1">
+              Appointment ID: {appointmentId} • Doctor ID: {doctorId}
+            </p>
+            <p className="text-blue-100 text-sm">
+              {medicines.length} medicines • {availableInjections.length} injections available
+            </p>
+          </div>
         </div>
 
         {/* Form Content */}
@@ -184,7 +321,7 @@ const PrescriptionForm = ({ onClose }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Add Medicines
+                    Add Medicines (Batch: B*)
                   </h3>
                   <div className="relative">
                     <div className="flex gap-3">
@@ -213,11 +350,11 @@ const PrescriptionForm = ({ onClose }) => {
                       </div>
                       <button
                         onClick={() => {
-                          const found = availableMeds.find(
+                          const found = medicines.find(
                             (m) => m.name.toLowerCase() === search.trim().toLowerCase()
                           );
                           if (found) handleAddMedicine(found);
-                          else alert("❌ Medicine not found");
+                          else showToast("❌ Medicine not found", "error");
                         }}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
                       >
@@ -234,7 +371,9 @@ const PrescriptionForm = ({ onClose }) => {
                             onClick={() => handleAddMedicine(med)}
                           >
                             <div className="font-semibold text-gray-800">{med.name}</div>
-                            <div className="text-sm text-gray-500">{med.type} - {med.dosage}</div>
+                            <div className="text-sm text-gray-500">
+                              {med.type || 'Medicine'} • Batch: {med.batch} • {med.dosage || 'No dosage specified'}
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -248,7 +387,7 @@ const PrescriptionForm = ({ onClose }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Add Injections
+                    Add Injections (Batch: I*)
                   </h3>
                   <div className="relative">
                     <div className="flex gap-3">
@@ -281,7 +420,7 @@ const PrescriptionForm = ({ onClose }) => {
                             (inj) => inj.name.toLowerCase() === injectionSearch.trim().toLowerCase()
                           );
                           if (found) handleAddInjectionFromSearch(found);
-                          else alert("❌ Injection not found");
+                          else showToast("❌ Injection not found", "error");
                         }}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
                       >
@@ -298,18 +437,14 @@ const PrescriptionForm = ({ onClose }) => {
                             onClick={() => handleAddInjectionFromSearch(inj)}
                           >
                             <div className="font-semibold text-gray-800">{inj.name}</div>
-                            <div className="text-sm text-gray-500">{inj.dosage}</div>
+                            <div className="text-sm text-gray-500">
+                              Injection • Batch: {inj.batch} • {inj.dosage || 'No dosage specified'}
+                            </div>
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
-                  <button
-                    onClick={handleAddInjection}
-                    className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200"
-                  >
-                    + Custom Injection
-                  </button>
                 </div>
               </div>
             </div>
@@ -328,6 +463,7 @@ const PrescriptionForm = ({ onClose }) => {
                         <tr>
                           <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-20">Type</th>
                           <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-40">Name</th>
+                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-24">Batch</th>
                           <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-32">Dosage</th>
                           <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-24">Qty</th>
                           <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-32">Duration/Schedule</th>
@@ -341,8 +477,29 @@ const PrescriptionForm = ({ onClose }) => {
                             <td className="border-r border-gray-200 px-4 py-4">
                               <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">Med</span>
                             </td>
-                            <td className="border-r border-gray-200 px-4 py-4 font-semibold text-blue-600">{med.name}</td>
-                            <td className="border-r border-gray-200 px-4 py-4 text-gray-600">{med.type} - {med.dosage}</td>
+                            <td className="border-r border-gray-200 px-4 py-4">
+                              <input
+                                type="text"
+                                placeholder="Medicine Name"
+                                value={med.name}
+                                onChange={(e) => updateMedField(index, "name", e.target.value)}
+                                className="w-full border border-gray-300 px-2 py-2 text-sm font-semibold text-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </td>
+                            <td className="border-r border-gray-200 px-4 py-4">
+                              <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                                {med.batch || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="border-r border-gray-200 px-4 py-4">
+                              <input
+                                type="text"
+                                placeholder="Dosage"
+                                value={med.dosage || ''}
+                                onChange={(e) => updateMedField(index, "dosage", e.target.value)}
+                                className="w-full border border-gray-300 px-2 py-2 text-sm text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </td>
                             <td className="border-r border-gray-200 px-4 py-4">
                               <input
                                 type="number"
@@ -392,7 +549,7 @@ const PrescriptionForm = ({ onClose }) => {
                         {injections.map((inj, index) => (
                           <tr key={`inj-${index}`} className="hover:bg-blue-50 transition-colors duration-150">
                             <td className="border-r border-gray-200 px-4 py-4">
-                              <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">Inj</span>
+                              <span className="inline-block bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">Inj</span>
                             </td>
                             <td className="border-r border-gray-200 px-4 py-4">
                               <input
@@ -404,10 +561,15 @@ const PrescriptionForm = ({ onClose }) => {
                               />
                             </td>
                             <td className="border-r border-gray-200 px-4 py-4">
+                              <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                                {inj.batch || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="border-r border-gray-200 px-4 py-4">
                               <input
                                 type="text"
                                 placeholder="Dosage"
-                                value={inj.dosage}
+                                value={inj.dosage || ''}
                                 onChange={(e) => updateInjection(index, "dosage", e.target.value)}
                                 className="w-full border border-gray-300 px-2 py-2 text-sm text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
@@ -458,9 +620,9 @@ const PrescriptionForm = ({ onClose }) => {
               </div>
             )}
 
-            {/* Food Plan and Tests */}
+            {/* Diet Plan and Tests */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Food Prescription */}
+              {/* Diet Plan */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -468,8 +630,8 @@ const PrescriptionForm = ({ onClose }) => {
                 </h3>
                 <textarea
                   placeholder="Diet recommendations..."
-                  value={foodPlan}
-                  onChange={(e) => setFoodPlan(e.target.value)}
+                  value={dietPlan}
+                  onChange={(e) => setDietPlan(e.target.value)}
                   className="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
                   rows={4}
                 />
@@ -486,7 +648,7 @@ const PrescriptionForm = ({ onClose }) => {
                     <label key={test} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                       <input
                         type="checkbox"
-                        checked={tests.includes(test)}
+                        checked={recommendedTests.includes(test)}
                         onChange={() => handleTestToggle(test)}
                         className="rounded w-5 h-5 text-red-500"
                       />
@@ -502,16 +664,25 @@ const PrescriptionForm = ({ onClose }) => {
         {/* Form Footer */}
         <div className="bg-gray-100 px-8 py-6 flex justify-end gap-4 border-t-2 border-gray-200">
           <button 
-            onClick={handleClose}
+            onClick={onClose}
             className="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200"
+            disabled={submitting}
           >
             Cancel
           </button>
           <button 
             onClick={handleSavePrescription}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+            disabled={submitting}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Prescription
+            {submitting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Saving...
+              </div>
+            ) : (
+              'Save Prescription'
+            )}
           </button>
         </div>
       </div>

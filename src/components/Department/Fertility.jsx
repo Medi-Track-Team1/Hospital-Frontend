@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Baby, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import fertilityImage from "../../assets/fertility.jpeg";
-import dkr from "../../assets/dkr.jpg";
-import xyz from "../../assets/xyz.png";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -19,45 +18,45 @@ const fadeInUp = {
   }),
 };
 
+// Skeleton loader for doctor card
+const DoctorSkeleton = () => (
+  <div className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center animate-pulse">
+    <div className="w-28 h-28 bg-gray-300 rounded-full" />
+    <div className="mt-4 w-3/4 h-5 bg-gray-300 rounded mb-2" />
+    <div className="w-1/2 h-4 bg-gray-200 rounded mb-4" />
+    <div className="w-full space-y-2 px-4">
+      <div className="w-full h-3 bg-gray-200 rounded" />
+      <div className="w-5/6 h-3 bg-gray-200 rounded" />
+      <div className="w-3/4 h-3 bg-gray-200 rounded" />
+      <div className="w-2/3 h-3 bg-gray-200 rounded" />
+      <div className="w-4/5 h-3 bg-gray-200 rounded" />
+      <div className="w-full h-10 bg-gray-300 rounded mt-4" />
+    </div>
+  </div>
+);
+
 const Fertility = () => {
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBookClick = (doctor) => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
-  const doctors = [
-    {
-      id: 401,
-      name: "Dr. Raj",
-      title: "Fertility Specialist",
-      rating: 4.0,
-      experience: "12 years",
-      education: "Blossom Fertility Institute",
-      specializations: ["IVF", "IUI"],
-      specialty: "Fertility",
-      image: xyz,
-      email: "raj@medilab.com",
-      phone: "+91 98765 33300",
-      languages: ["English", "Hindi", "Tamil"],
-      timing: "Mon - Fri: 9:00 AM - 1:00 PM",
-    },
-    {
-      id: 402,
-      name: "Dr. Kavi Bharathan",
-      title: "Reproductive Endocrinologist",
-      rating: 4.2,
-      experience: "9 years",
-      education: "LifeSpring Institute of Reproductive Science",
-      specializations: ["Egg Freezing", "Male Infertility"],
-      specialty: "Fertility",
-      image: dkr,
-      email: "kavi@medilab.com",
-      phone: "+91 98765 44400",
-      languages: ["English", "Tamil"],
-      timing: "Mon - Fri: 1:00 AM - 9:00 AM",
-    },
-  ];
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await getDoctorsBySpecialty("Fertility");
+        setDoctors(res);
+      } catch (err) {
+        console.error("Error fetching fertility doctors:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -106,7 +105,8 @@ const Fertility = () => {
           <motion.h2 className="text-xl sm:text-2xl font-bold text-blue-800 mb-2 hover:text-blue-600 transition-colors duration-300">
             Department of Fertility
           </motion.h2>
-          {["Our Fertility department is dedicated to helping individuals and couples achieve their dream of parenthood through comprehensive reproductive health services.",
+          {[
+            "Our Fertility department is dedicated to helping individuals and couples achieve their dream of parenthood through comprehensive reproductive health services.",
             "We offer personalized treatment plans including IUI, IVF, hormonal therapies, and fertility preservation strategies.",
             "Our expert team of fertility specialists, embryologists, and counselors support you every step of the journey.",
             "Equipped with advanced labs and diagnostic tools, we provide accurate assessments and the highest success rates.",
@@ -135,57 +135,49 @@ const Fertility = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
-        {doctors.map((doctor, index) => (
-          <motion.div
-            key={doctor.id}
-            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            custom={index + 1}
-          >
-            <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
-              <img
-                src={doctor.image}
-                alt={doctor.name}
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
-            <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doctor.name}</h2>
-              <p className="text-blue-600 text-sm">{doctor.title}</p>
-              <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆<span className="text-black ml-2">{doctor.rating}</span>
-              </div>
-            </div>
-            <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.id}</p>
-              <p><strong>Experience:</strong> {doctor.experience}</p>
-              <p><strong>Education:</strong> {doctor.education}</p>
-              <p><strong>Languages:</strong> {doctor.languages.join(", ")}</p>
-              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
-            </div>
-            <div className="mt-4 w-full px-4">
-              <p className="font-semibold text-sm mb-1">Specializations</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {doctor.specializations.map((spec, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-                    {spec}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6 w-full px-4">
-              <button
-                onClick={() => handleBookClick(doctor)}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+        {loading
+          ? Array.from({ length: 1 }).map((_, idx) => <DoctorSkeleton key={idx} />)
+          : doctors.map((doctor, index) => (
+              <motion.div
+                key={doctor.doctorId}
+                className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                custom={index + 1}
               >
-                Book Appointment
-              </button>
-            </div>
-          </motion.div>
-        ))}
+                <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
+                  <img
+                    src={doctor.photoUrl}
+                    alt={doctor.doctorName}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+                  <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                  <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                    ★★★★☆<span className="text-black ml-2">4.2</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+                  <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <p><strong>Experience:</strong> {doctor.experience}</p>
+                  <p><strong>Education:</strong> {doctor.education}</p>
+                  <p><strong>Languages:</strong> {doctor.languages}</p>
+                  <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+                  <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+                </div>
+                <div className="mt-6 w-full px-4">
+                  <button
+                    onClick={() => handleBookClick(doctor)}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </motion.div>
+            ))}
       </div>
 
       <div className="h-[40px]" />

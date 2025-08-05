@@ -1,7 +1,13 @@
 import { HiMail, HiPhone, HiStatusOnline, HiUserCircle, HiAcademicCap, HiBriefcase, HiGlobe } from 'react-icons/hi';
+import LoadingSpinner from './LoadingSpinner';
 
-const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
+const DoctorProfileModal = ({ isOpen, onClose, doctor, isLoading }) => {
   if (!isOpen || !doctor) return null;
+
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = '/default-doctor.png';
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -20,76 +26,88 @@ const DoctorProfileModal = ({ isOpen, onClose, doctor }) => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 flex flex-col items-center">
-              {doctor.profilePhoto ? (
-                <img 
-                  src={doctor.profilePhoto} 
-                  alt={doctor.name}
-                  className="w-32 h-32 rounded-full object-cover mb-4"
-                />
-              ) : (
-                <HiUserCircle className="w-32 h-32 text-gray-400 mb-4" />
-              )}
-              <h3 className="text-xl font-bold text-center">{doctor.name}</h3>
-              <p className="text-blue-600 font-medium">{doctor.specialty}</p>
-              <div className={`mt-2 px-3 py-1 rounded-full text-xs ${
-                doctor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {doctor.status}
-              </div>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
             </div>
-
-            <div className="md:col-span-2 space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  <HiStatusOnline className="mr-2 text-blue-500" />
-                  Professional Information
-                </h4>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Doctor ID:</span> {doctor.doctorId}</p>
-                  <p><span className="font-medium">Availability:</span> {doctor.availability}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1 flex flex-col items-center">
+                {doctor.photoUrl ? (
+                  <img 
+                    src={doctor.photoUrl} 
+                    alt={doctor.doctorName}
+                    className="w-32 h-32 rounded-full object-cover mb-4"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <HiUserCircle className="w-32 h-32 text-gray-400 mb-4" />
+                )}
+                <h3 className="text-xl font-bold text-center">{doctor.doctorName}</h3>
+                <p className="text-blue-600 font-medium">{doctor.specialty}</p>
+                <div className={`mt-2 px-3 py-1 rounded-full text-xs ${
+                  doctor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {doctor.status}
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  <HiAcademicCap className="mr-2 text-blue-500" />
-                  Education
-                </h4>
-                <p>{doctor.education || 'Not specified'}</p>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                  <HiBriefcase className="mr-2 text-blue-500" />
-                  Experience
-                </h4>
-                <p>{doctor.experience || 'Not specified'}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2 space-y-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                    <HiMail className="mr-2 text-blue-500" />
-                    Contact
+                    <HiStatusOnline className="mr-2 text-blue-500" />
+                    Professional Information
                   </h4>
                   <div className="space-y-2">
-                    <p>{doctor.email}</p>
-                    <p>{doctor.phone}</p>
+                    <p><span className="font-medium">Doctor ID:</span> {doctor.doctorId}</p>
+                    <p><span className="font-medium">NMR ID:</span> {doctor.nmrId || 'Not specified'}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                    <HiGlobe className="mr-2 text-blue-500" />
-                    Languages
+                    <HiAcademicCap className="mr-2 text-blue-500" />
+                    Education
                   </h4>
-                  <p>{Array.isArray(doctor.languages) ? doctor.languages.join(', ') : doctor.languages || 'Not specified'}</p>
+                  <p>{doctor.education || 'Not specified'}</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                    <HiBriefcase className="mr-2 text-blue-500" />
+                    Experience
+                  </h4>
+                  <p>{doctor.experience || 'Not specified'}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                      <HiMail className="mr-2 text-blue-500" />
+                      Contact
+                    </h4>
+                    <div className="space-y-2">
+                      <p>{doctor.email}</p>
+                      <p>{doctor.phone || 'Not specified'}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+                      <HiGlobe className="mr-2 text-blue-500" />
+                      Languages
+                    </h4>
+                    <p>{doctor.languages || 'Not specified'}</p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-gray-800 mb-3">Bio</h4>
+                  <p>{doctor.bio || 'Not specified'}</p>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-6 flex justify-end">
             <button

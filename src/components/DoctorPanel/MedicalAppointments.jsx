@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
-
+import DatePicker from "react-datepicker";
 
 import {
   MdCalendarToday,
@@ -17,12 +17,17 @@ import {
   MdDescription,
   MdEditCalendar,
   MdVisibility,
+  MdRefresh,
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
 import { RescheduleModal } from "./RescheduleModal";
 import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
 import PrescribeModal from "./PrescribeModal";
+import {
+  listAppointmentsByDoctorId,
+  listCompletedAppointmentsByDoctorId,
+} from '../../services/DoctorPanel/AppointmentService';
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
@@ -33,233 +38,88 @@ export const MedicalAppointments = () => {
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [revisitAppointment, setRevisitAppointment] = useState(null);
+  const [revisitDate, setRevisitDate] = useState("");
+  const [revisitTime, setRevisitTime] = useState("");
+  const [revisitReason, setRevisitReason] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+  const [appointmentHistory, setAppointmentHistory] = useState([]);
   
-  const [appointments, setAppointments] = useState([
-    {
-      id: "1",
-      patient: {
-        name: "Sarah Johnson",
-        type: "in-person",
-        patientId: "P1-2024-001",
-        dateOfBirth: "March 15, 1990",
-        age: 34,
-        gender: "Female",
-        bloodType: "A+",
-        maritalStatus: "Married",
-        phone: "(555) 123-4567",
-        email: "sarah.johnson@email.com",
-        address: "123 Main Street, Springfield, IL 62701",
-        occupation: "Software Engineer",
-        language: "English"
-      },
-      dateTime: "Today 09:00 AM",
-      duration: "30 min",
-      type: "Consultation",
-      reason: "Hypertension follow-up",
-      priority: "high",
-      status: "pending",
-      isAccepted: false
-    },
-    {
-      id: "2",
-      patient: {
-        name: "Michael Chen",
-        type: "video-call",
-        patientId: "P1-2024-002",
-        dateOfBirth: "July 22, 1985",
-        age: 39,
-        gender: "Male",
-        bloodType: "B+",
-        maritalStatus: "Single",
-        phone: "(555) 234-5678",
-        email: "michael.chen@email.com",
-        address: "456 Oak Avenue, Springfield, IL 62702",
-        occupation: "Marketing Manager",
-        language: "English"
-      },
-      dateTime: "Today 10:30 AM",
-      duration: "45 min",
-      type: "Check-up",
-      reason: "Diabetes management",
-      priority: "medium",
-      status: "accepted",
-      isAccepted: true
-    },
-    {
-      id: "3",
-      patient: {
-        name: "Jennifer Wilson",
-        type: "video-call",
-        patientId: "P1-2024-003",
-        dateOfBirth: "November 8, 1992",
-        age: 32,
-        gender: "Female",
-        bloodType: "O-",
-        maritalStatus: "Married",
-        phone: "(555) 345-6789",
-        email: "jennifer.wilson@email.com",
-        address: "789 Pine Street, Springfield, IL 62703",
-        occupation: "Teacher",
-        language: "English"
-      },
-      dateTime: "Tomorrow 10:00 AM",
-      duration: "30 min",
-      type: "Consultation",
-      reason: "General checkup",
-      priority: "low",
-      status: "pending",
-      isAccepted: false
-    },
-    {
-      id: "4",
-      patient: {
-        name: "Robert Davis",
-        type: "in-person",
-        patientId: "P1-2024-004",
-        dateOfBirth: "April 12, 1978",
-        age: 46,
-        gender: "Male",
-        bloodType: "AB+",
-        maritalStatus: "Divorced",
-        phone: "(555) 456-7890",
-        email: "robert.davis@email.com",
-        address: "321 Elm Street, Springfield, IL 62704",
-        occupation: "Accountant",
-        language: "English"
-      },
-      dateTime: "Jan 25 11:30 AM",
-      duration: "60 min",
-      type: "Surgery Consultation",
-      reason: "Knee surgery consultation",
-      priority: "high",
-      status: "pending",
-      isAccepted: false
-    }
-  ]);
+  const { id: doctorId } = useParams();
 
-  const [appointmentHistory] = useState([
-    {
-      id: "h1",
-      patient: {
-        name: "Emily Rodriguez",
-        type: "in-person",
-        patientId: "P1-2024-005",
-        dateOfBirth: "September 3, 1988",
-        age: 36,
-        gender: "Female",
-        bloodType: "A-",
-        maritalStatus: "Married",
-        phone: "(555) 567-8901",
-        email: "emily.rodriguez@email.com",
-        address: "654 Maple Drive, Springfield, IL 62705",
-        occupation: "Nurse",
-        language: "English"
-      },
-      dateTime: "Jan 15 02:00 PM",
-      duration: "60 min",
-      type: "Therapy",
-      reason: "Anxiety counseling",
-      priority: "medium",
-      status: "completed",
-      isAccepted: true
-    },
-    {
-      id: "h2",
-      patient: {
-        name: "David Thompson",
-        type: "in-person",
-        patientId: "P1-2024-006",
-        dateOfBirth: "December 17, 1975",
-        age: 49,
-        gender: "Male",
-        bloodType: "O+",
-        maritalStatus: "Married",
-        phone: "(555) 678-9012",
-        email: "david.thompson@email.com",
-        address: "987 Cedar Lane, Springfield, IL 62706",
-        occupation: "Engineer",
-        language: "English"
-      },
-      dateTime: "Jan 14 03:30 PM",
+  useEffect(() => {
+    if (doctorId) {
+      listAppointmentsByDoctorId(doctorId)
+        .then((res) => {
+          const data = res.data;
+          console.log("Appointments data:", data); // Debug log
+          setAppointments(Array.isArray(data) ? data : data.appointments || []);
+        })
+        .catch(() => setAppointments([]));
+
+      listCompletedAppointmentsByDoctorId(doctorId)
+        .then((res) => {
+          const data = res.data;
+          console.log("Appointment history data:", data); // Debug log
+          setAppointmentHistory(Array.isArray(data) ? data : data.appointments || []);
+        })
+        .catch(() => setAppointmentHistory([]));
+    }
+  }, [doctorId]);
+
+  const handleRevisit = (appointment) => {
+    setRevisitAppointment(appointment);
+    setRevisitDate("");
+    setRevisitTime("");
+    setRevisitReason("");
+  };
+
+  const handleRevisitConfirm = () => {
+    if (!revisitDate || !revisitTime || !revisitReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields for the revisit appointment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newAppointment = {
+      id: `new-${Date.now()}`,
+      patient: revisitAppointment.patient,
+      dateTime: `${format(new Date(revisitDate), "MMM dd")} ${revisitTime}`,
       duration: "30 min",
       type: "Follow-up",
-      reason: "Arthritis treatment review",
-      priority: "low",
-      status: "completed",
-      isAccepted: true
-    },
-    {
-      id: "h3",
-      patient: {
-        name: "Maria Garcia",
-        type: "video-call",
-        patientId: "P1-2024-007",
-        dateOfBirth: "May 25, 1993",
-        age: 31,
-        gender: "Female",
-        bloodType: "B-",
-        maritalStatus: "Single",
-        phone: "(555) 789-0123",
-        email: "maria.garcia@email.com",
-        address: "147 Birch Road, Springfield, IL 62707",
-        occupation: "Graphic Designer",
-        language: "Spanish"
-      },
-      dateTime: "Jan 12 07:00 PM",
-      duration: "45 min",
-      type: "Consultation",
-      reason: "Blood pressure monitoring",
+      reason: revisitReason,
       priority: "medium",
-      status: "completed",
-      isAccepted: true
-    }
-  ]);
+      status: "pending",
+      isAccepted: false
+    };
 
-  const handleAccept = (appointmentId) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === appointmentId
-          ? { ...apt, status: "accepted", isAccepted: true }
-          : apt
-      )
-    );
-
+    setAppointments((prev) => [...prev, newAppointment]);
+    
     toast({
-      title: "Appointment Accepted",
-      description: "The appointment has been successfully accepted.",
+      title: "Revisit Scheduled",
+      description: `New appointment scheduled for ${revisitAppointment.patient?.name || revisitAppointment.patientName} on ${format(new Date(revisitDate), "MMM dd")} at ${revisitTime}.`,
     });
+
+    setRevisitAppointment(null);
+    setRevisitDate("");
+    setRevisitTime("");
+    setRevisitReason("");
   };
 
-  const handleReschedule = (appointmentId) => {
-    const appointment = appointments.find((apt) => apt.id === appointmentId);
-    if (appointment) {
-      setRescheduleAppointment(appointment);
-    }
+  // Helper function to get the table row key (for React key prop)
+  const getRowKey = (appointment) => {
+    return appointment.appointmentId || appointment._id || appointment.id;
   };
 
-  const handleRescheduleConfirm = (appointmentId, newDate, newTime) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === appointmentId
-          ? {
-              ...apt,
-              dateTime: `${format(newDate, "MMM dd")} ${newTime}`,
-              status: "pending",
-              isAccepted: false,
-            }
-          : apt
-      )
-    );
-
-    toast({
-      title: "Appointment Rescheduled",
-      description: `Appointment has been rescheduled to ${format(
-        newDate,
-        "MMM dd"
-      )} at ${newTime}.`,
-    });
+  // Helper function to get the correct appointment ID for prescriptions
+  const getAppointmentIdForPrescription = (appointment) => {
+    // Use appointmentId field for prescriptions (business logic ID like "apt_1237")
+    return appointment.appointmentId || appointment.id;
   };
-
   
   const getStatusBadge = (status) => {
     const variants = {
@@ -270,9 +130,30 @@ export const MedicalAppointments = () => {
     return variants[status] || variants.pending;
   };
 
-  return (
-    <div className="min-h-screen bg-background p-100">
+  const handleCancelConfirm = () => {
+    if (!cancelReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for cancellation.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    // Remove the appointment from the list
+    setAppointments(prev => prev.filter(apt => getRowKey(apt) !== getRowKey(cancelAppointment)));
+    
+    toast({
+      title: "Appointment Cancelled",
+      description: `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
+    });
+
+    setCancelAppointment(null);
+    setCancelReason("");
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -296,7 +177,7 @@ export const MedicalAppointments = () => {
           />
         </div>
 
-                {/* Tabs */}
+        {/* Tabs */}
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -326,24 +207,22 @@ export const MedicalAppointments = () => {
                       <tr>
                         <th className="text-left p-4 font-medium">Patient</th>
                         <th className="text-left p-4 font-medium">Date & Time</th>
-                       
                         <th className="text-left p-4 font-medium">Reason</th>
                         <th className="text-left p-4 font-medium">Status</th>
-                    
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {appointments.map((appointment) => (
-                        <tr key={appointment.id} className="border-b hover:bg-muted/50">
+                        <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
                               </div>
                               <div>
-                                <p className="font-medium">{appointment.patient.name}</p>
-                               
+                                <p className="font-medium">{appointment.patientName}</p>
+                                <p className="text-xs text-gray-500">ID: {appointment.appointmentId}</p>
                               </div>
                             </div>
                           </td>
@@ -351,37 +230,38 @@ export const MedicalAppointments = () => {
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="font-medium">{appointment.dateTime}</p>
-                               
+                                <p className="font-medium">{appointment.date}</p>
+                                <p className="font-medium">{appointment.time}</p>
                               </div>
                             </div>
                           </td>
-                          
                           <td className="p-3 text-sm">{appointment.reason}</td>
                           <td className="p-2 text-sm">
                             <Badge className={`border ${getStatusBadge(appointment.status)}`}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                             </Badge>
                           </td>
-                          
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
-                            
-                              
                               <Button
-  size="sm"
-  variant="outline"
-  className="text-xs"
-  onClick={() => setShowPrescribeModal(true)}
-  
->
-  <MdDescription className="h-3 w-3 mr-1" />
-  Prescription
-</Button>
-<Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => navigate("/doctor-panel/patienthistory")}
+                                className="text-xs"
+                                onClick={() => {
+                                  console.log("Opening prescription modal for appointment:", appointment);
+                                  console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment));
+                                  setSelectedAppointment(appointment);
+                                  setShowPrescribeModal(true);
+                                }}
+                              >
+                                <MdDescription className="h-3 w-3 mr-1" />
+                                Prescription
+                              </Button>
+                              
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate("/doctor/:id/patienthistory")}
                                 className="text-xs"
                               >
                                 <MdVisibility className="h-3 w-3 mr-1" />
@@ -389,12 +269,19 @@ export const MedicalAppointments = () => {
                               </Button>
 
                               <button
+                                className="px-3 py-1 text-xs border rounded-md bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
+                                onClick={() => handleRevisit(appointment)}
+                              >
+                                <MdRefresh className="h-3 w-3 mr-1 inline" />
+                                Revisit
+                              </button>
+
+                              <button
                                 className="px-3 py-1 text-xs border rounded-md bg-red-500 text-white border-red-500 hover:bg-red-600"
                                 onClick={() => setCancelAppointment(appointment)}
                               >
                                 Cancel
                               </button>
-
                             </div>
                           </td>
                         </tr>
@@ -425,24 +312,22 @@ export const MedicalAppointments = () => {
                       <tr>
                         <th className="text-left p-4 font-medium">Patient</th>
                         <th className="text-left p-4 font-medium">Date & Time</th>
-                       
                         <th className="text-left p-4 font-medium">Reason</th>
-                       
                         <th className="text-left p-4 font-medium">Status</th>
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {appointmentHistory.map((appointment) => (
-                        <tr key={appointment.id} className="border-b hover:bg-muted/50">
+                        <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                 <MdPerson className="h-4 w-4 text-primary-foreground" />
                               </div>
                               <div>
-                                <p className="font-medium">{appointment.patient.name}</p>
-                                
+                                <p className="font-medium">{appointment.patientName}</p>
+                                <p className="text-xs text-gray-500">ID: {getAppointmentIdForPrescription(appointment)}</p>
                               </div>
                             </div>
                           </td>
@@ -450,26 +335,29 @@ export const MedicalAppointments = () => {
                             <div className="flex items-center space-x-2">
                               <MdSchedule className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="font-medium">{appointment.dateTime}</p>
-                                
+                                <p className="font-medium">{appointment.date}</p>
+                                <p className="font-medium">{appointment.time}</p>
                               </div>
                             </div>
                           </td>
-                          
                           <td className="p-3 text-sm">{appointment.reason}</td>
                           <td className="p-2 text-sm">
                             <Badge className={`border ${getStatusBadge(appointment.status)}`}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                             </Badge>
                           </td>
-                         
                           <td className="p-2 text-sm">
                             <div className="flex items-center space-x-2">
-                              
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="text-xs"
+                                onClick={() => {
+                                  console.log("Viewing prescription for appointment:", appointment);
+                                  console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment));
+                                  setSelectedAppointment(appointment);
+                                  setShowPrescribeModal(true);
+                                }}
                               >
                                 <MdDescription className="h-3 w-3 mr-1" />
                                 View Prescription
@@ -487,7 +375,6 @@ export const MedicalAppointments = () => {
         </Tabs>
       </div>
       
-
       {/* Modals */}
       {selectedPatient && (
         <PatientDetailsModal
@@ -504,58 +391,140 @@ export const MedicalAppointments = () => {
           onReschedule={(date, time) =>
             handleRescheduleConfirm(rescheduleAppointment.id, date, time)
           }
-          patientName={rescheduleAppointment.patient.name}
+          patientName={rescheduleAppointment.patient?.name || rescheduleAppointment.patientName}
         />
       )}
-      {showPrescribeModal && (
-  <PrescribeModal
-    isOpen={showPrescribeModal}
-    onClose={() => setShowPrescribeModal(false)}
-  />
-)}
 
-{cancelAppointment && (
-  <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-    <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
-      <h2 className="text-lg font-semibold text-red-600">Cancel Appointment</h2>
-      <p className="text-sm text-gray-600">
-        Please provide a reason for cancelling the appointment with <strong>{cancelAppointment.patient.name}</strong>.
-      </p>
-      <textarea
-        rows={4}
-        className="w-full border rounded p-2 text-sm"
-        placeholder="Enter cancellation reason..."
-        value={cancelReason}
-        onChange={(e) => setCancelReason(e.target.value)}
-      />
-      <div className="flex justify-end space-x-2">
-        <button
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-          onClick={() => setCancelAppointment(null)}
-        >
-          Close
-        </button>
-        <button
-          className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 ${
-            !cancelReason.trim() ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={!cancelReason.trim()}
-          onClick={() => {
-            // Add your cancellation logic here
-            console.log("Cancelled appointment:", cancelAppointment);
-            console.log("Reason:", cancelReason);
-            
-            setCancelAppointment(null);
-            setCancelReason("");
+      {/* Fixed PrescribeModal with correct appointmentId */}
+      {showPrescribeModal && selectedAppointment && (
+        <PrescribeModal
+          isOpen={showPrescribeModal}
+          appointmentId={getAppointmentIdForPrescription(selectedAppointment)} // Use business logic ID
+          doctorId={doctorId}
+          onClose={() => {
+            setShowPrescribeModal(false);
+            setSelectedAppointment(null);
           }}
-        >
-          Confirm Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          onSuccess={(prescription) => {
+            console.log('Prescription created:', prescription);
+            toast({
+              title: "Success",
+              description: "Prescription created successfully!",
+            });
+          }}
+        />
+      )}
 
+      {/* Revisit Modal */}
+      {revisitAppointment && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-blue-600">Schedule Revisit</h2>
+            <p className="text-sm text-gray-600">
+              Schedule a follow-up appointment for <strong>{revisitAppointment.patient?.name || revisitAppointment.patientName}</strong>.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  className="w-full border rounded p-2 text-sm"
+                  value={revisitDate}
+                  onChange={(e) => setRevisitDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Time
+                </label>
+                <input
+                  type="time"
+                  className="w-full border rounded p-2 text-sm"
+                  value={revisitTime}
+                  onChange={(e) => setRevisitTime(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reason for Revisit
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border rounded p-2 text-sm"
+                  placeholder="Enter reason for follow-up appointment..."
+                  value={revisitReason}
+                  onChange={(e) => setRevisitReason(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                onClick={() => setRevisitAppointment(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${
+                  !revisitDate || !revisitTime || !revisitReason.trim() 
+                    ? "opacity-50 cursor-not-allowed" 
+                    : ""
+                }`}
+                disabled={!revisitDate || !revisitTime || !revisitReason.trim()}
+                onClick={handleRevisitConfirm}
+              >
+                Schedule Revisit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Appointment Modal */}
+      {cancelAppointment && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-red-600">Cancel Appointment</h2>
+            <p className="text-sm text-gray-600">
+              Please provide a reason for cancelling the appointment with <strong>{cancelAppointment.patient?.name || cancelAppointment.patientName}</strong>.
+            </p>
+            <textarea
+              rows={4}
+              className="w-full border rounded p-2 text-sm"
+              placeholder="Enter cancellation reason..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                onClick={() => {
+                  setCancelAppointment(null);
+                  setCancelReason("");
+                }}
+              >
+                Close
+              </button>
+              <button
+                className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 ${
+                  !cancelReason.trim() ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={!cancelReason.trim()}
+                onClick={handleCancelConfirm}
+              >
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

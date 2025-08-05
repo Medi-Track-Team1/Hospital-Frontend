@@ -26,7 +26,7 @@ const ReceptionBilling = () => {
       return;
     }
     try {
-       const res = await axios.get(`https://billing-backend-0zk0.onrender.com/api/patient/${pid}`);
+      const res = await axios.get(`/api/patient/${pid}`);
       console.log("Fetched patient:", res.data);
       if (res.data && res.data.name) setPatientName(res.data.name);
       else setPatientName("");
@@ -141,7 +141,8 @@ const ReceptionBilling = () => {
       total,
       timestamp: new Date().toLocaleString(),
     };
-    setSavedBills([...savedBills, bill]);
+setSavedBills((prevBills) => [...prevBills, bill]);
+
     resetForm();
     toast.success("Bill saved successfully!");
   };
@@ -172,7 +173,8 @@ const ReceptionBilling = () => {
   ];
 
   const predefinedFees = [
-    { label: "General Consultation", fee: 500 }
+    { label: "General Consultation", fee: 500 },
+    { label: "Specialist Consultation", fee: 750 },
   ];
 
   const quickAddMedicine = (service) => {

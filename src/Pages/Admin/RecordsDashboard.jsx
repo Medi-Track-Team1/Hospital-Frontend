@@ -8,6 +8,7 @@ const RecordsDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateFilter, setDateFilter] = useState('today');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Sample data - replace with API calls
   const [metrics, setMetrics] = useState({
@@ -17,15 +18,23 @@ const RecordsDashboard = () => {
     cancellationRate: 4.2
   });
 
-  // Sample appointment data
-  const [appointments, setAppointments] = useState([
-    { id: 1, patient: "John Doe", date: "2023-06-15", time: "10:00 AM", service: "Checkup", amount: 120, status: "Completed" },
-    { id: 2, patient: "Jane Smith", date: "2023-06-14", time: "02:30 PM", service: "Dental Cleaning", amount: 95, status: "Completed" },
-    { id: 3, patient: "Robert Johnson", date: "2023-06-14", time: "09:15 AM", service: "X-Ray", amount: 150, status: "No-show" },
-    { id: 4, patient: "Sarah Williams", date: "2023-06-13", time: "11:45 AM", service: "Consultation", amount: 80, status: "Completed" },
-    { id: 5, patient: "Michael Brown", date: "2023-06-12", time: "03:00 PM", service: "Surgery", amount: 450, status: "Completed" },
-    { id: 6, patient: "Emily Davis", date: "2023-06-11", time: "01:30 PM", service: "Follow-up", amount: 60, status: "Cancelled" },
+  // Helper function to create date without time component
+  const createDate = (dateString) => {
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
+  };
+
+  // Sample appointment data with proper Date objects
+  const [allAppointments, setAllAppointments] = useState([
+    { id: 1, patient: "John Doe", date: createDate('2023-06-15'), time: "10:00 AM", service: "Checkup", amount: 120, status: "Completed" },
+    { id: 2, patient: "Jane Smith", date: createDate('2023-06-14'), time: "02:30 PM", service: "Dental Cleaning", amount: 95, status: "Completed" },
+    { id: 3, patient: "Robert Johnson", date: createDate('2023-06-14'), time: "09:15 AM", service: "X-Ray", amount: 150, status: "No-show" },
+    { id: 4, patient: "Sarah Williams", date: createDate('2023-06-13'), time: "11:45 AM", service: "Consultation", amount: 80, status: "Completed" },
+    { id: 5, patient: "Michael Brown", date: createDate('2023-06-12'), time: "03:00 PM", service: "Surgery", amount: 450, status: "Completed" },
+    { id: 6, patient: "Emily Davis", date: createDate('2023-06-11'), time: "01:30 PM", service: "Follow-up", amount: 60, status: "Cancelled" },
   ]);
+
+  const [displayedAppointments, setDisplayedAppointments] = useState(allAppointments);
 
   // Filter options
   const filterOptions = [
@@ -38,67 +47,74 @@ const RecordsDashboard = () => {
   // Get current filter label
   const currentFilterLabel = filterOptions.find(opt => opt.value === dateFilter)?.label;
 
+  // Helper function to compare dates without time component
+  const isSameDate = (date1, date2) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   // Filter data by date
   const filterData = () => {
-    console.log('Filtering for:', dateFilter, selectedDate);
+    setIsLoading(true);
     
-    // Simulate loading
+    // Simulate API call delay
     setTimeout(() => {
-      let newMetrics = { ...metrics };
-      let filteredAppointments = [...appointments];
+      let filteredAppointments = [...allAppointments];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time component
       
+      const oneWeekAgo = new Date(today);
+      oneWeekAgo.setDate(today.getDate() - 7);
+      
+      const oneMonthAgo = new Date(today);
+      oneMonthAgo.setMonth(today.getMonth() - 1);
+
       switch(dateFilter) {
         case 'today':
-          newMetrics = {
-            revenue: 1850,
-            appointments: 24,
-            newPatients: 6,
-            cancellationRate: 2.5
-          };
-          filteredAppointments = appointments.slice(0, 2);
+          filteredAppointments = allAppointments.filter(app => 
+            isSameDate(app.date, today)
+          );
           break;
         case 'lastWeek':
-          newMetrics = {
-            revenue: 8920,
-            appointments: 112,
-            newPatients: 28,
-            cancellationRate: 3.8
-          };
-          filteredAppointments = appointments;
+          filteredAppointments = allAppointments.filter(app => 
+            app.date >= oneWeekAgo && app.date <= today
+          );
           break;
         case 'lastMonth':
-          newMetrics = {
-            revenue: 35400,
-            appointments: 428,
-            newPatients: 97,
-            cancellationRate: 4.1
-          };
-          filteredAppointments = appointments.concat([
-            { id: 7, patient: "David Wilson", date: "2023-06-10", time: "10:30 AM", service: "Checkup", amount: 120, status: "Completed" },
-            { id: 8, patient: "Lisa Moore", date: "2023-06-09", time: "04:15 PM", service: "Cleaning", amount: 95, status: "Completed" }
-          ]);
+          filteredAppointments = allAppointments.filter(app => 
+            app.date >= oneMonthAgo && app.date <= today
+          );
           break;
         case 'specificDate':
-          newMetrics = {
-            revenue: 2450,
-            appointments: 32,
-            newPatients: 8,
-            cancellationRate: 3.2
-          };
-          filteredAppointments = appointments.slice(1, 4);
+          if (selectedDate) {
+            const compareDate = new Date(selectedDate);
+            compareDate.setHours(0, 0, 0, 0); // Reset time component
+            filteredAppointments = allAppointments.filter(app => 
+              isSameDate(app.date, compareDate)
+            );
+          }
           break;
         default:
-          // All time data
-          newMetrics = {
-            revenue: 12540,
-            appointments: 328,
-            newPatients: 87,
-            cancellationRate: 4.2
-          };
+          // Show all data
+          filteredAppointments = allAppointments;
       }
-      
+
+      // Calculate metrics based on filtered appointments
+      const newMetrics = {
+        revenue: filteredAppointments.reduce((sum, app) => sum + app.amount, 0),
+        appointments: filteredAppointments.length,
+        newPatients: filteredAppointments.filter(app => app.status === "Completed").length,
+        cancellationRate: (filteredAppointments.filter(app => 
+          app.status === "Cancelled" || app.status === "No-show"
+        ).length / filteredAppointments.length) * 100 || 0
+      };
+
       setMetrics(newMetrics);
-      setAppointments(filteredAppointments);
+      setDisplayedAppointments(filteredAppointments);
+      setIsLoading(false);
     }, 500);
   };
 
@@ -113,12 +129,19 @@ const RecordsDashboard = () => {
 
   // Export data as CSV
   const exportToCSV = () => {
+    const formatDateForCSV = (date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
+    };
+
     const headers = ["Patient", "Date", "Time", "Service", "Amount", "Status"];
     const csvContent = [
       headers.join(","),
-      ...appointments.map(app => [
+      ...displayedAppointments.map(app => [
         `"${app.patient}"`,
-        app.date,
+        formatDateForCSV(app.date),
         app.time,
         `"${app.service}"`,
         app.amount,
@@ -139,8 +162,15 @@ const RecordsDashboard = () => {
 
   // Copy data to clipboard
   const copyToClipboard = () => {
-    const text = appointments.map(app => 
-      `${app.patient}\t${app.date}\t${app.time}\t${app.service}\t$${app.amount}\t${app.status}`
+    const formatDateForDisplay = (date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    const text = displayedAppointments.map(app => 
+      `${app.patient}\t${formatDateForDisplay(app.date)}\t${app.time}\t${app.service}\t$${app.amount}\t${app.status}`
     ).join("\n");
     
     navigator.clipboard.writeText(text).then(() => {
@@ -191,16 +221,17 @@ const RecordsDashboard = () => {
                 onChange={(date) => setSelectedDate(date)}
                 placeholderText="Select date"
                 className="focus:outline-none"
+                dateFormat="dd/MM/yyyy"
               />
             </div>
           )}
           
           <button
             onClick={filterData}
-            className="px-4 py-2 bg-[#2563eb] text-white rounded-lg hover:bg-blue-700 transition-colors"
-            disabled={dateFilter === 'specificDate' && !selectedDate}
+            className={`px-4 py-2 bg-[#2563eb] text-white rounded-lg hover:bg-blue-700 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isLoading || (dateFilter === 'specificDate' && !selectedDate)}
           >
-            Apply Filter
+            {isLoading ? 'Filtering...' : 'Apply Filter'}
           </button>
         </div>
       </div>
@@ -235,7 +266,7 @@ const RecordsDashboard = () => {
               <HiUserGroup className="w-6 h-6 text-green-500" />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Completed: {Math.round(metrics.appointments * 0.92)}</p>
+          <p className="text-xs text-gray-500 mt-2">Completed: {metrics.newPatients}</p>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -257,7 +288,7 @@ const RecordsDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Cancellation Rate</p>
-              <p className="text-2xl font-bold mt-1">{metrics.cancellationRate}%</p>
+              <p className="text-2xl font-bold mt-1">{metrics.cancellationRate.toFixed(1)}%</p>
             </div>
             <div className="p-3 bg-red-50 rounded-full">
               <HiChartBar className="w-6 h-6 text-red-500" />
@@ -273,7 +304,7 @@ const RecordsDashboard = () => {
           <div>
             <h3 className="font-medium">Appointment Records</h3>
             <p className="text-sm text-gray-500">
-              Showing {appointments.length} appointments for {dateFilter === 'today' ? 'today' : 
+              Showing {displayedAppointments.length} appointments for {dateFilter === 'today' ? 'today' : 
                            dateFilter === 'lastWeek' ? 'the last week' : 
                            dateFilter === 'lastMonth' ? 'the last month' : 
                            selectedDate ? selectedDate.toLocaleDateString() : 'all time'}
@@ -283,52 +314,63 @@ const RecordsDashboard = () => {
             <button 
               onClick={copyToClipboard}
               className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+              disabled={displayedAppointments.length === 0}
             >
               <HiClipboardCopy className="mr-1" /> Copy
             </button>
             <button 
               onClick={exportToCSV}
               className="flex items-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm"
+              disabled={displayedAppointments.length === 0}
             >
               <HiDownload className="mr-1" /> Export CSV
             </button>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {appointments.map((appointment) => (
-                <tr key={appointment.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{appointment.patient}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.time}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.service}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      appointment.status === "Completed" 
-                        ? "bg-green-100 text-green-800" 
-                        : appointment.status === "Cancelled" 
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                    }`}>
-                      {appointment.status}
-                    </span>
-                  </td>
+          {displayedAppointments.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No appointments found for the selected filter
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {displayedAppointments.map((appointment) => {
+                  const displayDate = `${appointment.date.getDate().toString().padStart(2, '0')}/${(appointment.date.getMonth() + 1).toString().padStart(2, '0')}/${appointment.date.getFullYear()}`;
+                  return (
+                    <tr key={appointment.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{appointment.patient}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{displayDate}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.time}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{appointment.service}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${appointment.amount}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          appointment.status === "Completed" 
+                            ? "bg-green-100 text-green-800" 
+                            : appointment.status === "Cancelled" 
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                        }`}>
+                          {appointment.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

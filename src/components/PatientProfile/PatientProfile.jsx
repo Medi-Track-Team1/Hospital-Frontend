@@ -62,24 +62,67 @@ const PatientProfile = () => {
     },
   ]);
 
-  useEffect(() => {
-    if (!patientId) return;
-    fetch(`https://patient-service-ntk0.onrender.com/api/patient/${patientId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Network response was not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (data.success && data.data) {
-          setPatientData(data.data);
-        } else {
-          alert(data.message || "Patient not found");
-        }
-      })
-      .catch((error) => {
-        alert(`Error fetching patient data: ${error.message}`);
-      });
-  }, [patientId]);
+
+ useEffect(() => {
+  // Early return if patientId is not available
+  if (!patientId) return;
+
+  // Safely get currentUser from localStorage
+  const currentUserStr = localStorage.getItem('currentUser');
+  if (!currentUserStr) {
+    alert("No user session found. Please log in.");
+    return;
+  }
+
+  // Parse the stored user data
+  let currentUser;
+  try {
+    currentUser = JSON.parse(currentUserStr);
+  } catch (error) {
+    console.error("Failed to parse user data:", error);
+    alert("Invalid user data. Please log in again.");
+    return;
+  }
+
+  // Verify userId exists
+  if (!currentUser?.userId) {
+    alert("User ID missing. Please log in again.");
+    return;
+  }
+
+  // Fetch patient data
+  fetch(`https://patient-service-ntk0.onrender.com/api/patient/${currentUser.userId}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (data.success && data.data) {
+        setPatientData(data.data);
+      } else {
+        alert(data.message || "Patient data not available");
+      }
+    })
+    .catch(error => {
+      console.error("Fetch error:", error);
+      alert(`Failed to load patient data: ${error.message}`);
+    });
+}, [patientId]);
+
+  if (!patientData) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading patient data...</p>
+        </div>
+      </>
+    );
+  }
+//console.log(localStorage.getItem('currentUser'));
+  // Helper: Format patient address object to string
 
   const formatAddress = (address) => {
     if (!address) return "";

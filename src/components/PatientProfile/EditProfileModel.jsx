@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import {
   X,
   User,
@@ -40,7 +43,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize form data only when modal opens
   useEffect(() => {
     if (isOpen && patient) {
       setFormData({
@@ -69,9 +71,8 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       setErrors({});
       setActiveSection("personal");
     }
-  }, [isOpen]);
+  }, [isOpen, patient]);
 
-  // Memoize the input change handler to prevent unnecessary re-renders
   const handleInputChange = useCallback((section, field, value) => {
     if (section === "emergencyContacts") {
       setFormData((prev) => ({
@@ -88,7 +89,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       }));
     }
 
-    // Clear error for this field when user starts typing
     setErrors((prev) => {
       if (prev[field]) {
         const newErrors = { ...prev };
@@ -102,7 +102,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
   const validateForm = useCallback(() => {
     const newErrors = {};
 
-    // Required field validations
     if (!formData.patientName.trim())
       newErrors.patientName = "Name is required";
     if (!formData.patientEmail.trim())
@@ -112,12 +111,10 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
     if (!formData.dateOfBirth)
       newErrors.dateOfBirth = "Date of birth is required";
 
-    // Password is always required for any profile update
-    if (!formData.oldPassword.trim()) {
-      newErrors.oldPassword = "Current password is required to update profile";
+    if (activeSection === "changePassword" && !formData.oldPassword.trim()) {
+      newErrors.oldPassword = "Current password is required to change password";
     }
 
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (
       formData.patientEmail &&
@@ -126,7 +123,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       newErrors.patientEmail = "Please enter a valid email address";
     }
 
-    // Phone number validation (basic)
     const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
     if (
       formData.contactNumber &&
@@ -135,7 +131,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       newErrors.contactNumber = "Please enter a valid phone number";
     }
 
-    // Age validation
     if (
       formData.age &&
       (parseInt(formData.age) < 0 || parseInt(formData.age) > 150)
@@ -143,7 +138,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       newErrors.age = "Please enter a valid age";
     }
 
-    // Date of birth validation (not in future)
     if (formData.dateOfBirth) {
       const dob = new Date(formData.dateOfBirth);
       const today = new Date();
@@ -152,7 +146,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       }
     }
 
-    // Additional password validation when changing password
     if (activeSection === "changePassword") {
       if (!formData.newPassword.trim())
         newErrors.newPassword = "New password is required";
@@ -162,7 +155,7 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       if (formData.newPassword && formData.newPassword.length < 8) {
         newErrors.newPassword = "Password must be at least 8 characters long";
       }
-      // Additional password strength validation
+
       if (formData.newPassword) {
         const hasUpperCase = /[A-Z]/.test(formData.newPassword);
         const hasLowerCase = /[a-z]/.test(formData.newPassword);
@@ -178,7 +171,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       }
     }
 
-    // Emergency contact validation (if provided)
     if (formData.emergencyContacts.name.trim()) {
       if (
         formData.emergencyContacts.phone &&
@@ -206,7 +198,6 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
     setIsLoading(true);
 
     try {
-      // Clean and prepare the data
       const updatePayload = {
         patientName: formData.patientName.trim(),
         contactNumber: formData.contactNumber.trim(),
@@ -220,11 +211,10 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
         city: formData.city.trim() || null,
         state: formData.state.trim() || null,
         zipCode: formData.zipCode.trim() || null,
-        // Always include current password as the server requires it
-        password: formData.oldPassword,
+        password: formData.oldPassword.trim(),
+        emergencyContacts: formData.emergencyContacts,
       };
 
-      // Only include emergency contacts if name is provided
       if (formData.emergencyContacts.name.trim()) {
         updatePayload.emergencyContacts = [
           {
@@ -238,12 +228,9 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
         updatePayload.emergencyContacts = [];
       }
 
-      // Add new password field only if changing password
       if (activeSection === "changePassword" && formData.newPassword) {
         updatePayload.newPassword = formData.newPassword;
       }
-
-      console.log("Sending payload:", updatePayload); // Debug log
 
       const response = await fetch(
         `https://patient-service-ntk0.onrender.com/api/patient/update/${patient.patientId}`,
@@ -261,51 +248,34 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       try {
         result = await response.json();
       } catch (jsonError) {
-        console.error("JSON parsing error:", jsonError);
         throw new Error("Invalid response from server");
       }
 
-      console.log("Server response:", result); // Debug log
-
       if (!response.ok) {
-        // Handle specific validation errors
-        if (result.errors && typeof result.errors === "object") {
-          const validationErrors = {};
-          Object.keys(result.errors).forEach((field) => {
-            // Map server field names to form field names
-            if (field === "password") {
-              validationErrors.oldPassword = result.errors[field];
-            } else {
-              validationErrors[field] = result.errors[field];
-            }
-          });
+        const validationErrors = {};
+        const errorObj = result.errors || result.error || {};
+        Object.keys(errorObj).forEach((field) => {
+          if (field === "password") {
+            validationErrors.oldPassword = errorObj[field];
+          } else {
+            validationErrors[field] = errorObj[field];
+          }
+        });
+
+        if (Object.keys(validationErrors).length > 0) {
           setErrors(validationErrors);
           throw new Error("Please correct the validation errors");
-        } else if (result.error && typeof result.error === "object") {
-          const validationErrors = {};
-          Object.keys(result.error).forEach((field) => {
-            if (field === "password") {
-              validationErrors.oldPassword = result.error[field];
-            } else {
-              validationErrors[field] = result.error[field];
-            }
-          });
-          setErrors(validationErrors);
-          throw new Error("Please correct the validation errors");
-        } else {
-          throw new Error(
-            result.message ||
-              result.error ||
-              "Failed to update patient information"
-          );
         }
+
+        throw new Error(
+          result.message || "Failed to update patient information"
+        );
       }
 
       if (result.success || response.ok) {
         onSave(result.data || updatePayload);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
 
-        // Clear password fields after successful update
         setFormData((prev) => ({
           ...prev,
           oldPassword: "",
@@ -317,14 +287,10 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
         throw new Error(result.message || "Update failed");
       }
     } catch (error) {
-      console.error("Error updating patient:", error);
-
-      // Don't show alert if we've already set field-specific errors
       if (!Object.keys(errors).length) {
-        alert(`Error updating profile: ${error.message}`);
+        toast.error(`Error updating profile: ${error.message}`);
       }
 
-      // Set specific field errors based on error message
       const errorMessage = error.message.toLowerCase();
       if (errorMessage.includes("email")) {
         setErrors((prev) => ({ ...prev, patientEmail: error.message }));
@@ -429,6 +395,8 @@ const EditProfileModal = ({ patient, isOpen, onClose, onSave }) => {
       role="dialog"
       aria-modal="true"
     >
+      {/* ToastContainer will show notifications only when this modal is open */}
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
         <div className="bg-blue-600 text-white p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">

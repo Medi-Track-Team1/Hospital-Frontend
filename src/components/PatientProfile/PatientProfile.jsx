@@ -23,6 +23,7 @@ import {
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
+  localStorage.setItem('currentUser',patientId)
     // const patientId = localStorage.getItem("currentUser").userid; 
 
   const [patientData, setPatientData] = useState(null);
@@ -69,29 +70,29 @@ const PatientProfile = () => {
 
   // Safely get currentUser from localStorage
   const currentUserStr = localStorage.getItem('currentUser');
-  if (!currentUserStr) {
-    alert("No user session found. Please log in.");
-    return;
-  }
+  // if (!currentUserStr) {
+  //   alert("No user session found. Please log in.");
+  //   return;
+  // }
 
-  // Parse the stored user data
-  let currentUser;
-  try {
-    currentUser = JSON.parse(currentUserStr);
-  } catch (error) {
-    console.error("Failed to parse user data:", error);
-    alert("Invalid user data. Please log in again.");
-    return;
-  }
+  // // Parse the stored user data
+  // let currentUser;
+  // try {
+  //   currentUser = JSON.parse(currentUserStr);
+  // } catch (error) {
+  //   console.error("Failed to parse user data:", error);
+  //   alert("Invalid user data. Please log in again.");
+  //   return;
+  // }
 
-  // Verify userId exists
-  if (!currentUser?.userId) {
-    alert("User ID missing. Please log in again.");
-    return;
-  }
+  // // Verify userId exists
+  // if (!currentUser?.userId) {
+  //   alert("User ID missing. Please log in again.");
+  //   return;
+  // }
 
   // Fetch patient data
-  fetch(`https://patient-service-ntk0.onrender.com/api/patient/${currentUser.userId}`)
+  fetch(`https://patient-service-ntk0.onrender.com/api/patient/${currentUserStr}`)
     .then(res => {
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`);

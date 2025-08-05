@@ -12,7 +12,7 @@ import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
 
 
 
-
+ 
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HiCalendar, HiCurrencyDollar, HiUserGroup, HiChartBar, HiChevronDown, HiDownload, HiClipboardCopy } from 'react-icons/hi';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -6,18 +6,10 @@ import 'react-datepicker/dist/react-datepicker.css';
 const RecordsDashboard = () => {
   // Date filter state
   const [selectedDate, setSelectedDate] = useState(null);
-  const [dateFilter, setDateFilter] = useState('today');
+  const [dateFilter, setDateFilter] = useState('all');
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sample data - replace with API calls
-  const [metrics, setMetrics] = useState({
-    revenue: 12540,
-    appointments: 328,
-    newPatients: 87,
-    cancellationRate: 4.2
-  });
-
   // Helper function to create date without time component
   const createDate = (dateString) => {
     const [year, month, day] = dateString.split('-');
@@ -25,19 +17,34 @@ const RecordsDashboard = () => {
   };
 
   // Sample appointment data with proper Date objects
-  const [allAppointments, setAllAppointments] = useState([
-    { id: 1, patient: "John Doe", date: createDate('2023-06-15'), time: "10:00 AM", service: "Checkup", amount: 120, status: "Completed" },
-    { id: 2, patient: "Jane Smith", date: createDate('2023-06-14'), time: "02:30 PM", service: "Dental Cleaning", amount: 95, status: "Completed" },
-    { id: 3, patient: "Robert Johnson", date: createDate('2023-06-14'), time: "09:15 AM", service: "X-Ray", amount: 150, status: "No-show" },
-    { id: 4, patient: "Sarah Williams", date: createDate('2023-06-13'), time: "11:45 AM", service: "Consultation", amount: 80, status: "Completed" },
-    { id: 5, patient: "Michael Brown", date: createDate('2023-06-12'), time: "03:00 PM", service: "Surgery", amount: 450, status: "Completed" },
-    { id: 6, patient: "Emily Davis", date: createDate('2023-06-11'), time: "01:30 PM", service: "Follow-up", amount: 60, status: "Cancelled" },
-  ]);
+  const allAppointments = [
+    { id: 1, patient: "John Doe", date: createDate('2025-07-15'), time: "10:00 AM", service: "Checkup", amount: 120, status: "Completed" },
+    { id: 2, patient: "Jane Smith", date: createDate('2025-07-14'), time: "02:30 PM", service: "Dental Cleaning", amount: 95, status: "Completed" },
+    { id: 3, patient: "Robert Johnson", date: createDate('2025-07-14'), time: "09:15 AM", service: "X-Ray", amount: 150, status: "No-show" },
+    { id: 4, patient: "Sarah Williams", date: createDate('2025-08-4'), time: "11:45 AM", service: "Consultation", amount: 80, status: "Completed" },
+    { id: 5, patient: "Michael Brown", date: createDate('2025-07-31'), time: "03:00 PM", service: "Surgery", amount: 450, status: "Completed" },
+    { id: 6, patient: "Emily Davis", date: createDate('2025-08-2'), time: "01:30 PM", service: "Follow-up", amount: 60, status: "Cancelled" },
+  ];
 
+  // State for displayed appointments and metrics
   const [displayedAppointments, setDisplayedAppointments] = useState(allAppointments);
+  const [metrics, setMetrics] = useState(calculateMetrics(allAppointments));
+
+  // Calculate metrics function
+  function calculateMetrics(appointments) {
+    return {
+      revenue: appointments.reduce((sum, app) => sum + app.amount, 0),
+      appointments: appointments.length,
+      newPatients: appointments.filter(app => app.status === "Completed").length,
+      cancellationRate: (appointments.filter(app => 
+        app.status === "Cancelled" || app.status === "No-show"
+      ).length / appointments.length) * 100 || 0
+    };
+  }
 
   // Filter options
   const filterOptions = [
+    { value: 'all', label: 'All' },
     { value: 'today', label: 'Today' },
     { value: 'lastWeek', label: 'Last Week' },
     { value: 'lastMonth', label: 'Last Month' },
@@ -55,6 +62,11 @@ const RecordsDashboard = () => {
       date1.getDate() === date2.getDate()
     );
   };
+
+  // Filter data by date - runs when filter changes
+  useEffect(() => {
+    filterData();
+  }, [dateFilter, selectedDate]);
 
   // Filter data by date
   const filterData = () => {
@@ -97,22 +109,11 @@ const RecordsDashboard = () => {
             );
           }
           break;
-        default:
-          // Show all data
+        default: // 'all' case
           filteredAppointments = allAppointments;
       }
 
-      // Calculate metrics based on filtered appointments
-      const newMetrics = {
-        revenue: filteredAppointments.reduce((sum, app) => sum + app.amount, 0),
-        appointments: filteredAppointments.length,
-        newPatients: filteredAppointments.filter(app => app.status === "Completed").length,
-        cancellationRate: (filteredAppointments.filter(app => 
-          app.status === "Cancelled" || app.status === "No-show"
-        ).length / filteredAppointments.length) * 100 || 0
-      };
-
-      setMetrics(newMetrics);
+      setMetrics(calculateMetrics(filteredAppointments));
       setDisplayedAppointments(filteredAppointments);
       setIsLoading(false);
     }, 500);
@@ -160,7 +161,7 @@ const RecordsDashboard = () => {
     document.body.removeChild(link);
   };
 
-  // Copy data to clipboard
+  // Copy data to clipboard (without alert)
   const copyToClipboard = () => {
     const formatDateForDisplay = (date) => {
       const day = date.getDate().toString().padStart(2, '0');
@@ -173,9 +174,7 @@ const RecordsDashboard = () => {
       `${app.patient}\t${formatDateForDisplay(app.date)}\t${app.time}\t${app.service}\t$${app.amount}\t${app.status}`
     ).join("\n");
     
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Appointment data copied to clipboard!");
-    }).catch(err => {
+    navigator.clipboard.writeText(text).catch(err => {
       console.error("Failed to copy: ", err);
     });
   };
@@ -252,7 +251,7 @@ const RecordsDashboard = () => {
             {dateFilter === 'today' ? 'Today' : 
              dateFilter === 'lastWeek' ? 'Last 7 days' : 
              dateFilter === 'lastMonth' ? 'Last 30 days' : 
-             selectedDate ? selectedDate.toLocaleDateString() : 'All time'}
+             dateFilter === 'specificDate' && selectedDate ? selectedDate.toLocaleDateString() : 'All time'}
           </p>
         </div>
 
@@ -307,7 +306,7 @@ const RecordsDashboard = () => {
               Showing {displayedAppointments.length} appointments for {dateFilter === 'today' ? 'today' : 
                            dateFilter === 'lastWeek' ? 'the last week' : 
                            dateFilter === 'lastMonth' ? 'the last month' : 
-                           selectedDate ? selectedDate.toLocaleDateString() : 'all time'}
+                           dateFilter === 'specificDate' && selectedDate ? selectedDate.toLocaleDateString() : 'all time'}
             </p>
           </div>
           <div className="flex space-x-2">

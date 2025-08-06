@@ -536,7 +536,25 @@ function convertTo24Hour(time12h) {
       default:
         return <Clock size={16} />;
     }
-  };
+  };  
+   const formatDisplayDateTime = (dateTimeString) => {
+  if (!dateTimeString) return 'Not scheduled';
+  return new Date(dateTimeString).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+const formatDisplayDate= (dateTimeString) => {
+  if (!dateTimeString) return 'Not scheduled';
+  return new Date(dateTimeString).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+// Output: "9:30 AM"
+// Output: "Sun, Aug 6"
 
   // const todayAppointments = appointments.filter(
   //   (app) => app.date === new Date().toISOString().split("T")[0]
@@ -1034,7 +1052,7 @@ function convertTo24Hour(time12h) {
                                   margin: 0,
                                 }}
                               >
-                                {appointment.doctor}
+                                {appointment.doctorName}
                               </h4>
                               <p
                                 style={{
@@ -1070,7 +1088,7 @@ function convertTo24Hour(time12h) {
                                   fontWeight: "500",
                                 }}
                               >
-                                {appointment.date}
+                                {formatDisplayDateTime (appointment.appointmentDateTime)}
                               </span>
                             </div>
                             <div
@@ -1088,7 +1106,7 @@ function convertTo24Hour(time12h) {
                                   fontWeight: "500",
                                 }}
                               >
-                                {appointment.updatedAt}
+                                {formatDisplayDate (appointment.appointmentDateTime)}
                               </span>
                             </div>
                           </div>
@@ -3622,7 +3640,7 @@ function convertTo24Hour(time12h) {
                         margin: 0,
                       }}
                     >
-                      {selectedAppointment.date}
+                      {formatDisplayDateTime(selectedAppointment.appointmentDateTime)}
                     </p>
                   </div>
 
@@ -3645,7 +3663,7 @@ function convertTo24Hour(time12h) {
                         margin: 0,
                       }}
                     >
-                      {selectedAppointment.time}
+                      {formatDisplayDate(selectedAppointment.appointmentDateTime)}
                     </p>
                   </div>
 

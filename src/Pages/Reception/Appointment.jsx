@@ -1121,7 +1121,7 @@ const formatDisplayDate= (dateTimeString) => {
                           }}
                         >
                           {/* Status Badge */}
-                          <div
+                      <div
                             style={{
                               background: getStatusColor(appointment.status),
                               color: "white",

@@ -8,3 +8,7 @@ export const listAppointmentsByDoctorId = (id) =>
 
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/${id}/appointments/completed`);
+
+// ✅ NEW: Create appointment function for revisits
+export const createAppointment = (appointmentData) =>
+  axios.post(`${REST_API_BASE_URL}/appointments`, appointmentData);

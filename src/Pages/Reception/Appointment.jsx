@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
@@ -37,88 +38,25 @@ import {
   Ban,
   FileText,
 } from "lucide-react";
+import appointmentService from "../Reception/appointService";
 
 const Appointment = () => {
-  const [appointments, setAppointments] = useState([
-    {
-      id: 1,
-      patientName: "John Doe",
-      doctor: "Dr. Sarah Smith",
-      date: "2025-01-20",
-      time: "10:00 AM",
-      status: "Confirmed",
-      department: "Cardiology",
-      phone: "+1 (555) 123-4567",
-      email: "john.doe@email.com",
-      age: 45,
-      symptoms: "Chest pain and shortness of breath",
-      reason: "Follow-up consultation for cardiac evaluation",
-      insurance: "Blue Cross",
-    },
-    {
-      id: 2,
-      patientName: "Jane Wilson",
-      doctor: "Dr. Michael Johnson",
-      date: "2025-01-20",
-      time: "02:30 PM",
-      status: "Confirmed",
-      department: "Neurology",
-      phone: "+1 (555) 987-6543",
-      email: "jane.wilson@email.com",
-      age: 32,
-      symptoms: "Frequent headaches and dizziness",
-      reason: "Initial consultation for neurological assessment",
-      insurance: "Aetna",
-    },
-    {
-      id: 3,
-      patientName: "Mike Davis",
-      doctor: "Dr. Emily Brown",
-      date: "2025-01-20",
-      time: "09:00 AM",
-      status: "Confirmed",
-      department: "Emergency",
-      phone: "+1 (555) 456-7890",
-      email: "mike.davis@email.com",
-      age: 28,
-      symptoms: "Severe abdominal pain",
-      reason: "Emergency examination for acute abdominal pain",
-      insurance: "Medicare",
-    },
-    {
-      id: 4,
-      patientName: "Sarah Johnson",
-      doctor: "Dr. Robert Lee",
-      date: "2025-01-21",
-      time: "11:30 AM",
-      status: "Cancelled",
-      department: "Pediatrics",
-      phone: "+1 (555) 321-0987",
-      email: "sarah.johnson@email.com",
-      age: 8,
-      symptoms: "None - routine checkup",
-      reason: "Regular checkup and vaccination",
-      insurance: "Cigna",
-    },
-  ]);
-
+  const [appointments, setAppointments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterDate, setFilterDate] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
-  const [showEditAppointmentModal, setShowEditAppointmentModal] =
-    useState(false);
+  const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Confirmation modals
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // New appointment form state
   const [newAppointment, setNewAppointment] = useState({
@@ -129,7 +67,7 @@ const Appointment = () => {
     status: "Confirmed",
     department: "",
     phone: "",
-    email: "",
+    patientEmail: "",
     age: "",
     symptoms: "",
     reason: "",
@@ -138,7 +76,7 @@ const Appointment = () => {
 
   // Edit appointment form state
   const [editAppointment, setEditAppointment] = useState({
-    id: null,
+    appointmentId: null,
     patientName: "",
     doctor: "",
     date: "",
@@ -146,7 +84,7 @@ const Appointment = () => {
     status: "Confirmed",
     department: "",
     phone: "",
-    email: "",
+    patientEmail: "",
     age: "",
     symptoms: "",
     reason: "",
@@ -155,8 +93,45 @@ const Appointment = () => {
 
   const [formErrors, setFormErrors] = useState({});
   const [editFormErrors, setEditFormErrors] = useState({});
+  const [stats, setStats] = useState({
+  todayCount: 0,
+  confirmedCount: 0,
+  cancelledCount: 0,
+   pendingCount: 0 
+});
 
+
+  // Fetch appointments on component mount
   useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const data = await appointmentService.getAllAppointments();
+        setAppointments(data);
+        console.log(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+    const fetchStats = async () => {
+    try {
+      const statsData = await appointmentService.getAppointmentStats();
+      setStats({
+        todayCount: statsData.totalAppointments,
+        confirmedCount: statsData.confirmedAppointments,
+        cancelledCount: statsData.cancelledAppointments,
+        pendingCount: statsData.pendingAppointments
+      });
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
+
+  fetchStats();
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -216,19 +191,29 @@ const Appointment = () => {
     "Anthem",
   ];
 
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch =
-      appointment.patientName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      appointment.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.department.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "All" || appointment.status === filterStatus;
-    const matchesDate = !filterDate || appointment.date === filterDate;
+ const filteredAppointments = appointments.filter((appointment) => {
+  // Safely handle search fields
+  const patientName = appointment.patientName?.toLowerCase() || '';
+  const doctor = appointment.doctor?.toLowerCase() || '';
+  const department = appointment.department?.toLowerCase() || '';
+  const searchTermLower = searchTerm.toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesDate;
-  });
+  // Search matches (patient name, doctor, or department)
+  const matchesSearch = 
+    patientName.includes(searchTermLower) ||
+    doctor.includes(searchTermLower) ||
+    department.includes(searchTermLower);
+  
+  // Status filter - handles "All", "Confirmed", "Cancelled"
+  const matchesStatus = 
+    filterStatus === "All" || 
+    appointment.status?.toLowerCase() === filterStatus.toLowerCase();
+  
+  // Date filter
+  const matchesDate = !filterDate || appointment.date === filterDate;
+
+  return matchesSearch && matchesStatus && matchesDate;
+});
 
   const validateForm = () => {
     const errors = {};
@@ -241,7 +226,7 @@ const Appointment = () => {
     if (!newAppointment.department)
       errors.department = "Department is required";
     if (!newAppointment.phone.trim()) errors.phone = "Phone number is required";
-    if (!newAppointment.email.trim()) errors.email = "Email is required";
+    if (!newAppointment.patientEmail.trim()) errors.patientEmail = "patientEmail is required";
     if (!newAppointment.age || newAppointment.age < 1)
       errors.age = "Valid age is required";
     if (!newAppointment.symptoms.trim())
@@ -251,10 +236,10 @@ const Appointment = () => {
     if (!newAppointment.insurance)
       errors.insurance = "Insurance selection is required";
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (newAppointment.email && !emailRegex.test(newAppointment.email)) {
-      errors.email = "Please enter a valid email address";
+    // patientEmail validation
+    const patientEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (newAppointment.patientEmail && !patientEmailRegex.test(newAppointment.patientEmail)) {
+      errors.patientEmail = "Please enter a valid patientEmail address";
     }
 
     // Phone validation (basic)
@@ -282,7 +267,7 @@ const Appointment = () => {
       errors.department = "Department is required";
     if (!editAppointment.phone.trim())
       errors.phone = "Phone number is required";
-    if (!editAppointment.email.trim()) errors.email = "Email is required";
+    if (!editAppointment.patientEmail.trim()) errors.patientEmail = "patientEmail is required";
     if (!editAppointment.age || editAppointment.age < 1)
       errors.age = "Valid age is required";
     if (!editAppointment.symptoms.trim())
@@ -292,10 +277,10 @@ const Appointment = () => {
     if (!editAppointment.insurance)
       errors.insurance = "Insurance selection is required";
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (editAppointment.email && !emailRegex.test(editAppointment.email)) {
-      errors.email = "Please enter a valid email address";
+    // patientEmail validation
+    const patientEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (editAppointment.patientEmail && !patientEmailRegex.test(editAppointment.patientEmail)) {
+      errors.patientEmail = "Please enter a valid patientEmail address";
     }
 
     // Phone validation (basic)
@@ -311,37 +296,42 @@ const Appointment = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreateAppointment = () => {
+  const handleCreateAppointment = async () => {
     if (!validateForm()) return;
 
-    const appointment = {
-      ...newAppointment,
-      id: Math.max(...appointments.map((a) => a.id), 0) + 1,
-      age: parseInt(newAppointment.age),
-    };
-
-    setAppointments((prev) => [appointment, ...prev]);
-    setNewAppointment({
-      patientName: "",
-      doctor: "",
-      date: "",
-      time: "",
-      status: "Confirmed",
-      department: "",
-      phone: "",
-      email: "",
-      age: "",
-      symptoms: "",
-      reason: "",
-      insurance: "",
-    });
-    setFormErrors({});
-    setShowNewAppointmentModal(false);
+    try {
+      const createdAppointment = await appointmentService.createAppointment({
+        ...newAppointment,
+        age: parseInt(newAppointment.age),
+      });
+      setAppointments((prev) => [createdAppointment, ...prev]);
+      
+      // Reset form
+      setNewAppointment({
+        patientName: "",
+        doctor: "",
+        date: "",
+        time: "",
+        status: "Confirmed",
+        department: "",
+        phone: "",
+        patientEmail: "",
+        age: "",
+        symptoms: "",
+        reason: "",
+        insurance: "",
+      });
+      setFormErrors({});
+      setShowNewAppointmentModal(false);
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+    }
   };
 
   const handleEditAppointment = (appointment) => {
+      console.log("Original appointment data:", appointment.patientName);
     setEditAppointment({
-      id: appointment.id,
+      appointmentId: appointment.appointmentId,
       patientName: appointment.patientName,
       doctor: appointment.doctor,
       date: appointment.date,
@@ -349,8 +339,8 @@ const Appointment = () => {
       status: appointment.status,
       department: appointment.department,
       phone: appointment.phone,
-      email: appointment.email,
-      age: appointment.age.toString(),
+      patientEmail: appointment.patientEmail,
+      age:  appointment.age ? appointment.age.toString() : '',
       symptoms: appointment.symptoms,
       reason: appointment.reason,
       insurance: appointment.insurance,
@@ -359,53 +349,105 @@ const Appointment = () => {
     setShowEditAppointmentModal(true);
   };
 
-  const handleUpdateAppointment = () => {
-    if (!validateEditForm()) return;
+const handleUpdateAppointment = async () => {
+  if (!validateEditForm()) return;
 
-    const updatedAppointment = {
-      ...editAppointment,
-      age: parseInt(editAppointment.age),
+  try {
+    // Transform frontend data to match backend DTO
+    const updateData = {
+     
+      patientId: editAppointment.patientId || "PATIENT_ID_PLACEHOLDER", // Use actual patientId if available
+      doctorId: editAppointment.doctorId || "DOCTOR_ID_PLACEHOLDER", // Use actual doctorId if available
+      patientName: editAppointment.patientName,
+      doctorName: editAppointment.doctor,
+      department: editAppointment.department,
+      patientEmail: editAppointment.patientEmail,
+      
+      // Combine date and time into LocalDateTime format
+      appointmentDateTime: `${editAppointment.date}T${convertTo24Hour(editAppointment.time)}`,
+      duration: editAppointment.duration || 30, // Use provided duration or default to 30
+      reason: editAppointment.reason,
+      symptoms: editAppointment.symptoms,
+      additionalNotes: editAppointment.additionalNotes || "", // Add if available
+      isEmergency: editAppointment.isEmergency || false,
+      status: editAppointment.status,
+      
+      // These will typically be set by the backend, but include if needed
+      createdAt: editAppointment.createdAt, // Preserve original if exists
+      updatedAt: new Date().toISOString() // Current timestamp
     };
 
-    setAppointments((prev) =>
-      prev.map((app) =>
-        app.id === editAppointment.id ? updatedAppointment : app
-      )
+    // Remove any undefined fields
+    const cleanedUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, v]) => v !== undefined)
     );
 
-    setEditAppointment({
-      id: null,
-      patientName: "",
-      doctor: "",
-      date: "",
-      time: "",
-      status: "Confirmed",
-      department: "",
-      phone: "",
-      email: "",
-      age: "",
-      symptoms: "",
-      reason: "",
-      insurance: "",
-    });
-    setEditFormErrors({});
+    const updatedAppointment = await appointmentService.updateAppointment(
+      editAppointment.appointmentId,
+      cleanedUpdateData
+    );
+
+    // Update state
+    setAppointments(prev => 
+      prev.map(app => 
+        app.appointmentId === editAppointment.appointmentId ? updatedAppointment : app
+      )
+    );
+    
     setShowEditAppointmentModal(false);
-  };
+    alert('Appointment updated successfully!');
+  } catch (error) {
+    console.error('Update error:', error);
+    alert(error.message || 'Failed to update appointment');
+  }
+};
+
+// Helper function to convert "02:30 PM" to "14:30:00"
+function convertTo24Hour(time12h) {
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+  
+  if (hours === '12') hours = '00';
+  if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+  
+  return `${hours}:${minutes}:00`;
+}
 
   const handleDeleteClick = (appointment) => {
     setAppointmentToDelete(appointment);
     setShowDeleteConfirmModal(true);
   };
 
-  const confirmDelete = () => {
-    if (appointmentToDelete) {
-      setAppointments((prev) =>
-        prev.filter((app) => app.id !== appointmentToDelete.id)
-      );
+ const confirmDelete = async () => {
+  if (appointmentToDelete) {
+    try {
+      // Make sure to use consistent ID (either id or appointmentId)
+      const idToDelete =  appointmentToDelete.appointmentId;
+      
+      await appointmentService.cancelAppointment(idToDelete);
+      
+      // Update state
+      setAppointments(prev => prev.filter(app => 
+        (app.appointmentId) !== idToDelete
+      ));
+      
+      // Reset state and close modal
       setAppointmentToDelete(null);
       setShowDeleteConfirmModal(false);
+      
+      // Show success feedback (optional)
+      alert('Appointment deleted successfully!' + idToDelete);
+      // Or use a toast notification if available:
+      // toast.success('Appointment deleted successfully!');
+      
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+      // Show error feedback (optional)
+      alert('Failed to delete appointment');
+      // Or: toast.error('Failed to delete appointment');
     }
-  };
+  }
+};
 
   const cancelDelete = () => {
     setAppointmentToDelete(null);
@@ -418,17 +460,23 @@ const Appointment = () => {
     setShowConfirmModal(true);
   };
 
-  const confirmAppointment = () => {
+  const confirmAppointment = async () => {
     if (appointmentToConfirm) {
-      setAppointments((prev) =>
-        prev.map((app) =>
-          app.id === appointmentToConfirm.id
-            ? { ...app, status: "Confirmed" }
-            : app
-        )
-      );
-      setAppointmentToConfirm(null);
-      setShowConfirmModal(false);
+      try {
+        const confirmedAppointment = await appointmentService.confirmAppointment(
+          appointmentToConfirm.id
+        );
+        
+        setAppointments((prev) =>
+          prev.map((app) =>
+            app.id === appointmentToConfirm.id ? confirmedAppointment : app
+          )
+        );
+        setAppointmentToConfirm(null);
+        setShowConfirmModal(false);
+      } catch (error) {
+        console.error("Error confirming appointment:", error);
+      }
     }
   };
 
@@ -443,17 +491,23 @@ const Appointment = () => {
     setShowCancelModal(true);
   };
 
-  const cancelAppointment = () => {
+  const cancelAppointment = async () => {
     if (appointmentToCancel) {
-      setAppointments((prev) =>
-        prev.map((app) =>
-          app.id === appointmentToCancel.id
-            ? { ...app, status: "Cancelled" }
-            : app
-        )
-      );
-      setAppointmentToCancel(null);
-      setShowCancelModal(false);
+      try {
+        const cancelledAppointment = await appointmentService.cancelAppointment(
+          appointmentToCancel.id
+        );
+        
+        setAppointments((prev) =>
+          prev.map((app) =>
+            app.id === appointmentToCancel.id ? cancelledAppointment : app
+          )
+        );
+        setAppointmentToCancel(null);
+        setShowCancelModal(false);
+      } catch (error) {
+        console.error("Error canceling appointment:", error);
+      }
     }
   };
 
@@ -482,17 +536,49 @@ const Appointment = () => {
       default:
         return <Clock size={16} />;
     }
-  };
+  };  
+   const formatDisplayDateTime = (dateTimeString) => {
+  if (!dateTimeString) return 'Not scheduled';
+  return new Date(dateTimeString).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+const formatDisplayDate= (dateTimeString) => {
+  if (!dateTimeString) return 'Not scheduled';
+  return new Date(dateTimeString).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+// Output: "9:30 AM"
+// Output: "Sun, Aug 6"
 
-  const todayAppointments = appointments.filter(
-    (app) => app.date === new Date().toISOString().split("T")[0]
-  );
-  const confirmedCount = appointments.filter(
-    (app) => app.status === "Confirmed"
-  ).length;
-  const cancelledCount = appointments.filter(
-    (app) => app.status === "Cancelled"
-  ).length;
+  // const todayAppointments = appointments.filter(
+  //   (app) => app.date === new Date().toISOString().split("T")[0]
+  // );
+  // const confirmedCount = appointments.filter(
+  //   (app) => app.status === "Confirmed"
+  // ).length;
+  // const cancelledCount = appointments.filter(
+  //   (app) => app.status === "Cancelled"
+  // ).length;
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+      }}>
+        <div>Loading appointments...</div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -522,21 +608,28 @@ const Appointment = () => {
           {[
             {
               title: "Today's Appointments",
-              value: todayAppointments.length,
+              value: stats.todayCount,
               icon: Calendar,
               color: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
               bgColor: "rgba(59, 130, 246, 0.1)",
             },
             {
               title: "Confirmed",
-              value: confirmedCount,
+              value: stats.confirmedCount,
               icon: CheckCircle,
               color: "linear-gradient(135deg, #10b981, #059669)",
               bgColor: "rgba(16, 185, 129, 0.1)",
             },
+             {
+      title: "Pending",
+      value: stats.pendingCount,
+      icon: Clock,  // Using Clock icon for pending status
+      color: "linear-gradient(135deg, #f59e0b, #d97706)",
+      bgColor: "rgba(245, 158, 11, 0.1)",
+    },
             {
               title: "Cancelled",
-              value: cancelledCount,
+              value: stats.cancelledCount,
               icon: XCircle,
               color: "linear-gradient(135deg, #6b7280, #4b5563)",
               bgColor: "rgba(107, 114, 128, 0.1)",
@@ -917,7 +1010,7 @@ const Appointment = () => {
                               <span
                                 style={{ color: "#64748b", fontSize: "12px" }}
                               >
-                                {appointment.email}
+                                {appointment.patientEmail}
                               </span>
                             </div>
                           </div>
@@ -959,7 +1052,7 @@ const Appointment = () => {
                                   margin: 0,
                                 }}
                               >
-                                {appointment.doctor}
+                                {appointment.doctorName}
                               </h4>
                               <p
                                 style={{
@@ -995,7 +1088,7 @@ const Appointment = () => {
                                   fontWeight: "500",
                                 }}
                               >
-                                {appointment.date}
+                                {formatDisplayDateTime (appointment.appointmentDateTime)}
                               </span>
                             </div>
                             <div
@@ -1013,7 +1106,7 @@ const Appointment = () => {
                                   fontWeight: "500",
                                 }}
                               >
-                                {appointment.time}
+                                {formatDisplayDate (appointment.appointmentDateTime)}
                               </span>
                             </div>
                           </div>
@@ -1028,7 +1121,7 @@ const Appointment = () => {
                           }}
                         >
                           {/* Status Badge */}
-                          <div
+                      <div
                             style={{
                               background: getStatusColor(appointment.status),
                               color: "white",
@@ -1427,7 +1520,7 @@ const Appointment = () => {
                     date: "",
                     time: "",
                     phone: "",
-                    email: "",
+                    patientEmail: "",
                     age: "",
                     symptoms: "",
                     reason: "",
@@ -1639,22 +1732,22 @@ const Appointment = () => {
                         marginBottom: "6px",
                       }}
                     >
-                      Email Address *
+                      patientEmail Address *
                     </label>
                     <input
-                      type="email"
-                      value={newAppointment.email}
+                      type="patientEmail"
+                      value={newAppointment.patientEmail}
                       onChange={(e) =>
                         setNewAppointment((prev) => ({
                           ...prev,
-                          email: e.target.value,
+                          patientEmail: e.target.value,
                         }))
                       }
                       style={{
                         padding: "10px 14px",
                         borderRadius: "10px",
                         border: `2px solid ${
-                          formErrors.email
+                          formErrors.patientEmail
                             ? "#ef4444"
                             : "rgba(148, 163, 184, 0.2)"
                         }`,
@@ -1664,9 +1757,9 @@ const Appointment = () => {
                         background: "rgba(255, 255, 255, 0.8)",
                         fontFamily: "inherit",
                       }}
-                      placeholder="patient@email.com"
+                      placeholder="patient@patientEmail.com"
                     />
-                    {formErrors.email && (
+                    {formErrors.patientEmail && (
                       <span
                         style={{
                           color: "#ef4444",
@@ -1674,7 +1767,7 @@ const Appointment = () => {
                           marginTop: "4px",
                         }}
                       >
-                        {formErrors.email}
+                        {formErrors.patientEmail}
                       </span>
                     )}
                   </div>
@@ -2149,7 +2242,7 @@ const Appointment = () => {
                       date: "",
                       time: "",
                       phone: "",
-                      email: "",
+                      patientEmail: "",
                       age: "",
                       symptoms: "",
                       reason: "",
@@ -2269,7 +2362,7 @@ const Appointment = () => {
                     date: "",
                     time: "",
                     phone: "",
-                    email: "",
+                    patientEmail: "",
                     age: "",
                     symptoms: "",
                     reason: "",
@@ -2481,22 +2574,22 @@ const Appointment = () => {
                         marginBottom: "6px",
                       }}
                     >
-                      Email Address *
+                      patientEmail Address *
                     </label>
                     <input
-                      type="email"
-                      value={editAppointment.email}
+                      type="patientEmail"
+                      value={editAppointment.patientEmail}
                       onChange={(e) =>
                         setEditAppointment((prev) => ({
                           ...prev,
-                          email: e.target.value,
+                          patientEmail: e.target.value,
                         }))
                       }
                       style={{
                         padding: "10px 14px",
                         borderRadius: "10px",
                         border: `2px solid ${
-                          editFormErrors.email
+                          editFormErrors.patientEmail
                             ? "#ef4444"
                             : "rgba(148, 163, 184, 0.2)"
                         }`,
@@ -2506,9 +2599,9 @@ const Appointment = () => {
                         background: "rgba(255, 255, 255, 0.8)",
                         fontFamily: "inherit",
                       }}
-                      placeholder="patient@email.com"
+                      placeholder="patient@patientEmail.com"
                     />
-                    {editFormErrors.email && (
+                    {editFormErrors.patientEmail && (
                       <span
                         style={{
                           color: "#ef4444",
@@ -2516,7 +2609,7 @@ const Appointment = () => {
                           marginTop: "4px",
                         }}
                       >
-                        {editFormErrors.email}
+                        {editFormErrors.patientEmail}
                       </span>
                     )}
                   </div>
@@ -2587,8 +2680,7 @@ const Appointment = () => {
                   padding: "20px",
                   marginBottom: "20px",
                 }}
-              >
-                <h3
+              >                <h3
                   style={{
                     fontSize: "1.1rem",
                     fontWeight: "600",
@@ -2992,7 +3084,7 @@ const Appointment = () => {
                       date: "",
                       time: "",
                       phone: "",
-                      email: "",
+                      patientEmail: "",
                       age: "",
                       symptoms: "",
                       reason: "",
@@ -3018,7 +3110,8 @@ const Appointment = () => {
                 <button
                   onClick={handleUpdateAppointment}
                   style={{
-                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    background:
+                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     color: "white",
                     padding: "10px 20px",
                     borderRadius: "10px",
@@ -3030,7 +3123,7 @@ const Appointment = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
+                    boxShadow: "0 8px 24px rgba(102, 126, 234, 0.3)",
                     minHeight: "44px",
                   }}
                 >
@@ -3107,13 +3200,11 @@ const Appointment = () => {
                 lineHeight: "1.5",
               }}
             >
-              Are you sure you want to delete the appointment for{" "}
+              Are you sure you want to permanently delete the appointment for{" "}
               <strong style={{ color: "#1e293b" }}>
                 {appointmentToDelete.patientName}
               </strong>
               ?
-              <br />
-              This action cannot be undone.
             </p>
 
             <div
@@ -3204,7 +3295,7 @@ const Appointment = () => {
                   minHeight: "48px",
                 }}
               >
-                Cancel
+                Keep Appointment
               </button>
               <button
                 onClick={confirmDelete}
@@ -3226,14 +3317,14 @@ const Appointment = () => {
                 }}
               >
                 <Trash2 size={16} />
-                Delete Appointment
+                Yes, Delete
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* View Appointment Modal */}
+      {/* Appointment Detail Modal */}
       {showModal && selectedAppointment && (
         <div
           style={{
@@ -3259,9 +3350,9 @@ const Appointment = () => {
               padding: "30px",
               maxWidth: "600px",
               width: "90%",
-              maxHeight: "calc(100vh - 30px)",
-              overflow: "auto",
               boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25)",
+              maxHeight: "90vh",
+              overflowY: "auto",
             }}
           >
             <div
@@ -3269,19 +3360,21 @@ const Appointment = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: "25px",
-                paddingBottom: "15px",
-                borderBottom: "2px solid #f1f5f9",
+                marginBottom: "20px",
               }}
             >
               <h2
                 style={{
                   color: "#1e293b",
-                  fontSize: "24px",
+                  fontSize: "22px",
                   fontWeight: "700",
                   margin: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                 }}
               >
+                <User size={24} />
                 Appointment Details
               </h2>
               <button
@@ -3289,266 +3382,34 @@ const Appointment = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  fontSize: "20px",
                   cursor: "pointer",
                   color: "#64748b",
-                  padding: "4px",
-                  minHeight: "44px",
-                  minWidth: "44px",
+                  fontSize: "20px",
                 }}
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
 
-            <div style={{ display: "grid", gap: "20px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: "20px",
+              }}
+            >
               {/* Patient Information */}
               <div
                 style={{
-                  background:
-                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  borderRadius: "16px",
                   padding: "20px",
-                  borderRadius: "12px",
                 }}
               >
                 <h3
                   style={{
                     color: "#1e293b",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    margin: "0 0 12px 0",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <User size={18} color="#3b82f6" />
-                  Patient Information
-                </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Name
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.patientName}
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Age
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.age} years
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Phone
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.phone}
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Email
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.email}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appointment Information */}
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-                  padding: "20px",
-                  borderRadius: "12px",
-                }}
-              >
-                <h3
-                  style={{
-                    color: "#1e293b",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    margin: "0 0 12px 0",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <Calendar size={18} color="#3b82f6" />
-                  Appointment Information
-                </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Doctor
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.doctor}
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Department
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.department}
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Date
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.date}
-                    </p>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        color: "#64748b",
-                        fontSize: "13px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Time
-                    </label>
-                    <p
-                      style={{
-                        color: "#1e293b",
-                        fontSize: "14px",
-                        margin: "4px 0 0 0",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {selectedAppointment.time}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Medical Information */}
-              <div
-                style={{
-                  background:
-                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-                  padding: "20px",
-                  borderRadius: "12px",
-                }}
-              >
-                <h3
-                  style={{
-                    color: "#1e293b",
-                    fontSize: "16px",
+                    fontSize: "18px",
                     fontWeight: "600",
                     margin: "0 0 15px 0",
                     display: "flex",
@@ -3556,9 +3417,10 @@ const Appointment = () => {
                     gap: "8px",
                   }}
                 >
-                  <Heart size={18} color="#3b82f6" />
-                  Medical Information
+                  <User size={18} />
+                  Patient Information
                 </h3>
+
                 <div
                   style={{
                     display: "grid",
@@ -3567,52 +3429,345 @@ const Appointment = () => {
                   }}
                 >
                   <div>
-                    <label
+                    <p
                       style={{
                         color: "#64748b",
-                        fontSize: "13px",
+                        fontSize: "14px",
                         fontWeight: "600",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        marginBottom: "6px",
+                        margin: "0 0 5px 0",
                       }}
                     >
-                      <Heart size={12} />
-                      Symptoms
-                    </label>
+                      Name
+                    </p>
                     <p
                       style={{
                         color: "#1e293b",
-                        fontSize: "14px",
+                        fontSize: "16px",
+                        fontWeight: "600",
                         margin: 0,
-                        lineHeight: "1.5",
+                      }}
+                    >
+                      {selectedAppointment.patientName}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Age
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.age}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Phone
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.phone}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      patientEmail
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.patientEmail}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Insurance
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.insurance}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment Information */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  borderRadius: "16px",
+                  padding: "20px",
+                }}
+              >
+                <h3
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    margin: "0 0 15px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Calendar size={18} />
+                  Appointment Information
+                </h3>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "15px",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Doctor
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.doctor}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Department
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {selectedAppointment.department}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Date
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {formatDisplayDateTime(selectedAppointment.appointmentDateTime)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Time
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      {formatDisplayDate(selectedAppointment.appointmentDateTime)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Status
+                    </p>
+                    <div
+                      style={{
+                        background: getStatusColor(selectedAppointment.status),
+                        color: "white",
+                        padding: "6px 12px",
+                        borderRadius: "20px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        alignSelf: "flex-start",
+                        width: "fit-content",
+                      }}
+                    >
+                      {getStatusIcon(selectedAppointment.status)}
+                      {selectedAppointment.status}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  borderRadius: "16px",
+                  padding: "20px",
+                }}
+              >
+                <h3
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    margin: "0 0 15px 0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Heart size={18} />
+                  Medical Information
+                </h3>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: "15px",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        color: "#64748b",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        margin: "0 0 5px 0",
+                      }}
+                    >
+                      Symptoms
+                    </p>
+                    <p
+                      style={{
+                        color: "#1e293b",
+                        fontSize: "16px",
+                        margin: 0,
                       }}
                     >
                       {selectedAppointment.symptoms}
                     </p>
                   </div>
+
                   <div>
-                    <label
+                    <p
                       style={{
                         color: "#64748b",
-                        fontSize: "13px",
+                        fontSize: "14px",
                         fontWeight: "600",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "4px",
-                        marginBottom: "6px",
+                        margin: "0 0 5px 0",
                       }}
                     >
-                      <FileText size={12} />
                       Reason for Visit
-                    </label>
+                    </p>
                     <p
                       style={{
                         color: "#1e293b",
-                        fontSize: "14px",
+                        fontSize: "16px",
                         margin: 0,
-                        lineHeight: "1.5",
                       }}
                     >
                       {selectedAppointment.reason}
@@ -3620,6 +3775,227 @@ const Appointment = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginTop: "25px",
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  handleEditAppointment(selectedAppointment);
+                }}
+                style={{
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "12px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Edit3 size={16} />
+                Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Appointment Modal */}
+      {showConfirmModal && appointmentToConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            backdropFilter: "blur(8px)",
+            padding: "15px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "20px",
+              padding: "30px",
+              maxWidth: "450px",
+              width: "90%",
+              boxShadow: "0 25px 50px rgba(0, 0, 0, 0.25)",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                background: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
+                borderRadius: "50%",
+                width: "80px",
+                height: "80px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 20px auto",
+              }}
+            >
+              <CheckCircle size={40} color="#10b981" />
+            </div>
+
+            <h2
+              style={{
+                color: "#1e293b",
+                fontSize: "24px",
+                fontWeight: "700",
+                margin: "0 0 10px 0",
+              }}
+            >
+              Confirm Appointment
+            </h2>
+
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+                margin: "0 0 20px 0",
+                lineHeight: "1.5",
+              }}
+            >
+              Are you sure you want to confirm the appointment for{" "}
+              <strong style={{ color: "#1e293b" }}>
+                {appointmentToConfirm.patientName}
+              </strong>
+              ?
+            </p>
+
+            <div
+              style={{
+                background: "#f8fafc",
+                padding: "15px",
+                borderRadius: "12px",
+                margin: "20px 0",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ color: "#64748b", fontSize: "14px" }}>
+                  Patient:
+                </span>
+                <span
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {appointmentToConfirm.patientName}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ color: "#64748b", fontSize: "14px" }}>
+                  Doctor:
+                </span>
+                <span
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {appointmentToConfirm.doctor}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#64748b", fontSize: "14px" }}>
+                  Date & Time:
+                </span>
+                <span
+                  style={{
+                    color: "#1e293b",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {appointmentToConfirm.date} at {appointmentToConfirm.time}
+                </span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                justifyContent: "center",
+                marginTop: "25px",
+              }}
+            >
+              <button
+                onClick={cancelConfirm}
+                style={{
+                  background: "white",
+                  color: "#64748b",
+                  border: "2px solid #e2e8f0",
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  minHeight: "48px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAppointment}
+                style={{
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  color: "white",
+                  border: "none",
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 4px 15px rgba(16, 185, 129, 0.3)",
+                  minHeight: "48px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Check size={16} />
+                Yes, Confirm
+              </button>
             </div>
           </div>
         </div>

@@ -14,6 +14,7 @@ export default {
 
   async createAppointment(appointmentData) {
     try {
+       console.log(appointmentData);
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -64,7 +65,7 @@ async cancelAppointment(id) {
     console.log('Cancelling appointment with ID:', id);
     
     const response = await fetch(`${API_URL}/cancel/${id}`, {
-      method: 'DELETE',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json' // optional, depending on your backend
       }

@@ -82,7 +82,9 @@ const Patients = () => {
       allergies: 'Not specified',
       assignedDoctor: 'Not assigned',
       createdAt: patient.createdAt,
-      updatedAt: patient.updatedAt
+      updatedAt: patient.updatedAt,
+      city: patient.city,
+      state: patient.state
     };
   };
 

@@ -76,90 +76,125 @@ const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
       setToast({ show: false, message: "", type: "success" });
     }, 3000);
   };
+const handleSavePrescription = async () => {
+  try {
+    setSubmitting(true);
 
-  const handleSavePrescription = async () => {
-    try {
-      setSubmitting(true);
-
-      // Validate required fields
-      if (!appointmentId || !doctorId) {
-        showToast("Missing appointment or doctor information", "error");
-        console.error("Missing data - appointmentId:", appointmentId, "doctorId:", doctorId);
-        return;
-      }
-
-      // Validate that we have at least some prescription data
-      if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
-        showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
-        return;
-      }
-
-      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
-
-      // Prepare prescription data
-      const prescriptionData = {
-        appointmentId: appointmentId, // This should now be the correct appointmentId (like "apt_1237")
-        doctorId: doctorId,
-        medicines: selectedMeds.map(med => ({
-          name: med.name,
-          batch: med.batch,
-          dosage: med.dosage || "",
-          quantity: med.quantity || "",
-          duration: med.duration || "",
-          timing: med.timing || []
-        })),
-        injections: injections.map(inj => ({
-          name: inj.name,
-          batch: inj.batch,
-          dosage: inj.dosage || "",
-          quantity: inj.quantity || "",
-          schedule: inj.schedule || "",
-          notes: inj.notes || ""
-        })),
-        dietPlan: dietPlan,
-        recommendedTests: recommendedTests
-      };
-
-      console.log('Sending prescription data:', prescriptionData);
-
-      // Send to backend
-      const response = await fetch('http://localhost:8082/api/prescriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(prescriptionData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to save prescription: ${errorData}`);
-      }
-
-      const result = await response.json();
-      console.log('Prescription saved successfully:', result);
-      
-      showToast("Prescription saved successfully!");
-      
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess(result);
-      }
-      
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        if (onClose) {
-          onClose();
-        }
-      }, 2000);
-
-    } catch (error) {
-      console.error('Error saving prescription:', error);
-      showToast(`Error saving prescription: ${error.message}`, "error");
-    } finally {
-      setSubmitting(false);
+    // Validate required fields
+    if (!appointmentId || !doctorId) {
+      showToast("Missing appointment or doctor information", "error");
+      console.error("Missing data - appointmentId:", appointmentId, "doctorId:", doctorId);
+      return;
     }
-  };
+
+    // Validate that we have at least some prescription data
+    if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
+      showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
+      return;
+    }
+
+    console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
+
+    // Prepare prescription data
+    const prescriptionData = {
+      appointmentId: appointmentId,
+      doctorId: doctorId,
+      medicines: selectedMeds.map(med => ({
+        name: med.name,
+        batch: med.batch,
+        dosage: med.dosage || "",
+        quantity: med.quantity || "",
+        duration: med.duration || "",
+        timing: med.timing || []
+      })),
+      injections: injections.map(inj => ({
+        name: inj.name,
+        batch: inj.batch,
+        dosage: inj.dosage || "",
+        quantity: inj.quantity || "",
+        schedule: inj.schedule || "",
+        notes: inj.notes || ""
+      })),
+      dietPlan: dietPlan,
+      recommendedTests: recommendedTests
+    };
+
+    console.log('Sending prescription data:', JSON.stringify(prescriptionData, null, 2));
+
+    // Send to backend with detailed error handling
+    const response = await fetch('https://doctorpanel-backend.onrender.com/api/prescriptions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(prescriptionData)
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      
+      try {
+        const errorData = JSON.parse(responseText);
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        // Response is not JSON, use the raw text
+        errorMessage = responseText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      result = { message: 'Prescription saved successfully' };
+    }
+    
+    console.log('Prescription saved successfully:', result);
+    
+    showToast("Prescription saved successfully!");
+    
+    // Call success callback if provided
+    if (onSuccess) {
+      onSuccess(result);
+    }
+    
+    // Close modal after 2 seconds
+    setTimeout(() => {
+      if (onClose) {
+        onClose();
+      }
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error saving prescription:', error);
+    
+    // More detailed error messages
+    let errorMessage = error.message;
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorMessage = 'Network error - unable to connect to server. Please check your internet connection.';
+    } else if (error.message.includes('CORS')) {
+      errorMessage = 'CORS error - please check server configuration.';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timeout - server took too long to respond.';
+    }
+    
+    showToast(`Error saving prescription: ${errorMessage}`, "error");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const filteredSuggestions = medicines.filter((med) =>
     med.name.toLowerCase().includes(search.trim().toLowerCase())
@@ -263,8 +298,8 @@ const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Toast Notification */}
         {toast.show && (
           <div className={`fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
@@ -311,7 +346,7 @@ const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
         </div>
 
         {/* Form Content */}
-        <div className="max-h-[80vh] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-8 space-y-8">
 
             {/* Search Section */}
@@ -449,173 +484,171 @@ const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
               </div>
             </div>
 
-            {/* Combined Table */}
+            {/* Prescribed Items Table */}
             {(selectedMeds.length > 0 || injections.length > 0) && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                   Prescribed Items
                 </h3>
-                <div className="border-2 border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                  <div className="overflow-x-auto max-h-80">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-100 sticky top-0">
-                        <tr>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-20">Type</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-40">Name</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-24">Batch</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-32">Dosage</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-24">Qty</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-32">Duration/Schedule</th>
-                          <th className="border-r border-gray-300 px-4 py-4 text-left font-semibold text-gray-700 w-36">Timing/Notes</th>
-                          <th className="px-4 py-4 text-center font-semibold text-gray-700 w-16">Action</th>
+                <div className="border-2 border-gray-200 rounded-xl overflow-x-auto bg-gray-50 shadow-sm">
+                  <table className="w-full text-sm min-w-[900px]">
+                    <thead className="bg-gray-100 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Type</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Name</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Batch</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Dosage</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Qty</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Duration/Schedule</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Timing/Notes</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {selectedMeds.map((med, index) => (
+                        <tr key={`med-${index}`} className="hover:bg-blue-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">Med</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              placeholder="Medicine Name"
+                              value={med.name}
+                              onChange={(e) => updateMedField(index, "name", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm font-semibold text-blue-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                              {med.batch || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              placeholder="e.g., 500mg"
+                              value={med.dosage || ''}
+                              onChange={(e) => updateMedField(index, "dosage", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              placeholder="e.g., 10"
+                              value={med.quantity}
+                              onChange={(e) => updateMedField(index, "quantity", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              min="1"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              placeholder="e.g., 5 (days)"
+                              value={med.duration}
+                              onChange={(e) => updateMedField(index, "duration", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              min="1"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2 flex-wrap">
+                              {["Morning", "Afternoon", "Night"].map((time) => (
+                                <label key={time} className="flex items-center gap-1 text-xs">
+                                  <input
+                                    type="checkbox"
+                                    checked={med.timing.includes(time)}
+                                    onChange={() => handleTimingChange(index, time)}
+                                    className="w-4 h-4 rounded"
+                                  />
+                                  {time.charAt(0)}
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => handleRemoveMedicine(index)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors"
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 bg-white">
-                        {selectedMeds.map((med, index) => (
-                          <tr key={`med-${index}`} className="hover:bg-blue-50 transition-colors duration-150">
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <span className="inline-block bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">Med</span>
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Medicine Name"
-                                value={med.name}
-                                onChange={(e) => updateMedField(index, "name", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm font-semibold text-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
-                                {med.batch || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Dosage"
-                                value={med.dosage || ''}
-                                onChange={(e) => updateMedField(index, "dosage", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="number"
-                                placeholder="2"
-                                value={med.quantity}
-                                onChange={(e) => updateMedField(index, "quantity", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                min="1"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="number"
-                                placeholder="7"
-                                value={med.duration}
-                                onChange={(e) => updateMedField(index, "duration", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                min="1"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <div className="flex gap-2">
-                                {["Morning", "Afternoon", "Night"].map((time) => (
-                                  <label key={time} className="flex items-center gap-1 text-xs">
-                                    <input
-                                      type="checkbox"
-                                      checked={med.timing.includes(time)}
-                                      onChange={() => handleTimingChange(index, time)}
-                                      className="w-4 h-4 rounded"
-                                    />
-                                    {time.charAt(0)}
-                                  </label>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-center">
-                              <button
-                                onClick={() => handleRemoveMedicine(index)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
-                                title="Remove"
-                              >
-                                ×
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {injections.map((inj, index) => (
-                          <tr key={`inj-${index}`} className="hover:bg-blue-50 transition-colors duration-150">
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <span className="inline-block bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">Inj</span>
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Injection Name"
-                                value={inj.name}
-                                onChange={(e) => updateInjection(index, "name", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm font-semibold text-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
-                                {inj.batch || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Dosage"
-                                value={inj.dosage || ''}
-                                onChange={(e) => updateInjection(index, "dosage", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="number"
-                                placeholder="2"
-                                value={inj.quantity}
-                                onChange={(e) => updateInjection(index, "quantity", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                min="1"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <input
-                                type="text"
-                                placeholder="Daily for 3 days"
-                                value={inj.schedule}
-                                onChange={(e) => updateInjection(index, "schedule", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="border-r border-gray-200 px-4 py-4">
-                              <textarea
-                                placeholder="Notes"
-                                value={inj.notes}
-                                onChange={(e) => updateInjection(index, "notes", e.target.value)}
-                                className="w-full border border-gray-300 px-2 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                rows={1}
-                              />
-                            </td>
-                            <td className="px-4 py-4 text-center">
-                              <button
-                                onClick={() => handleRemoveInjection(index)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors duration-200"
-                                title="Remove"
-                              >
-                                ×
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                      {injections.map((inj, index) => (
+                        <tr key={`inj-${index}`} className="hover:bg-blue-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Inj</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              placeholder="Injection Name"
+                              value={inj.name}
+                              onChange={(e) => updateInjection(index, "name", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm font-semibold text-blue-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                              {inj.batch || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              placeholder="e.g., 2ml"
+                              value={inj.dosage || ''}
+                              onChange={(e) => updateInjection(index, "dosage", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              placeholder="e.g., 2"
+                              value={inj.quantity}
+                              onChange={(e) => updateInjection(index, "quantity", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              min="1"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              placeholder="e.g., Daily for 3 days"
+                              value={inj.schedule}
+                              onChange={(e) => updateInjection(index, "schedule", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <textarea
+                              placeholder="Any special instructions..."
+                              value={inj.notes}
+                              onChange={(e) => updateInjection(index, "notes", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 text-sm rounded focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                              rows={1}
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => handleRemoveInjection(index)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors"
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}

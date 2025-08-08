@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit, User, MapPin, Phone, Save, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Edit, User, MapPin, Phone, Save, Loader2, CheckCircle, AlertCircle, Lock, Eye, EyeOff } from 'lucide-react';
 
 // Mock toast implementation
 const toast = {
@@ -65,7 +65,8 @@ const EditPatientModal = ({
   patient,
   onSave,
   isSubmitting,
-  submitStatus
+  submitStatus,
+  onVerifyOldPassword // New prop for verifying old password
 }) => {
   const [formData, setFormData] = useState({
     patientId: '',
@@ -81,7 +82,6 @@ const EditPatientModal = ({
     address: '',
     patientEmail: '',
     contactNumber: '',
-    password: ''
   });
 
   const [emergencyContacts, setEmergencyContacts] = useState([
@@ -89,6 +89,22 @@ const EditPatientModal = ({
   ]);
 
   const [errors, setErrors] = useState({});
+  
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const [showPasswords, setShowPasswords] = useState({
+    old: false,
+    new: false,
+    confirm: false
+  });
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+  const [oldPasswordVerified, setOldPasswordVerified] = useState(false);
 
   // Initialize form data when patient changes
   useEffect(() => {
@@ -107,7 +123,6 @@ const EditPatientModal = ({
         address: patient.rawAddress || patient.address || '',
         patientEmail: patient.patientEmail || '',
         contactNumber: patient.contactNumber || '',
-        password: patient.password || ''
       });
 
       // Set emergency contacts
@@ -123,6 +138,12 @@ const EditPatientModal = ({
       } else {
         setEmergencyContacts([{ id: 1, name: '', phone: '', relation: '', email: '' }]);
       }
+
+      // Reset password change state
+      setShowPasswordChange(false);
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
+      setOldPasswordVerified(false);
     }
   }, [patient]);
 
@@ -139,6 +160,97 @@ const EditPatientModal = ({
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (passwordErrors[name]) {
+      setPasswordErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleChangePasswordClick = () => {
+    setShowPasswordChange(true);
+    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordErrors({});
+    setOldPasswordVerified(false);
+  };
+
+  const handleCancelPasswordChange = () => {
+    setShowPasswordChange(false);
+    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordErrors({});
+    setOldPasswordVerified(false);
+  };
+
+  const verifyOldPassword = async () => {
+    if (!passwordData.oldPassword.trim()) {
+      setPasswordErrors({ oldPassword: 'Please enter your current password' });
+      return;
+    }
+
+    setIsVerifyingPassword(true);
+    setPasswordErrors({});
+
+    try {
+      // Mock verification - replace with actual API call
+      const isValid = await mockVerifyPassword(patient.id, passwordData.oldPassword);
+      
+      if (isValid) {
+        setOldPasswordVerified(true);
+        toast.success('Current password verified successfully');
+      } else {
+        setPasswordErrors({ oldPassword: 'Current password is incorrect' });
+      }
+    } catch (error) {
+      setPasswordErrors({ oldPassword: 'Error verifying password. Please try again.' });
+    } finally {
+      setIsVerifyingPassword(false);
+    }
+  };
+
+  // Mock function to verify old password - replace with actual API call
+  const mockVerifyPassword = async (patientId, oldPassword) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock verification logic - replace with actual verification
+    // For demo purposes, assume password is correct if it's not empty
+    return oldPassword.length >= 6;
+  };
+
+  const validatePasswordChange = () => {
+    const newPasswordErrors = {};
+
+    if (!passwordData.newPassword) {
+      newPasswordErrors.newPassword = 'New password is required';
+    } else if (passwordData.newPassword.length < 6) {
+      newPasswordErrors.newPassword = 'Password must be at least 6 characters long';
+    } else if (passwordData.newPassword === passwordData.oldPassword) {
+      newPasswordErrors.newPassword = 'New password must be different from current password';
+    }
+
+    if (!passwordData.confirmPassword) {
+      newPasswordErrors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newPasswordErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setPasswordErrors(newPasswordErrors);
+    return Object.keys(newPasswordErrors).length === 0;
   };
 
   const handleEmergencyContactChange = (id, field, value) => {
@@ -239,6 +351,12 @@ const EditPatientModal = ({
       return;
     }
 
+    // Validate password change if it's being changed
+    if (showPasswordChange && oldPasswordVerified && !validatePasswordChange()) {
+      toast.error("Please fix the password errors before saving");
+      return;
+    }
+
     // Prepare data for save
     const dataToSave = {
       ...formData,
@@ -247,6 +365,11 @@ const EditPatientModal = ({
       )
     };
 
+    // Include new password if it's being changed
+    if (showPasswordChange && oldPasswordVerified && passwordData.newPassword) {
+      dataToSave.newPassword = passwordData.newPassword;
+    }
+
     onSave(dataToSave);
   };
 
@@ -254,7 +377,7 @@ const EditPatientModal = ({
   const getInputStyle = (fieldName) => ({
     width: "100%",
     padding: "12px 16px",
-    border: `1px solid ${errors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
+    border: `1px solid ${errors[fieldName] || passwordErrors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
     borderRadius: "8px",
     fontSize: "14px",
     backgroundColor: "#ffffff",
@@ -263,6 +386,19 @@ const EditPatientModal = ({
     transition: "border-color 0.2s, box-shadow 0.2s",
     opacity: isSubmitting ? 0.5 : 1,
     cursor: isSubmitting ? 'not-allowed' : 'text',
+  });
+
+  const getPasswordInputStyle = (fieldName) => ({
+    width: "100%",
+    padding: "12px 16px",
+    paddingRight: "48px",
+    border: `1px solid ${passwordErrors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
+    borderRadius: "8px",
+    fontSize: "14px",
+    backgroundColor: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s, box-shadow 0.2s",
   });
 
   const labelStyle = {
@@ -351,6 +487,26 @@ const EditPatientModal = ({
     color: "#ffffff",
   };
 
+  const changePasswordButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#7c3aed",
+    color: "#ffffff",
+    fontSize: "13px",
+    padding: "10px 20px",
+    textTransform: "none",
+    letterSpacing: "normal",
+  };
+
+  const verifyButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#059669",
+    color: "#ffffff",
+    fontSize: "13px",
+    padding: "10px 20px",
+    textTransform: "none",
+    letterSpacing: "normal",
+  };
+
   const addContactButtonStyle = {
     ...buttonStyle,
     backgroundColor: "#3b82f6",
@@ -395,6 +551,31 @@ const EditPatientModal = ({
     display: "flex",
     justifyContent: "flex-end",
     marginTop: "32px",
+  };
+
+  const passwordContainerStyle = {
+    border: "1px solid #e5e7eb",
+    borderRadius: "8px",
+    padding: "24px",
+    backgroundColor: "#f8fafc",
+    marginTop: "20px",
+  };
+
+  const passwordInputContainerStyle = {
+    position: "relative",
+    marginBottom: "16px",
+  };
+
+  const eyeButtonStyle = {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "#6b7280",
+    padding: "4px",
   };
 
   return (
@@ -640,18 +821,185 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
-                <label style={labelStyle}>Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Leave empty to keep current"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  style={getInputStyle('password')}
+                <label style={labelStyle}>Security</label>
+                <button
+                  type="button"
+                  onClick={handleChangePasswordClick}
+                  style={changePasswordButtonStyle}
                   disabled={isSubmitting}
-                />
+                >
+                  <Lock className="h-4 w-4" />
+                  Change Password
+                </button>
               </div>
             </div>
+
+            {/* Password Change Section */}
+            {showPasswordChange && (
+              <div style={passwordContainerStyle}>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "20px"
+                }}>
+                  <h3 style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    color: "#374151",
+                    margin: 0
+                  }}>
+                    Change Password
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleCancelPasswordChange}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#6b7280",
+                      cursor: "pointer",
+                      padding: "4px",
+                      fontSize: "12px"
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {!oldPasswordVerified ? (
+                  // Step 1: Verify old password
+                  <div>
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>Current Password *</label>
+                      <input
+                        type={showPasswords.old ? "text" : "password"}
+                        name="oldPassword"
+                        placeholder="Enter your current password"
+                        value={passwordData.oldPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('oldPassword')}
+                        disabled={isVerifyingPassword}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('old')}
+                        style={eyeButtonStyle}
+                        disabled={isVerifyingPassword}
+                      >
+                        {showPasswords.old ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.oldPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.oldPassword}</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={verifyOldPassword}
+                      style={verifyButtonStyle}
+                      disabled={isVerifyingPassword || !passwordData.oldPassword.trim()}
+                    >
+                      {isVerifyingPassword ? (
+                        <>
+                          <div style={{
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid transparent',
+                            borderTop: '2px solid currentColor',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}></div>
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify Current Password'
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  // Step 2: Enter new password and confirm
+                  <div>
+                    <div style={{
+                      backgroundColor: "#dcfce7",
+                      border: "1px solid #16a34a",
+                      borderRadius: "8px",
+                      padding: "12px",
+                      marginBottom: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px"
+                    }}>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span style={{ fontSize: "14px", color: "#166534" }}>
+                        Current password verified successfully. Now enter your new password.
+                      </span>
+                    </div>
+
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>New Password *</label>
+                      <input
+                        type={showPasswords.new ? "text" : "password"}
+                        name="newPassword"
+                        placeholder="Enter new password (min 6 characters)"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('newPassword')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('new')}
+                        style={eyeButtonStyle}
+                      >
+                        {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.newPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.newPassword}</span>
+                      )}
+                    </div>
+
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>Confirm New Password *</label>
+                      <input
+                        type={showPasswords.confirm ? "text" : "password"}
+                        name="confirmPassword"
+                        placeholder="Confirm your new password"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('confirmPassword')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirm')}
+                        style={eyeButtonStyle}
+                      >
+                        {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.confirmPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.confirmPassword}</span>
+                      )}
+                    </div>
+
+                    <div style={{
+                      backgroundColor: "#fef3c7",
+                      border: "1px solid #f59e0b",
+                      borderRadius: "8px",
+                      padding: "12px",
+                      marginTop: "16px"
+                    }}>
+                      <p style={{ fontSize: "12px", color: "#92400e", margin: 0 }}>
+                        <strong>Password Requirements:</strong>
+                      </p>
+                      <ul style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 16px", padding: 0 }}>
+                        <li>At least 6 characters long</li>
+                        <li>Different from your current password</li>
+                        <li>Both password fields must match</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={fullWidthStyle}>
               <label style={labelStyle}>Address *</label>
               <textarea

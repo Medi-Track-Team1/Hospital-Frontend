@@ -3,17 +3,11 @@ import { Dialog, DialogContent } from "./ui/dialog";
 import PrescriptionForm from "../../Pages/DoctorPanel/PrescriptionForm";
 
 const PrescribeModal = ({
-  isOpen,
-  onClose,
-  appointmentId,
-  doctorId,
-  onSuccess,
+  appointmentId, doctorId, patientId, patientName, onClose, onSuccess
 }) => {
   // Debug logs to verify correct IDs are being passed
   console.log("PrescribeModal props:", {
-    appointmentId,
-    doctorId,
-    isOpen
+    appointmentId, doctorId, patientId, patientName, onClose, onSuccess
   });
 
   return (
@@ -24,6 +18,8 @@ const PrescribeModal = ({
             <PrescriptionForm
               appointmentId={appointmentId}
               doctorId={doctorId}
+              patientId={patientId}
+              patientName={patientName}
               onClose={onClose}
               onSuccess={onSuccess}
             />

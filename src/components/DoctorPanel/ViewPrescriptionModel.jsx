@@ -223,3 +223,4 @@ const ViewPrescriptionModal = ({ isOpen, onClose, prescription }) => {
 };
 
 export default ViewPrescriptionModal;
+

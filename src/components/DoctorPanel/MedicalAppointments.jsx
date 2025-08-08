@@ -56,25 +56,21 @@ export const MedicalAppointments = () => {
   
   const { id: doctorId } = useParams();
 
-  // ✅ MOVE HELPER FUNCTIONS TO THE TOP BEFORE THEY'RE USED
-  // Helper function to get the table row key (for React key prop)
+  // Helper functions
   const getRowKey = (appointment) => {
     return appointment.appointmentId || appointment._id || appointment.id;
   };
 
-  // Helper function to get the correct appointment ID for prescriptions
   const getAppointmentIdForPrescription = (appointment) => {
-    // Use appointmentId field for prescriptions (business logic ID like "apt_1237")
     return appointment.appointmentId || appointment.id;
   };
 
-  // Helper function to check if appointment is canceled
   const isAppointmentCanceled = (appointment) => {
     const status = appointment.status?.toUpperCase();
     return status === "CANCELED" || status === "CANCELLED";
   };
- 
-  // Computed values for filtered and sorted appointments - NOW THESE WORK
+
+  // Computed values for filtered and sorted appointments
   const upcomingAppointments = allAppointments
     .filter(apt => {
       const status = apt.status?.toUpperCase();
@@ -92,7 +88,7 @@ export const MedicalAppointments = () => {
       return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED"
     })
     .sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${a.time}`);
+      const aDateTime = new Date(`${a.date} ${b.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
       return bDateTime - aDateTime;
     });
@@ -103,27 +99,49 @@ export const MedicalAppointments = () => {
     }
   }, [doctorId]);
 
-  // Extract fetch logic into separate function for reusability
-  const fetchAppointments = () => {
-    listUpcomingAppointmentsByDoctorId(doctorId)
-      .then((res) => {
-        const data = res.data;
-        const appointments = Array.isArray(data) ? data : data.appointments || [];
-        const transformedAppointments = appointments.map(apt => ({
+  const fetchAppointments = async () => {
+    try {
+      // Fetch upcoming appointments
+      
+      const upcomingResponse = await listUpcomingAppointmentsByDoctorId(doctorId);
+      const upcomingData = upcomingResponse.data;
+      const upcomingAppointments = Array.isArray(upcomingData) ? upcomingData : upcomingData.appointments || [];
+      
+      // Transform upcoming appointments
+      const transformedUpcoming = upcomingAppointments.map(apt => ({
+        ...apt,
+        date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
+        time: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : apt.time,
+        status: apt.status?.toLowerCase() || 'pending'
+      }));
+
+      // Fetch completed appointments
+      try {
+        const completedResponse = await listCompletedAppointmentsByDoctorId(doctorId);
+        const completedData = completedResponse.data;
+        const completedAppointments = Array.isArray(completedData) ? completedData : completedData.appointments || [];
+        
+        // Transform completed appointments
+        const transformedCompleted = completedAppointments.map(apt => ({
           ...apt,
           date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
           time: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : apt.time,
-          status: apt.status?.toLowerCase() || 'pending'
+          status: apt.status?.toLowerCase() || 'completed'
         }));
 
-        // Split appointments by status
-        setAllAppointments(transformedAppointments);
+        setCompletedAppointments(transformedCompleted);
+      } catch (completedError) {
+        console.log("No completed appointments found or error fetching:", completedError);
         setCompletedAppointments([]);
-      })
-      .catch((error) => {
-        setAllAppointments([]);
-        setCompletedAppointments([]);
-      });
+      }
+
+      setAllAppointments(transformedUpcoming);
+      
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      setAllAppointments([]);
+      setCompletedAppointments([]);
+    }
   };
 
   const handleRevisit = (appointment) => {
@@ -133,7 +151,6 @@ export const MedicalAppointments = () => {
     setRevisitReason("");
   };
 
-  // Updated handleRevisitConfirm to call API
   const handleRevisitConfirm = async () => {
     if (!revisitDate || !revisitTime || !revisitReason.trim()) {
       toast({
@@ -150,13 +167,11 @@ export const MedicalAppointments = () => {
       const randomFourDigits = Math.floor(1000 + Math.random() * 9000);
       const newAppointmentId = `APP-${randomFourDigits}`;
 
-      // Combine date and time into ISO string for appointmentDateTime
       const appointmentDateTime = new Date(revisitDate);
       appointmentDateTime.setHours(revisitTime.getHours());
       appointmentDateTime.setMinutes(revisitTime.getMinutes());
       appointmentDateTime.setSeconds(0);
 
-      // Copy all fields except id/_id, override changed ones
       const { id, _id, ...baseAppointment } = revisitAppointment;
 
       const newAppointmentData = {
@@ -199,48 +214,75 @@ export const MedicalAppointments = () => {
     }
   };
 
-  // Function to handle prescription creation and status update
-  const handlePrescriptionSuccess = (prescription) => {
+  // ✅ UPDATED: Enhanced function to handle prescription success and immediate UI update
+  const handlePrescriptionSuccess = async (prescription) => {
     console.log('Prescription created:', prescription);
     
-    // Find the appointment and update its status to completed
-    const appointmentId = getAppointmentIdForPrescription(selectedAppointment);
-    
-    // Move appointment from upcoming to completed
-    const appointmentToComplete = allAppointments.find(apt => 
-      getAppointmentIdForPrescription(apt) === appointmentId
-    );
-    
-    if (appointmentToComplete) {
-      // Update the appointment status to completed
-      const completedAppointment = {
-        ...appointmentToComplete,
-        status: "completed"
-      };
+    try {
+      // Get the appointment ID for the prescription
+      const appointmentId = getAppointmentIdForPrescription(selectedAppointment);
       
-      // Remove from upcoming appointments
-      setAllAppointments(prev => 
-        prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
+      // Find the appointment in upcoming appointments
+      const appointmentToComplete = allAppointments.find(apt => 
+        getAppointmentIdForPrescription(apt) === appointmentId
       );
       
-      // Add to completed appointments
-      setCompletedAppointments(prev => [...prev, completedAppointment]);
-      
-      toast({
-        title: "Success",
-        description: "Prescription created successfully! Appointment moved to history.",
-      });
-    } else {
+      if (appointmentToComplete) {
+        // Create the completed appointment object
+        const completedAppointment = {
+          ...appointmentToComplete,
+          status: "completed"
+        };
+        
+        // Update state immediately for instant UI feedback
+        setAllAppointments(prev => 
+          prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
+        );
+        
+        setCompletedAppointments(prev => [completedAppointment, ...prev]);
+        
+        // Show success message
+        toast({
+          title: "Success",
+          description: "Prescription created successfully! Appointment moved to history.",
+        });
+        
+        // Close the modal
+        setShowPrescribeModal(false);
+        setSelectedAppointment(null);
+        
+        // Refresh appointments from backend to ensure consistency (optional but recommended)
+        setTimeout(() => {
+          fetchAppointments();
+        }, 1000);
+        
+      } else {
+        console.warn("Appointment not found in upcoming list");
+        toast({
+          title: "Success",
+          description: "Prescription created successfully!",
+        });
+        
+        // Still close the modal and refresh
+        setShowPrescribeModal(false);
+        setSelectedAppointment(null);
+        fetchAppointments();
+      }
+    } catch (error) {
+      console.error("Error handling prescription success:", error);
       toast({
         title: "Success",
         description: "Prescription created successfully!",
       });
+      
+      // Close modal and refresh on any error
+      setShowPrescribeModal(false);
+      setSelectedAppointment(null);
+      fetchAppointments();
     }
   };
 
-  // Function to handle viewing existing prescription - Updated to check for canceled status
   const handleViewPrescription = async (appointment) => {
-    // Check if appointment is canceled
     if (isAppointmentCanceled(appointment)) {
       toast({
         title: "Cannot View Prescription",
@@ -279,16 +321,43 @@ export const MedicalAppointments = () => {
     }
   };
 
-  // ✅ UPDATED: Function to handle creating new prescription with better patient data extraction
   const handleCreatePrescription = (appointment) => {
     console.log("Creating prescription for appointment:", appointment);
+    console.log("Full appointment object:", JSON.stringify(appointment, null, 2));
     
-    // Extract patient details more reliably
-    const patientId = appointment.patientId || appointment.patient?.id || null;
-    const patientName = appointment.patientName || appointment.patient?.name || "Unknown Patient";
+    let patientId = null;
+    let patientName = null;
     
-    console.log("Extracted patient details:", { patientId, patientName });
-    console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment));
+    if (appointment.patientId) {
+      patientId = appointment.patientId;
+    } else if (appointment.patient?.id) {
+      patientId = appointment.patient.id;
+    } else if (appointment.patient?.patientId) {
+      patientId = appointment.patient.patientId;
+    }
+    
+    if (appointment.patientName) {
+      patientName = appointment.patientName;
+    } else if (appointment.patient?.name) {
+      patientName = appointment.patient.name;
+    } else if (appointment.patient?.patientName) {
+      patientName = appointment.patient.patientName;
+    }
+    
+    console.log("After extraction - patientId:", patientId, "patientName:", patientName);
+    
+    if (!patientId || !patientName) {
+      console.error("Missing patient data:", { patientId, patientName, appointment });
+      toast({
+        title: "Error", 
+        description: "Cannot create prescription: Patient information is missing from appointment data. Please check appointment details.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("Successfully extracted patient details:", { patientId, patientName });
+    console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment), appointment);
     
     setSelectedAppointment({
       ...appointment,
@@ -298,22 +367,29 @@ export const MedicalAppointments = () => {
     setShowPrescribeModal(true);
   };
 
-  // Function to handle completing an appointment without prescription
+  const debugAppointmentData = (appointment) => {
+    console.group("🔍 Appointment Data Debug");
+    console.log("appointment.patientId:", appointment.patientId);
+    console.log("appointment.patientName:", appointment.patientName);
+    console.log("appointment.patient:", appointment.patient);
+    console.log("appointment.patient?.id:", appointment.patient?.id);
+    console.log("appointment.patient?.name:", appointment.patient?.name);
+    console.log("Full appointment keys:", Object.keys(appointment));
+    console.groupEnd();
+  };
+
   const handleCompleteAppointment = (appointment) => {
     const appointmentId = getAppointmentIdForPrescription(appointment);
     
-    // Update the appointment status to completed
     const completedAppointment = {
       ...appointment,
       status: "completed"
     };
     
-    // Remove from upcoming appointments
     setAllAppointments(prev => 
       prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
     );
     
-    // Add to completed appointments
     setCompletedAppointments(prev => [...prev, completedAppointment]);
     
     toast({
@@ -342,10 +418,7 @@ export const MedicalAppointments = () => {
     }
 
     try {
-      // Call backend cancel API
       await cancelAppointmentById(cancelAppointment.appointmentId || cancelAppointment.id);
-
-      // Refresh appointments from backend
       await fetchAppointments();
 
       toast({
@@ -466,7 +539,10 @@ export const MedicalAppointments = () => {
                                   size="sm"
                                   variant="outline"
                                   className="text-xs"
-                                  onClick={() => handleCreatePrescription(appointment)}
+                                  onClick={() => {
+                                    debugAppointmentData(appointment);
+                                    handleCreatePrescription(appointment);
+                                  }}
                                 >
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   Prescription
@@ -475,7 +551,6 @@ export const MedicalAppointments = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => navigate("/doctor/:id/patienthistory")}
                                   className="text-xs"
                                 >
                                   <MdVisibility className="h-3 w-3 mr-1" />
@@ -623,14 +698,13 @@ export const MedicalAppointments = () => {
         />
       )}
 
-      {/* ✅ UPDATED: PrescribeModal with isOpen and better patient data */}
       {showPrescribeModal && selectedAppointment && (
         <PrescribeModal
           isOpen={showPrescribeModal}
           appointmentId={getAppointmentIdForPrescription(selectedAppointment)}
           doctorId={doctorId}
-          patientId={selectedAppointment.patientId || selectedAppointment.patient?.id}
-          patientName={selectedAppointment.patientName || selectedAppointment.patient?.name}
+          patientId={selectedAppointment.patientId}
+          patientName={selectedAppointment.patientName}
           onClose={() => {
             setShowPrescribeModal(false);
             setSelectedAppointment(null);
@@ -639,7 +713,6 @@ export const MedicalAppointments = () => {
         />
       )}
 
-      {/* ViewPrescriptionModal for viewing existing prescriptions */}
       {showViewPrescriptionModal && currentPrescription && (
         <ViewPrescriptionModal
           isOpen={showViewPrescriptionModal}
@@ -651,7 +724,7 @@ export const MedicalAppointments = () => {
         />
       )}
 
-      {/* Revisit Modal with loading state */}
+      {/* Revisit Modal */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">

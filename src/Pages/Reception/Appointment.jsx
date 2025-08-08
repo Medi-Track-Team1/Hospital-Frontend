@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   Calendar,
   Clock,
@@ -210,7 +212,15 @@ const Appointment = () => {
     appointment.status?.toLowerCase() === filterStatus.toLowerCase();
   
   // Date filter
-  const matchesDate = !filterDate || appointment.date === filterDate;
+    let matchesDate = true;
+  if (filterDate) {
+    const appointmentDate = appointment.date || 
+                           (appointment.appointmentDateTime 
+                            ? new Date(appointment.appointmentDateTime).toISOString().split('T')[0] 
+                            : '');
+    matchesDate = appointmentDate === filterDate;
+  }
+
 
   return matchesSearch && matchesStatus && matchesDate;
 });
@@ -383,8 +393,10 @@ const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset para
       });
       setFormErrors({});
       setShowNewAppointmentModal(false);
+      toast.success('Appointment created successfully!');
     } catch (error) {
       console.error("Error creating appointment:", error);
+        toast.error('Failed to create appointment');
     }
   };
 
@@ -455,10 +467,10 @@ const handleUpdateAppointment = async () => {
     );
     
     setShowEditAppointmentModal(false);
-    alert('Appointment updated successfully!');
+    toast.success('Appointment updated successfully!');
   } catch (error) {
     console.error('Update error:', error);
-    alert(error.message || 'Failed to update appointment');
+    toast.error(error.message || 'Failed to update appointment');
   }
 };
 
@@ -496,14 +508,14 @@ function convertTo24Hour(time12h) {
       setShowDeleteConfirmModal(false);
       
       // Show success feedback (optional)
-      alert('Appointment deleted successfully!' + idToDelete);
+       toast.success('Appointment deleted successfully!');
       // Or use a toast notification if available:
       // toast.success('Appointment deleted successfully!');
       
     } catch (error) {
       console.error("Error deleting appointment:", error);
       // Show error feedback (optional)
-      alert('Failed to delete appointment');
+      toast.error('Failed to delete appointment');
       // Or: toast.error('Failed to delete appointment');
     }
   }
@@ -534,8 +546,10 @@ function convertTo24Hour(time12h) {
         );
         setAppointmentToConfirm(null);
         setShowConfirmModal(false);
+        toast.success('Appointment confirmed successfully!');
       } catch (error) {
         console.error("Error confirming appointment:", error);
+        toast.error('Failed to confirm appointment');
       }
     }
   };
@@ -565,8 +579,10 @@ function convertTo24Hour(time12h) {
         );
         setAppointmentToCancel(null);
         setShowCancelModal(false);
+        toast.success('Appointment cancelled successfully!');
       } catch (error) {
         console.error("Error canceling appointment:", error);
+         toast.error('Failed to cancel appointment');
       }
     }
   };
@@ -1442,7 +1458,7 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {appointmentToCancel.doctor}
+                  {appointmentToCancel.doctorName}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -1456,7 +1472,7 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {appointmentToCancel.date} at {appointmentToCancel.time}
+                  {formatDisplayDateTime(appointmentToCancel.appointmentDateTime)} at {formatDisplayDateTime(appointmentToCancel.appointmentDate)}
                 </span>
               </div>
             </div>
@@ -3313,7 +3329,7 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {appointmentToDelete.doctor}
+                  {appointmentToDelete.doctorName}
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -3327,7 +3343,7 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {appointmentToDelete.date} at {appointmentToDelete.time}
+                  {formatDisplayDateTime(appointmentToDelete.appointmentDateTime)} at {formatDisplayDate(appointmentToDelete.appointmentDateTime)}
                 </span>
               </div>
             </div>
@@ -4060,6 +4076,18 @@ const formatDisplayDate= (dateTimeString) => {
           </div>
         </div>
       )}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 };

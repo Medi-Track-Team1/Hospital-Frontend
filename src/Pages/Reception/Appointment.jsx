@@ -296,13 +296,73 @@ const Appointment = () => {
     return Object.keys(errors).length === 0;
   };
 
+const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset parameter
+  // Validate inputs
+  if (!dateStr || !timeStr) return null;
+  
+  // Validate date format (YYYY-MM-DD)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    console.error("Invalid date format. Expected YYYY-MM-DD");
+    return null;
+  }
+
+  // Process time string
+  let formattedTime;
+  try {
+    // Handle AM/PM format if present
+    let timePart = timeStr.trim();
+    let hours, minutes, seconds = "00";
+    let isPM = false;
+    
+    // Check for AM/PM
+    if (timePart.toUpperCase().includes("PM")) {
+      isPM = true;
+      timePart = timePart.replace(/PM/gi, "").trim();
+    } else if (timePart.toUpperCase().includes("AM")) {
+      timePart = timePart.replace(/AM/gi, "").trim();
+    }
+    
+    const timeParts = timePart.split(':').map(part => part.trim());
+    
+    // Validate we have at least hours and minutes
+    if (timeParts.length < 2) {
+      throw new Error("Time must include at least hours and minutes");
+    }
+    
+    // Convert hours to 24-hour format
+    hours = parseInt(timeParts[0]);
+    if (isPM && hours < 12) {
+      hours += 12;
+    } else if (!isPM && hours === 12) {
+      hours = 0;
+    }
+    hours = hours.toString().padStart(2, '0');
+    
+    minutes = timeParts[1].padStart(2, '0');
+    seconds = (timeParts[2] || '00').padStart(2, '0');
+    
+    // Validate time components
+    if (parseInt(hours) > 23 || parseInt(minutes) > 59 || parseInt(seconds) > 59) {
+      throw new Error("Invalid time values");
+    }
+    
+    formattedTime = `${hours}:${minutes}:${seconds}`;
+  } catch (error) {
+    console.error("Error processing time:", error.message);
+    return null;
+  }
+
+  // Combine into ISO format (without timezone)
+  return `${dateStr}T${formattedTime}`; // Removed timezoneOffset
+};
   const handleCreateAppointment = async () => {
     if (!validateForm()) return;
 
     try {
       const createdAppointment = await appointmentService.createAppointment({
-        ...newAppointment,
-        age: parseInt(newAppointment.age),
+        patientId:"PAT-1018",doctorId:"DOC-32759",patientName:newAppointment.patientName,phoneNumber:newAppointment.phone,appointmentDateTime:formatToStrictISO(newAppointment.date,newAppointment.time),
+        age: parseInt(newAppointment.age),doctorName:newAppointment.doctor,department:newAppointment.department,patientEmail:newAppointment.patientEmail,duration:20,reason:newAppointment.reason,symptoms:newAppointment.symptoms,status:"PENDING",
+
       });
       setAppointments((prev) => [createdAppointment, ...prev]);
       
@@ -329,7 +389,7 @@ const Appointment = () => {
   };
 
   const handleEditAppointment = (appointment) => {
-      console.log("Original appointment data:", appointment.patientName);
+      console.log("Original appointment data:", appointment.appointmentId);
     setEditAppointment({
       appointmentId: appointment.appointmentId,
       patientName: appointment.patientName,
@@ -355,14 +415,13 @@ const handleUpdateAppointment = async () => {
   try {
     // Transform frontend data to match backend DTO
     const updateData = {
-     
-      patientId: editAppointment.patientId || "PATIENT_ID_PLACEHOLDER", // Use actual patientId if available
-      doctorId: editAppointment.doctorId || "DOCTOR_ID_PLACEHOLDER", // Use actual doctorId if available
+      patientId: editAppointment.patientId || "PAT-1018", // Use actual patientId if available
+      doctorId: editAppointment.doctorId || "DOC-32759", // Use actual doctorId if available
       patientName: editAppointment.patientName,
       doctorName: editAppointment.doctor,
       department: editAppointment.department,
       patientEmail: editAppointment.patientEmail,
-      
+      age:editAppointment.age,
       // Combine date and time into LocalDateTime format
       appointmentDateTime: `${editAppointment.date}T${convertTo24Hour(editAppointment.time)}`,
       duration: editAppointment.duration || 30, // Use provided duration or default to 30
@@ -371,12 +430,13 @@ const handleUpdateAppointment = async () => {
       additionalNotes: editAppointment.additionalNotes || "", // Add if available
       isEmergency: editAppointment.isEmergency || false,
       status: editAppointment.status,
-      
+      phoneNumber:editAppointment.phone,
       // These will typically be set by the backend, but include if needed
       createdAt: editAppointment.createdAt, // Preserve original if exists
       updatedAt: new Date().toISOString() // Current timestamp
     };
-
+     console.log(updateData);
+     console.log("result");
     // Remove any undefined fields
     const cleanedUpdateData = Object.fromEntries(
       Object.entries(updateData).filter(([_, v]) => v !== undefined)
@@ -973,7 +1033,7 @@ const formatDisplayDate= (dateTimeString) => {
                                   margin: "2px 0 0 0",
                                 }}
                               >
-                                Age: {appointment.age} • {appointment.insurance}
+                                Age: {appointment.age}   {appointment.insurance}
                               </p>
                             </div>
                           </div>
@@ -996,7 +1056,7 @@ const formatDisplayDate= (dateTimeString) => {
                               <span
                                 style={{ color: "#64748b", fontSize: "12px" }}
                               >
-                                {appointment.phone}
+                                {appointment.phoneNumber}
                               </span>
                             </div>
                             <div
@@ -3493,7 +3553,7 @@ const formatDisplayDate= (dateTimeString) => {
                         margin: 0,
                       }}
                     >
-                      {selectedAppointment.phone}
+                      {selectedAppointment.phoneNumber}
                     </p>
                   </div>
 
@@ -3594,7 +3654,7 @@ const formatDisplayDate= (dateTimeString) => {
                         margin: 0,
                       }}
                     >
-                      {selectedAppointment.doctor}
+                      {selectedAppointment.doctorName}
                     </p>
                   </div>
 

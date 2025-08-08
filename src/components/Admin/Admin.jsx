@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-import Dashboard from '../../Pages/Admin/Dashboard';
-import Doctors from '../../Pages/Admin/Doctors';
-import Patients from '../../Pages/Admin/Patients';
-import Appointments from '../../Pages/Admin/Appointments';
-import Settings from '../../Pages/Admin/Settings';
-import PharmacyInventory from '../../Pages/Admin/Pharmacy/PharmacyInventory';
-import AddMedicineForm from '../../Pages/Admin/Pharmacy/AddMedicineForm';
-import EditMedicineForm from '../../Pages/Admin/Pharmacy/EditMedicineForm';
-
+import Dashboard from '@/Pages/Admin/Dashboard';
+import Doctors from '@/Pages/Admin/Doctors';
+import Patients from '@/Pages/Admin/Patients';
+import Appointments from '@/Pages/Admin/Appointments';
+import Settings from '@/Pages/Admin/Settings';
+import PharmacyInventory from '@/Pages/Admin/Pharmacy/PharmacyInventory';
+import AddMedicineForm from '@/Pages/Admin/Pharmacy/AddMedicineForm';
+import EditMedicineForm from '@/Pages/Admin/Pharmacy/EditMedicineForm';
+import RecordsDashboard from "@/Pages/Admin/RecordsDashboard";
 
 function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,19 +27,12 @@ function Admin() {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Call initially
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleRouteChange = () => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  };
-
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Mobile overlay */}
       {sidebarOpen && isMobile && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
@@ -57,13 +50,11 @@ function Admin() {
             <Route path="doctors" element={<Doctors />} />
             <Route path="patients" element={<Patients />} />
             <Route path="appointments" element={<Appointments />} />
+            <Route path="records" element={<RecordsDashboard />} />
             <Route path="settings" element={<Settings />} />
-            
-            {/* Pharmacy Routes */}
             <Route path="pharmacy" element={<PharmacyInventory />} />
             <Route path="pharmacy/add" element={<AddMedicineForm />} />
             <Route path="pharmacy/edit/:id" element={<EditMedicineForm />} />
-           
           </Routes>
         </main>
       </div>

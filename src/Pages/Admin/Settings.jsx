@@ -176,6 +176,8 @@ const Settings = () => {
           </button>
         </div>
       </form>
+
+      
     </div>
   );
 };

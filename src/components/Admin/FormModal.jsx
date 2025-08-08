@@ -156,7 +156,7 @@ const FormModal = ({
                   ) : field.type === 'select' ? (
                     <select
                       name={field.name}
-                      value={formData[field.name] || ''}
+                      value={formData[field.name] || field.defaultValue || ''}
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border ${errors[field.name] ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base`}
                       required={field.required}

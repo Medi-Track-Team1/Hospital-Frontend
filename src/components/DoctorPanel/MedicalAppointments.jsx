@@ -33,6 +33,7 @@ import {
   cancelAppointmentById,
 } from '../../services/DoctorPanel/AppointmentService';
 import { getPrescriptionByAppointmentId } from '../../services/DoctorPanel/PrescriptionService';
+import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
@@ -40,6 +41,7 @@ export const MedicalAppointments = () => {
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
+  
   const navigate = useNavigate();
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
   const [cancelAppointment, setCancelAppointment] = useState(null);
@@ -150,7 +152,12 @@ export const MedicalAppointments = () => {
     setRevisitTime(null);
     setRevisitReason("");
   };
-
+const handleViewHistory = (appointment) => {
+  const patientId = appointment.patientId || appointment.patient?.id;
+  const patientName = appointment.patientName || appointment.patient?.name;
+  
+  setViewHistoryPatient({ id: patientId, name: patientName });
+};
   const handleRevisitConfirm = async () => {
     if (!revisitDate || !revisitTime || !revisitReason.trim()) {
       toast({
@@ -548,14 +555,15 @@ export const MedicalAppointments = () => {
                                   Prescription
                                 </Button>
                                 
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  <MdVisibility className="h-3 w-3 mr-1" />
-                                  View History
-                                </Button>
+                               <Button
+  size="sm"
+  variant="outline"
+  className="text-xs"
+  onClick={() => handleViewHistory(appointment)}
+>
+  <MdVisibility className="h-3 w-3 mr-1" />
+  View History
+</Button>
 
                                 <button
                                   className="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 hover:text-blue-900 transition-colors"
@@ -723,7 +731,15 @@ export const MedicalAppointments = () => {
           prescription={currentPrescription}
         />
       )}
-
+{viewHistoryPatient && (
+  <PatientHistoryModal
+    isOpen={!!viewHistoryPatient}
+    onClose={() => setViewHistoryPatient(null)}
+    patientId={viewHistoryPatient.id}
+    patientName={viewHistoryPatient.name}
+    doctorId={doctorId}
+  />
+)}
       {/* Revisit Modal */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">

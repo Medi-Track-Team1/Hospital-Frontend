@@ -17,6 +17,7 @@ import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
 import CompletedTreatments from "./components/PatientProfile/CompletedTreatments";
+import PatientHistoryPage from "./Pages/DoctorPanel/PatientHistoryPage";
 
 function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -37,7 +38,10 @@ function App() {
         <Route path="/doctor/:id" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
         <Route path="/patient/*" element={<Patient />} />
-        <Route path="/doctor/:id/patienthistory" element={<CompletedTreatments/>}/>
+        <Route 
+  path="/doctor/:doctorId/patient/:patientId/history" 
+  element={<PatientHistoryPage />} 
+/>
         <Route path="/reception/*" element={<Reception />} />
         <Route path="/admin/*" element={<Admin/>}/>
 

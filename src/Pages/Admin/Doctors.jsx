@@ -23,9 +23,10 @@ import {
   createDoctor,
   updateDoctor,
   deleteDoctor,
-  getDoctorProfile
-} from '../Admin/services/doctorService';
+  getDoctorById
+} from './services/doctorService';
 import LoadingSpinner from '../../components/Admin/LoadingSpinner';
+import imageCompression from 'browser-image-compression';
 
 const Doctors = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,21 +61,37 @@ const Doctors = () => {
     fetchDoctors();
   }, []);
 
-  const handleAddDoctor = async (newDoctor) => {
-    try {
-      const { confirmPassword, ...doctorData } = newDoctor;
-      const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
+ const handleAddDoctor = async (newDoctor) => {
+  try {
+    const { confirmPassword, ...doctorData } = newDoctor;
+    let profilePhoto = null;
+
+    if (newDoctor.profilePhoto instanceof File) {
+      // Compress image before upload
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 800,
+        useWebWorker: true
+      };
       
-      const createdDoctor = await createDoctor(doctorData, profilePhoto);
-      
-      setDoctors([...doctors, createdDoctor]);
-      setIsModalOpen(false);
-      toast.success('Doctor added successfully!');
-    } catch (err) {
-      console.error('Error details:', err);
-      toast.error(`Failed to add doctor: ${err.message}`);
+      try {
+        profilePhoto = await imageCompression(newDoctor.profilePhoto, options);
+      } catch (compressionError) {
+        console.error('Image compression error:', compressionError);
+        throw new Error('Failed to process profile photo');
+      }
     }
-  };
+
+    const createdDoctor = await createDoctor(doctorData, profilePhoto);
+    
+    setDoctors([...doctors, createdDoctor]);
+    setIsModalOpen(false);
+    toast.success('Doctor added successfully!');
+  } catch (err) {
+    console.error('Error details:', err);
+    toast.error(`Failed to add doctor: ${err.message}`);
+  }
+};
 
   const handleUpdateDoctor = async (updatedDoctor) => {
     try {
@@ -115,7 +132,7 @@ const Doctors = () => {
   const handleViewProfile = async (doctor) => {
     try {
       setProfileLoading(true);
-      const profileData = await getDoctorProfile(doctor.doctorId);
+      const profileData = await getDoctorById(doctor.doctorId);
       setSelectedDoctor({
         ...doctor,
         ...profileData
@@ -148,23 +165,25 @@ const Doctors = () => {
     }
   };
 
-  const renderDoctorImage = (doctor) => {
-    const handleImageError = (e) => {
-      e.target.onerror = null;
-      e.target.src = '/default-doctor.png';
-    };
+const renderDoctorImage = (doctor) => {
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = '/default-doctor.png';
+  };
 
-    return doctor.photoUrl ? (
+  if (doctor.photoUrl) {
+    return (
       <img 
         src={doctor.photoUrl} 
         alt={doctor.doctorName}
         className="w-10 h-10 rounded-full object-cover"
         onError={handleImageError}
+        loading="lazy"
       />
-    ) : (
-      <HiUserCircle className="w-10 h-10 text-gray-400" />
     );
-  };
+  }
+  return <HiUserCircle className="w-10 h-10 text-gray-400" />;
+};
 
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -254,8 +273,8 @@ const Doctors = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="on leave">On Leave</option>
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
             </select>
           </div>
         </div>
@@ -450,7 +469,7 @@ const Doctors = () => {
           { name: 'phone', label: 'Phone', type: 'tel', required: true },
           { name: 'bio', label: 'Bio', type: 'textarea', required: false },
           { name: 'education', label: 'Education', type: 'text', required: false },
-          { name: 'experience', label: 'Experience', type: 'textarea', required: false },
+          { name: 'experience', label: 'Experience', type: 'text', required: false },
           { name: 'languages', label: 'Languages (comma separated)', type: 'text', required: false },
           { 
             name: 'status', 

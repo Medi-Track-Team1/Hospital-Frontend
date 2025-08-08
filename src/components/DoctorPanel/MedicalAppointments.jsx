@@ -27,9 +27,10 @@ import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
 import PrescribeModal from "./PrescribeModal";
 import ViewPrescriptionModal from "./ViewPrescriptionModel";
 import {
-  listAppointmentsByDoctorId,
+  listUpcomingAppointmentsByDoctorId,
   listCompletedAppointmentsByDoctorId,
-  createAppointment, // ✅ Import the new function
+  createAppointment,
+  cancelAppointmentById,
 } from '../../services/DoctorPanel/AppointmentService';
 import { getPrescriptionByAppointmentId } from '../../services/DoctorPanel/PrescriptionService';
 
@@ -45,30 +46,52 @@ export const MedicalAppointments = () => {
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
   const [revisitDate, setRevisitDate] = useState("");
-  const [revisitTime, setRevisitTime] = useState(null); // Change revisitTime to a Date object
+  const [revisitTime, setRevisitTime] = useState(null);
   const [revisitReason, setRevisitReason] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [allAppointments, setAllAppointments] = useState([]);
   const [completedAppointments, setCompletedAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
-  const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false); // ✅ Loading state
+  const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false);
   
   const { id: doctorId } = useParams();
 
-  // Computed values for filtered and sorted appointments
+  // ✅ MOVE HELPER FUNCTIONS TO THE TOP BEFORE THEY'RE USED
+  // Helper function to get the table row key (for React key prop)
+  const getRowKey = (appointment) => {
+    return appointment.appointmentId || appointment._id || appointment.id;
+  };
+
+  // Helper function to get the correct appointment ID for prescriptions
+  const getAppointmentIdForPrescription = (appointment) => {
+    // Use appointmentId field for prescriptions (business logic ID like "apt_1237")
+    return appointment.appointmentId || appointment.id;
+  };
+
+  // Helper function to check if appointment is canceled
+  const isAppointmentCanceled = (appointment) => {
+    const status = appointment.status?.toUpperCase();
+    return status === "CANCELED" || status === "CANCELLED";
+  };
+ 
+  // Computed values for filtered and sorted appointments - NOW THESE WORK
   const upcomingAppointments = allAppointments
-    .filter(apt => apt.status === "pending" || apt.status === "accepted")
+    .filter(apt => {
+      const status = apt.status?.toUpperCase();
+      return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
+    })
     .sort((a, b) => {
-      // Ascending: soonest first
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
       return aDateTime - bDateTime;
     });
-  
-  const appointmentHistory = completedAppointments
-    .filter(apt => apt.status === "completed" || apt.status === "canceled")
+
+  const appointmentHistory = allAppointments
+    .filter(apt => {
+      const status = apt.status?.toUpperCase();
+      return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED"
+    })
     .sort((a, b) => {
-      // Descending: newest first
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
       return bDateTime - aDateTime;
@@ -80,31 +103,25 @@ export const MedicalAppointments = () => {
     }
   }, [doctorId]);
 
-  // ✅ Extract fetch logic into separate function for reusability
+  // Extract fetch logic into separate function for reusability
   const fetchAppointments = () => {
-    // Fetch upcoming appointments (pending and accepted)
-    listAppointmentsByDoctorId(doctorId)
+    listUpcomingAppointmentsByDoctorId(doctorId)
       .then((res) => {
         const data = res.data;
-        console.log("All appointments data:", data);
         const appointments = Array.isArray(data) ? data : data.appointments || [];
-        setAllAppointments(appointments);
-      })
-      .catch((error) => {
-        console.error("Error fetching appointments:", error);
-        setAllAppointments([]);
-      });
+        const transformedAppointments = appointments.map(apt => ({
+          ...apt,
+          date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
+          time: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : apt.time,
+          status: apt.status?.toLowerCase() || 'pending'
+        }));
 
-    // Fetch completed appointments
-    listCompletedAppointmentsByDoctorId(doctorId)
-      .then((res) => {
-        const data = res.data;
-        console.log("Completed appointments data:", data);
-        const completed = Array.isArray(data) ? data : data.appointments || [];
-        setCompletedAppointments(completed);
+        // Split appointments by status
+        setAllAppointments(transformedAppointments);
+        setCompletedAppointments([]);
       })
       .catch((error) => {
-        console.error("Error fetching completed appointments:", error);
+        setAllAppointments([]);
         setCompletedAppointments([]);
       });
   };
@@ -112,11 +129,11 @@ export const MedicalAppointments = () => {
   const handleRevisit = (appointment) => {
     setRevisitAppointment(appointment);
     setRevisitDate("");
-    setRevisitTime(null); // reset to null
+    setRevisitTime(null);
     setRevisitReason("");
   };
 
-  // ✅ Updated handleRevisitConfirm to call API
+  // Updated handleRevisitConfirm to call API
   const handleRevisitConfirm = async () => {
     if (!revisitDate || !revisitTime || !revisitReason.trim()) {
       toast({
@@ -130,58 +147,48 @@ export const MedicalAppointments = () => {
     setIsSubmittingRevisit(true);
 
     try {
-      // ✅ Generate a unique appointment ID with 4 digits only
-      const randomFourDigits = Math.floor(1000 + Math.random() * 9000); // Generates number between 1000-9999
-      const newAppointmentId = `apt_${randomFourDigits}`;
-      
-      // Format time as "hh:mm aa"
-      const formattedTime = revisitTime
-        ? revisitTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-        : "";
+      const randomFourDigits = Math.floor(1000 + Math.random() * 9000);
+      const newAppointmentId = `APP-${randomFourDigits}`;
 
-      // ✅ Create the appointment data structure matching your backend DTO
+      // Combine date and time into ISO string for appointmentDateTime
+      const appointmentDateTime = new Date(revisitDate);
+      appointmentDateTime.setHours(revisitTime.getHours());
+      appointmentDateTime.setMinutes(revisitTime.getMinutes());
+      appointmentDateTime.setSeconds(0);
+
+      // Copy all fields except id/_id, override changed ones
+      const { id, _id, ...baseAppointment } = revisitAppointment;
+
       const newAppointmentData = {
+        ...baseAppointment,
         appointmentId: newAppointmentId,
-        patientId: revisitAppointment.patientId,
-        patientName: revisitAppointment.patientName,
-        age: revisitAppointment.age,
-        phone: revisitAppointment.phone,
-        email: revisitAppointment.email,
-        department: revisitAppointment.department,
-        doctorId: doctorId,
-        date: format(new Date(revisitDate), "yyyy-MM-dd"), // Format date properly
-        time: formattedTime,
+        appointmentDateTime: appointmentDateTime.toISOString(),
+        date: format(appointmentDateTime, "yyyy-MM-dd"),
+        time: appointmentDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
         reason: revisitReason,
-        notes: `Revisit appointment for previous appointment: ${getAppointmentIdForPrescription(revisitAppointment)}`,
-        status: "pending" // New revisit appointments should be pending
+        notes: `Revisit appointment for previous appointment: ${revisitAppointment.appointmentId || revisitAppointment.id}`,
+        status: "pending"
       };
 
       console.log("Creating revisit appointment:", newAppointmentData);
 
-      // ✅ Call the API to create the appointment
       const response = await createAppointment(newAppointmentData);
       console.log("Revisit appointment created:", response.data);
 
-      // ✅ Refresh the appointments list to show the new appointment
       await fetchAppointments();
 
       toast({
         title: "Revisit Scheduled Successfully",
-        description: `New appointment scheduled for ${revisitAppointment.patientName} on ${format(new Date(revisitDate), "MMM dd, yyyy")} at ${formattedTime}.`,
+        description: `New appointment scheduled for ${revisitAppointment.patientName} on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${newAppointmentData.time}.`,
       });
 
-      // Reset form
       setRevisitAppointment(null);
       setRevisitDate("");
-      setRevisitTime(null); // reset to null
+      setRevisitTime(null);
       setRevisitReason("");
-
     } catch (error) {
       console.error("Error creating revisit appointment:", error);
-      
-      // Show detailed error message
       const errorMessage = error.response?.data?.message || error.message || "Failed to create revisit appointment";
-      
       toast({
         title: "Error Creating Revisit",
         description: errorMessage,
@@ -231,8 +238,18 @@ export const MedicalAppointments = () => {
     }
   };
 
-  // Function to handle viewing existing prescription
+  // Function to handle viewing existing prescription - Updated to check for canceled status
   const handleViewPrescription = async (appointment) => {
+    // Check if appointment is canceled
+    if (isAppointmentCanceled(appointment)) {
+      toast({
+        title: "Cannot View Prescription",
+        description: "Prescriptions cannot be viewed for canceled appointments.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       console.log("Viewing prescription for appointment:", appointment);
       const appointmentId = getAppointmentIdForPrescription(appointment);
@@ -262,11 +279,22 @@ export const MedicalAppointments = () => {
     }
   };
 
-  // Function to handle creating new prescription
+  // ✅ UPDATED: Function to handle creating new prescription with better patient data extraction
   const handleCreatePrescription = (appointment) => {
     console.log("Creating prescription for appointment:", appointment);
+    
+    // Extract patient details more reliably
+    const patientId = appointment.patientId || appointment.patient?.id || null;
+    const patientName = appointment.patientName || appointment.patient?.name || "Unknown Patient";
+    
+    console.log("Extracted patient details:", { patientId, patientName });
     console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment));
-    setSelectedAppointment(appointment);
+    
+    setSelectedAppointment({
+      ...appointment,
+      patientId: patientId,
+      patientName: patientName
+    });
     setShowPrescribeModal(true);
   };
 
@@ -294,17 +322,6 @@ export const MedicalAppointments = () => {
     });
   };
 
-  // Helper function to get the table row key (for React key prop)
-  const getRowKey = (appointment) => {
-    return appointment.appointmentId || appointment._id || appointment.id;
-  };
-
-  // Helper function to get the correct appointment ID for prescriptions
-  const getAppointmentIdForPrescription = (appointment) => {
-    // Use appointmentId field for prescriptions (business logic ID like "apt_1237")
-    return appointment.appointmentId || appointment.id;
-  };
-  
   const getStatusBadge = (status) => {
     const variants = {
       pending: "bg-orange-100 text-orange-700 border-orange-200",
@@ -314,7 +331,7 @@ export const MedicalAppointments = () => {
     return variants[status] || variants.pending;
   };
 
-  const handleCancelConfirm = () => {
+  const handleCancelConfirm = async () => {
     if (!cancelReason.trim()) {
       toast({
         title: "Error",
@@ -324,16 +341,27 @@ export const MedicalAppointments = () => {
       return;
     }
 
-    // Remove the appointment from the list
-    setAllAppointments(prev => prev.filter(apt => getRowKey(apt) !== getRowKey(cancelAppointment)));
-    
-    toast({
-      title: "Appointment Cancelled",
-      description: `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
-    });
+    try {
+      // Call backend cancel API
+      await cancelAppointmentById(cancelAppointment.appointmentId || cancelAppointment.id);
 
-    setCancelAppointment(null);
-    setCancelReason("");
+      // Refresh appointments from backend
+      await fetchAppointments();
+
+      toast({
+        title: "Appointment Cancelled",
+        description: `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
+      });
+
+      setCancelAppointment(null);
+      setCancelReason("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to cancel appointment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -455,7 +483,7 @@ export const MedicalAppointments = () => {
                                 </Button>
 
                                 <button
-                                  className="px-3 py-1 text-xs border rounded-md bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
+                                  className="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 hover:text-blue-900 transition-colors"
                                   onClick={() => handleRevisit(appointment)}
                                 >
                                   <MdRefresh className="h-3 w-3 mr-1 inline" />
@@ -463,7 +491,7 @@ export const MedicalAppointments = () => {
                                 </button>
 
                                 <button
-                                  className="px-3 py-1 text-xs border rounded-md bg-red-500 text-white border-red-500 hover:bg-red-600"
+                                  className="px-3 py-1 text-xs rounded-md bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 hover:text-red-900 transition-colors"
                                   onClick={() => setCancelAppointment(appointment)}
                                 >
                                   Cancel
@@ -545,8 +573,18 @@ export const MedicalAppointments = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-xs"
+                                  className={`text-xs ${
+                                    isAppointmentCanceled(appointment)
+                                      ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
+                                      : ""
+                                  }`}
                                   onClick={() => handleViewPrescription(appointment)}
+                                  disabled={isAppointmentCanceled(appointment)}
+                                  title={
+                                    isAppointmentCanceled(appointment)
+                                      ? "Prescription cannot be viewed for canceled appointments"
+                                      : "View Prescription"
+                                  }
                                 >
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   View Prescription
@@ -585,12 +623,14 @@ export const MedicalAppointments = () => {
         />
       )}
 
-      {/* PrescribeModal for creating prescriptions */}
+      {/* ✅ UPDATED: PrescribeModal with isOpen and better patient data */}
       {showPrescribeModal && selectedAppointment && (
         <PrescribeModal
           isOpen={showPrescribeModal}
           appointmentId={getAppointmentIdForPrescription(selectedAppointment)}
           doctorId={doctorId}
+          patientId={selectedAppointment.patientId || selectedAppointment.patient?.id}
+          patientName={selectedAppointment.patientName || selectedAppointment.patient?.name}
           onClose={() => {
             setShowPrescribeModal(false);
             setSelectedAppointment(null);
@@ -611,7 +651,7 @@ export const MedicalAppointments = () => {
         />
       )}
 
-      {/* ✅ Updated Revisit Modal with loading state */}
+      {/* Revisit Modal with loading state */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
@@ -669,14 +709,14 @@ export const MedicalAppointments = () => {
             
             <div className="flex justify-end space-x-2">
               <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
                 onClick={() => setRevisitAppointment(null)}
                 disabled={isSubmittingRevisit}
               >
                 Cancel
               </button>
               <button
-                className={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center ${
+                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${
                   !revisitDate || !revisitTime || !revisitReason.trim() || isSubmittingRevisit
                     ? "opacity-50 cursor-not-allowed" 
                     : ""

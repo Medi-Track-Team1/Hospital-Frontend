@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { markAppointmentCompleted } from '../../services/DoctorPanel/AppointmentService';
 
-const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
+const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onClose, onSuccess }) => {
   const [search, setSearch] = useState("");
   const [selectedMeds, setSelectedMeds] = useState([]);
   const [injections, setInjections] = useState([]);
@@ -76,125 +77,128 @@ const PrescriptionForm = ({ appointmentId, doctorId, onClose, onSuccess }) => {
       setToast({ show: false, message: "", type: "success" });
     }, 3000);
   };
-const handleSavePrescription = async () => {
-  try {
-    setSubmitting(true);
 
-    // Validate required fields
-    if (!appointmentId || !doctorId) {
-      showToast("Missing appointment or doctor information", "error");
-      console.error("Missing data - appointmentId:", appointmentId, "doctorId:", doctorId);
-      return;
-    }
-
-    // Validate that we have at least some prescription data
-    if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
-      showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
-      return;
-    }
-
-    console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
-
-    // Prepare prescription data
-    const prescriptionData = {
-      appointmentId: appointmentId,
-      doctorId: doctorId,
-      medicines: selectedMeds.map(med => ({
-        name: med.name,
-        batch: med.batch,
-        dosage: med.dosage || "",
-        quantity: med.quantity || "",
-        duration: med.duration || "",
-        timing: med.timing || []
-      })),
-      injections: injections.map(inj => ({
-        name: inj.name,
-        batch: inj.batch,
-        dosage: inj.dosage || "",
-        quantity: inj.quantity || "",
-        schedule: inj.schedule || "",
-        notes: inj.notes || ""
-      })),
-      dietPlan: dietPlan,
-      recommendedTests: recommendedTests
-    };
-
-    console.log('Sending prescription data:', JSON.stringify(prescriptionData, null, 2));
-
-    // Send to backend with detailed error handling
-    const response = await fetch('https://doctorpanel-backend.onrender.com/api/prescriptions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(prescriptionData)
-    });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-    const responseText = await response.text();
-    console.log('Raw response:', responseText);
-
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      
-      try {
-        const errorData = JSON.parse(responseText);
-        if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-      } catch (e) {
-        // Response is not JSON, use the raw text
-        errorMessage = responseText || errorMessage;
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    let result;
+  // ✅ UPDATED: Auto-complete appointment after saving prescription using AppointmentService
+  const handleSavePrescription = async () => {
     try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      result = { message: 'Prescription saved successfully' };
-    }
-    
-    console.log('Prescription saved successfully:', result);
-    
-    showToast("Prescription saved successfully!");
-    
-    // Call success callback if provided
-    if (onSuccess) {
-      onSuccess(result);
-    }
-    
-    // Close modal after 2 seconds
-    setTimeout(() => {
-      if (onClose) {
-        onClose();
-      }
-    }, 2000);
+      setSubmitting(true);
 
-  } catch (error) {
-    console.error('Error saving prescription:', error);
-    
-    // More detailed error messages
-    let errorMessage = error.message;
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      errorMessage = 'Network error - unable to connect to server. Please check your internet connection.';
-    } else if (error.message.includes('CORS')) {
-      errorMessage = 'CORS error - please check server configuration.';
-    } else if (error.message.includes('timeout')) {
-      errorMessage = 'Request timeout - server took too long to respond.';
+      // Validate that we have at least some prescription data
+      if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
+        showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
+        return;
+      }
+
+      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
+
+      // Prepare prescription data
+      const prescriptionData = {
+        appointmentId: appointmentId,
+        doctorId: doctorId,
+        patientId: patientId,
+        patientName: patientName,
+        medicines: selectedMeds.map(med => ({
+          name: med.name,
+          batch: med.batch,
+          dosage: med.dosage || "",
+          quantity: med.quantity || "",
+          duration: med.duration || "",
+          timing: med.timing || []
+        })),
+        injections: injections.map(inj => ({
+          name: inj.name,
+          batch: inj.batch,
+          dosage: inj.dosage || "",
+          quantity: inj.quantity || "",
+          schedule: inj.schedule || "",
+          notes: inj.notes || ""
+        })),
+        dietPlan: dietPlan,
+        recommendedTests: recommendedTests
+      };
+
+      console.log('Sending prescription data:', JSON.stringify(prescriptionData, null, 2));
+
+      // Step 1: Save prescription
+      const prescriptionResponse = await fetch('https://doctorpanel-backend.onrender.com/api/prescriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(prescriptionData)
+      });
+
+      console.log('Prescription response status:', prescriptionResponse.status);
+
+      if (!prescriptionResponse.ok) {
+        const errorText = await prescriptionResponse.text();
+        let errorMessage = `HTTP ${prescriptionResponse.status}: ${prescriptionResponse.statusText}`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const prescriptionResult = await prescriptionResponse.json();
+      console.log('Prescription saved successfully:', prescriptionResult);
+      
+      // Step 2: Mark appointment as completed using AppointmentService
+      try {
+        console.log('Marking appointment as completed using AppointmentService:', appointmentId);
+        const completionResult = await markAppointmentCompleted(appointmentId);
+        console.log('Appointment marked as completed:', completionResult.data);
+        showToast("Prescription saved and appointment completed successfully!");
+      } catch (completionError) {
+        console.warn('Error marking appointment as completed:', completionError);
+        // Check if it's a 404 error (appointment not found)
+        if (completionError.response?.status === 404) {
+          console.warn(`Appointment ${appointmentId} not found in appointment service, but prescription was saved`);
+          showToast("Prescription saved successfully! (Appointment status update may require manual refresh)");
+        } else {
+          console.warn('Failed to mark appointment as completed, but prescription was saved');
+          showToast("Prescription saved successfully!");
+        }
+      }
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess(prescriptionResult);
+      }
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        if (onClose) {
+          onClose();
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error saving prescription:', error);
+      
+      // More detailed error messages
+      let errorMessage = error.message;
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'Network error - unable to connect to server. Please check your internet connection.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'CORS error - please check server configuration.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timeout - server took too long to respond.';
+      }
+      
+      showToast(`Error saving prescription: ${errorMessage}`, "error");
+    } finally {
+      setSubmitting(false);
     }
-    
-    showToast(`Error saving prescription: ${errorMessage}`, "error");
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const filteredSuggestions = medicines.filter((med) =>
     med.name.toLowerCase().includes(search.trim().toLowerCase())
@@ -618,6 +622,7 @@ const handleSavePrescription = async () => {
                               min="1"
                             />
                           </td>
+
                           <td className="px-4 py-3">
                             <input
                               type="text"

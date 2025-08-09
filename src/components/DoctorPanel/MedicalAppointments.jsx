@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -13,16 +13,13 @@ import {
   MdPerson,
   MdCheckCircle,
   MdSchedule,
-  MdVideocam,
-  MdLocationOn,
   MdDescription,
-  MdEditCalendar,
   MdVisibility,
   MdRefresh,
+  MdCancel,
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
-import { RescheduleModal } from "./RescheduleModal";
 import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
 import PrescribeModal from "./PrescribeModal";
 import ViewPrescriptionModal from "./ViewPrescriptionModel";
@@ -33,6 +30,7 @@ import {
   cancelAppointmentById,
 } from '../../services/DoctorPanel/AppointmentService';
 import { getPrescriptionByAppointmentId } from '../../services/DoctorPanel/PrescriptionService';
+import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
@@ -40,8 +38,7 @@ export const MedicalAppointments = () => {
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
-  const navigate = useNavigate();
-  const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
+  
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
@@ -70,16 +67,106 @@ export const MedicalAppointments = () => {
     return status === "CANCELED" || status === "CANCELLED";
   };
 
+  // Truncate text function
+  const truncateText = (text, maxLength = 50) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
   // Computed values for filtered and sorted appointments
-  const upcomingAppointments = allAppointments
+// More robust sorting with better date handling:
+const upcomingAppointments = allAppointments
+  .filter(apt => {
+    const status = apt.status?.toUpperCase();
+    return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
+  })
+  .sort((a, b) => {
+    // Handle different date formats and edge cases
+    const parseDateTime = (appointment) => {
+      try {
+        // Try different date parsing approaches
+        let dateTime;
+        
+        if (appointment.appointmentDateTime) {
+          // If appointmentDateTime exists, use it directly
+          dateTime = new Date(appointment.appointmentDateTime);
+        } else {
+          // Fallback to date + time combination
+          const dateStr = appointment.date;
+          const timeStr = appointment.time;
+          
+          if (!dateStr || !timeStr) {
+            return new Date(0); // Return epoch for invalid dates (will sort to beginning)
+          }
+          
+          // Combine date and time
+          dateTime = new Date(`${dateStr} ${timeStr}`);
+        }
+        
+        // Check if the date is valid
+        if (isNaN(dateTime.getTime())) {
+          console.warn(`Invalid date for appointment:`, appointment);
+          return new Date(0);
+        }
+        
+        return dateTime;
+      } catch (error) {
+        console.error(`Error parsing date for appointment:`, appointment, error);
+        return new Date(0);
+      }
+    };
+    
+    const aDateTime = parseDateTime(a);
+    const bDateTime = parseDateTime(b);
+    
+    // Ascending order: earliest appointments first
+    return aDateTime - bDateTime;
+  });
+
+  // Add this helper function at the top of your component
+const removeDuplicateAppointments = (appointments) => {
+  const seen = new Set();
+  return appointments.filter(apt => {
+    const key = getRowKey(apt);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
+// Then modify your computed values:
+const completedAppointmentsFiltered = removeDuplicateAppointments(
+  allAppointments
     .filter(apt => {
       const status = apt.status?.toUpperCase();
-      return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
+      return status === "COMPLETED";
     })
+    .concat(completedAppointments.filter(apt => {
+      const status = apt.status?.toUpperCase();
+      return status === "COMPLETED";
+    }))
     .sort((a, b) => {
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
-      return aDateTime - bDateTime;
+      return bDateTime - aDateTime;
+    })
+);
+
+  const canceledAppointments = allAppointments
+    .filter(apt => {
+      const status = apt.status?.toUpperCase();
+      return status === "CANCELED" || status === "CANCELLED";
+    })
+    .concat(completedAppointments.filter(apt => {
+      const status = apt.status?.toUpperCase();
+      return status === "CANCELED" || status === "CANCELLED";
+    }))
+    .sort((a, b) => {
+      const aDateTime = new Date(`${a.date} ${a.time}`);
+      const bDateTime = new Date(`${b.date} ${b.time}`);
+      return bDateTime - aDateTime;
     });
 
   const appointmentHistory = allAppointments
@@ -87,8 +174,9 @@ export const MedicalAppointments = () => {
       const status = apt.status?.toUpperCase();
       return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED"
     })
+    .concat(completedAppointments)
     .sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${b.time}`);
+      const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
       return bDateTime - aDateTime;
     });
@@ -101,13 +189,10 @@ export const MedicalAppointments = () => {
 
   const fetchAppointments = async () => {
     try {
-      // Fetch upcoming appointments
-      
       const upcomingResponse = await listUpcomingAppointmentsByDoctorId(doctorId);
       const upcomingData = upcomingResponse.data;
       const upcomingAppointments = Array.isArray(upcomingData) ? upcomingData : upcomingData.appointments || [];
       
-      // Transform upcoming appointments
       const transformedUpcoming = upcomingAppointments.map(apt => ({
         ...apt,
         date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
@@ -115,13 +200,11 @@ export const MedicalAppointments = () => {
         status: apt.status?.toLowerCase() || 'pending'
       }));
 
-      // Fetch completed appointments
       try {
         const completedResponse = await listCompletedAppointmentsByDoctorId(doctorId);
         const completedData = completedResponse.data;
         const completedAppointments = Array.isArray(completedData) ? completedData : completedData.appointments || [];
         
-        // Transform completed appointments
         const transformedCompleted = completedAppointments.map(apt => ({
           ...apt,
           date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
@@ -149,6 +232,13 @@ export const MedicalAppointments = () => {
     setRevisitDate("");
     setRevisitTime(null);
     setRevisitReason("");
+  };
+
+  const handleViewHistory = (appointment) => {
+    const patientId = appointment.patientId || appointment.patient?.id;
+    const patientName = appointment.patientName || appointment.patient?.name;
+    
+    setViewHistoryPatient({ id: patientId, name: patientName });
   };
 
   const handleRevisitConfirm = async () => {
@@ -185,11 +275,7 @@ export const MedicalAppointments = () => {
         status: "pending"
       };
 
-      console.log("Creating revisit appointment:", newAppointmentData);
-
       const response = await createAppointment(newAppointmentData);
-      console.log("Revisit appointment created:", response.data);
-
       await fetchAppointments();
 
       toast({
@@ -214,44 +300,36 @@ export const MedicalAppointments = () => {
     }
   };
 
-  // ✅ UPDATED: Enhanced function to handle prescription success and immediate UI update
   const handlePrescriptionSuccess = async (prescription) => {
     console.log('Prescription created:', prescription);
     
     try {
-      // Get the appointment ID for the prescription
       const appointmentId = getAppointmentIdForPrescription(selectedAppointment);
       
-      // Find the appointment in upcoming appointments
       const appointmentToComplete = allAppointments.find(apt => 
         getAppointmentIdForPrescription(apt) === appointmentId
       );
       
       if (appointmentToComplete) {
-        // Create the completed appointment object
         const completedAppointment = {
           ...appointmentToComplete,
           status: "completed"
         };
         
-        // Update state immediately for instant UI feedback
         setAllAppointments(prev => 
           prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
         );
         
         setCompletedAppointments(prev => [completedAppointment, ...prev]);
         
-        // Show success message
         toast({
           title: "Success",
           description: "Prescription created successfully! Appointment moved to history.",
         });
         
-        // Close the modal
         setShowPrescribeModal(false);
         setSelectedAppointment(null);
         
-        // Refresh appointments from backend to ensure consistency (optional but recommended)
         setTimeout(() => {
           fetchAppointments();
         }, 1000);
@@ -263,7 +341,6 @@ export const MedicalAppointments = () => {
           description: "Prescription created successfully!",
         });
         
-        // Still close the modal and refresh
         setShowPrescribeModal(false);
         setSelectedAppointment(null);
         fetchAppointments();
@@ -275,7 +352,6 @@ export const MedicalAppointments = () => {
         description: "Prescription created successfully!",
       });
       
-      // Close modal and refresh on any error
       setShowPrescribeModal(false);
       setSelectedAppointment(null);
       fetchAppointments();
@@ -293,15 +369,11 @@ export const MedicalAppointments = () => {
     }
 
     try {
-      console.log("Viewing prescription for appointment:", appointment);
       const appointmentId = getAppointmentIdForPrescription(appointment);
-      console.log("Using appointmentId:", appointmentId);
-      
       const response = await getPrescriptionByAppointmentId(appointmentId);
       const prescription = response.data;
       
       if (prescription) {
-        console.log("Found prescription:", prescription);
         setCurrentPrescription(prescription);
         setShowViewPrescriptionModal(true);
       } else {
@@ -322,9 +394,6 @@ export const MedicalAppointments = () => {
   };
 
   const handleCreatePrescription = (appointment) => {
-    console.log("Creating prescription for appointment:", appointment);
-    console.log("Full appointment object:", JSON.stringify(appointment, null, 2));
-    
     let patientId = null;
     let patientName = null;
     
@@ -344,20 +413,14 @@ export const MedicalAppointments = () => {
       patientName = appointment.patient.patientName;
     }
     
-    console.log("After extraction - patientId:", patientId, "patientName:", patientName);
-    
     if (!patientId || !patientName) {
-      console.error("Missing patient data:", { patientId, patientName, appointment });
       toast({
         title: "Error", 
-        description: "Cannot create prescription: Patient information is missing from appointment data. Please check appointment details.",
+        description: "Cannot create prescription: Patient information is missing from appointment data.",
         variant: "destructive",
       });
       return;
     }
-    
-    console.log("Successfully extracted patient details:", { patientId, patientName });
-    console.log("Using appointmentId:", getAppointmentIdForPrescription(appointment), appointment);
     
     setSelectedAppointment({
       ...appointment,
@@ -365,37 +428,6 @@ export const MedicalAppointments = () => {
       patientName: patientName
     });
     setShowPrescribeModal(true);
-  };
-
-  const debugAppointmentData = (appointment) => {
-    console.group("🔍 Appointment Data Debug");
-    console.log("appointment.patientId:", appointment.patientId);
-    console.log("appointment.patientName:", appointment.patientName);
-    console.log("appointment.patient:", appointment.patient);
-    console.log("appointment.patient?.id:", appointment.patient?.id);
-    console.log("appointment.patient?.name:", appointment.patient?.name);
-    console.log("Full appointment keys:", Object.keys(appointment));
-    console.groupEnd();
-  };
-
-  const handleCompleteAppointment = (appointment) => {
-    const appointmentId = getAppointmentIdForPrescription(appointment);
-    
-    const completedAppointment = {
-      ...appointment,
-      status: "completed"
-    };
-    
-    setAllAppointments(prev => 
-      prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
-    );
-    
-    setCompletedAppointments(prev => [...prev, completedAppointment]);
-    
-    toast({
-      title: "Appointment Completed",
-      description: `Appointment for ${appointment.patientName} has been marked as completed.`,
-    });
   };
 
   const getStatusBadge = (status) => {
@@ -438,7 +470,7 @@ export const MedicalAppointments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -448,17 +480,19 @@ export const MedicalAppointments = () => {
             icon={<MdCalendarToday className="h-6 w-6 text-primary" />}
             bgColor="bg-medical-blue-light"
           />
-          <AppointmentCard
-            title="Pending Approval"
-            count={upcomingAppointments.filter((apt) => apt.status === "pending").length}
-            icon={<MdPerson className="h-6 w-6 text-orange-600" />}
-            bgColor="bg-orange-50"
-          />
+         
           <AppointmentCard
             title="Completed"
-            count={appointmentHistory.length}
+            count={completedAppointmentsFiltered.length}
             icon={<MdCheckCircle className="h-6 w-6 text-green-600" />}
             bgColor="bg-green-50"
+          />
+
+          <AppointmentCard
+            title="Canceled"
+            count={canceledAppointments.length}
+            icon={<MdCancel className="h-6 w-6 text-red-600" />}
+            bgColor="bg-red-50"
           />
         </div>
 
@@ -487,14 +521,14 @@ export const MedicalAppointments = () => {
                 </div>
                 
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[900px]">
                     <thead className="bg-muted/50">
                       <tr>
-                        <th className="text-left p-4 font-medium">Patient</th>
-                        <th className="text-left p-4 font-medium">Date & Time</th>
-                        <th className="text-left p-4 font-medium">Reason</th>
-                        <th className="text-left p-4 font-medium">Status</th>
-                        <th className="text-left p-4 font-medium">Actions</th>
+                        <th className="text-left p-3 font-medium w-[200px]">Patient</th>
+                        <th className="text-left p-3 font-medium w-[140px]">Date & Time</th>
+                        <th className="text-left p-3 font-medium w-[150px]">Reason</th>
+                        <th className="text-left p-3 font-medium w-[100px]">Status</th>
+                        <th className="text-left p-3 font-medium w-[310px]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -507,42 +541,48 @@ export const MedicalAppointments = () => {
                       ) : (
                         upcomingAppointments.map((appointment) => (
                           <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
-                            <td className="p-2 text-sm">
+                            <td className="p-3 text-sm">
                               <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                   <MdPerson className="h-4 w-4 text-primary-foreground" />
                                 </div>
-                                <div>
-                                  <p className="font-medium">{appointment.patientName}</p>
-                                  <p className="text-xs text-gray-500">ID: {getAppointmentIdForPrescription(appointment)}</p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium truncate">{appointment.patientName}</p>
+                                  <p className="text-xs text-gray-500 truncate">ID: {getAppointmentIdForPrescription(appointment)}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-2 text-sm">
+                            <td className="p-3 text-sm">
                               <div className="flex items-center space-x-2">
-                                <MdSchedule className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium">{appointment.date}</p>
-                                  <p className="font-medium">{appointment.time}</p>
+                                <MdSchedule className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-xs">{appointment.date}</p>
+                                  <p className="font-medium text-xs">{appointment.time}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3 text-sm">{appointment.reason}</td>
-                            <td className="p-2 text-sm">
-                              <Badge className={`border ${getStatusBadge(appointment.status)}`}>
+                            <td className="p-3 text-sm">
+                              <div className="max-w-[150px]">
+                                <span 
+                                  className="block truncate" 
+                                  title={appointment.reason}
+                                >
+                                  {truncateText(appointment.reason, 25)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm">
+                              <Badge className={`border text-xs ${getStatusBadge(appointment.status)}`}>
                                 {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                               </Badge>
                             </td>
-                            <td className="p-2 text-sm">
-                              <div className="flex items-center space-x-2">
+                            <td className="p-3 text-sm">
+                              <div className="flex items-center gap-1 flex-nowrap">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-xs"
-                                  onClick={() => {
-                                    debugAppointmentData(appointment);
-                                    handleCreatePrescription(appointment);
-                                  }}
+                                  className="text-xs px-2 py-1 h-7 whitespace-nowrap"
+                                  onClick={() => handleCreatePrescription(appointment)}
                                 >
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   Prescription
@@ -551,14 +591,15 @@ export const MedicalAppointments = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-xs"
+                                  className="text-xs px-2 py-1 h-7 whitespace-nowrap"
+                                  onClick={() => handleViewHistory(appointment)}
                                 >
                                   <MdVisibility className="h-3 w-3 mr-1" />
-                                  View History
+                                  History
                                 </Button>
 
                                 <button
-                                  className="px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 hover:text-blue-900 transition-colors"
+                                  className="px-2 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 transition-colors h-7 whitespace-nowrap"
                                   onClick={() => handleRevisit(appointment)}
                                 >
                                   <MdRefresh className="h-3 w-3 mr-1 inline" />
@@ -566,7 +607,7 @@ export const MedicalAppointments = () => {
                                 </button>
 
                                 <button
-                                  className="px-3 py-1 text-xs rounded-md bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 hover:text-red-900 transition-colors"
+                                  className="px-2 py-1 text-xs rounded-md bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 transition-colors h-7 whitespace-nowrap"
                                   onClick={() => setCancelAppointment(appointment)}
                                 >
                                   Cancel
@@ -597,14 +638,14 @@ export const MedicalAppointments = () => {
                 </div>
                 
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[800px]">
                     <thead className="bg-muted/50">
                       <tr>
-                        <th className="text-left p-4 font-medium">Patient</th>
-                        <th className="text-left p-4 font-medium">Date & Time</th>
-                        <th className="text-left p-4 font-medium">Reason</th>
-                        <th className="text-left p-4 font-medium">Status</th>
-                        <th className="text-left p-4 font-medium">Actions</th>
+                        <th className="text-left p-3 font-medium w-[200px]">Patient</th>
+                        <th className="text-left p-3 font-medium w-[140px]">Date & Time</th>
+                        <th className="text-left p-3 font-medium w-[150px]">Reason</th>
+                        <th className="text-left p-3 font-medium w-[100px]">Status</th>
+                        <th className="text-left p-3 font-medium w-[210px]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -617,38 +658,47 @@ export const MedicalAppointments = () => {
                       ) : (
                         appointmentHistory.map((appointment) => (
                           <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
-                            <td className="p-2 text-sm">
+                            <td className="p-3 text-sm">
                               <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                   <MdPerson className="h-4 w-4 text-primary-foreground" />
                                 </div>
-                                <div>
-                                  <p className="font-medium">{appointment.patientName}</p>
-                                  <p className="text-xs text-gray-500">ID: {getAppointmentIdForPrescription(appointment)}</p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium truncate">{appointment.patientName}</p>
+                                  <p className="text-xs text-gray-500 truncate">ID: {getAppointmentIdForPrescription(appointment)}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-2 text-sm">
+                            <td className="p-3 text-sm">
                               <div className="flex items-center space-x-2">
-                                <MdSchedule className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium">{appointment.date}</p>
-                                  <p className="font-medium">{appointment.time}</p>
+                                <MdSchedule className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-xs">{appointment.date}</p>
+                                  <p className="font-medium text-xs">{appointment.time}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3 text-sm">{appointment.reason}</td>
-                            <td className="p-2 text-sm">
-                              <Badge className={`border ${getStatusBadge(appointment.status)}`}>
+                            <td className="p-3 text-sm">
+                              <div className="max-w-[150px]">
+                                <span 
+                                  className="block truncate" 
+                                  title={appointment.reason}
+                                >
+                                  {truncateText(appointment.reason, 25)}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-sm">
+                              <Badge className={`border text-xs ${getStatusBadge(appointment.status)}`}>
                                 {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                               </Badge>
                             </td>
-                            <td className="p-2 text-sm">
+                            <td className="p-3 text-sm">
                               <div className="flex items-center space-x-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className={`text-xs ${
+                                  className={`text-xs px-2 py-1 h-7 whitespace-nowrap ${
                                     isAppointmentCanceled(appointment)
                                       ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
                                       : ""
@@ -662,7 +712,7 @@ export const MedicalAppointments = () => {
                                   }
                                 >
                                   <MdDescription className="h-3 w-3 mr-1" />
-                                  View Prescription
+                                  Prescription
                                 </Button>
                               </div>
                             </td>
@@ -684,17 +734,6 @@ export const MedicalAppointments = () => {
           isOpen={!!selectedPatient}
           onClose={() => setSelectedPatient(null)}
           patient={selectedPatient}
-        />
-      )}
-
-      {rescheduleAppointment && (
-        <RescheduleModal
-          isOpen={!!rescheduleAppointment}
-          onClose={() => setRescheduleAppointment(null)}
-          onReschedule={(date, time) =>
-            handleRescheduleConfirm(rescheduleAppointment.id, date, time)
-          }
-          patientName={rescheduleAppointment.patient?.name || rescheduleAppointment.patientName}
         />
       )}
 
@@ -724,10 +763,20 @@ export const MedicalAppointments = () => {
         />
       )}
 
+      {viewHistoryPatient && (
+        <PatientHistoryModal
+          isOpen={!!viewHistoryPatient}
+          onClose={() => setViewHistoryPatient(null)}
+          patientId={viewHistoryPatient.id}
+          patientName={viewHistoryPatient.name}
+          doctorId={doctorId}
+        />
+      )}
+
       {/* Revisit Modal */}
       {revisitAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-blue-600">Schedule Revisit</h2>
             <p className="text-sm text-gray-600">
               Schedule a follow-up appointment for <strong>{revisitAppointment.patient?.name || revisitAppointment.patientName}</strong>.
@@ -813,8 +862,8 @@ export const MedicalAppointments = () => {
 
       {/* Cancel Appointment Modal */}
       {cancelAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
             <h2 className="text-lg font-semibold text-red-600">Cancel Appointment</h2>
             <p className="text-sm text-gray-600">
               Please provide a reason for cancelling the appointment with <strong>{cancelAppointment.patient?.name || cancelAppointment.patientName}</strong>.

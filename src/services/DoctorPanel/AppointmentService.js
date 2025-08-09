@@ -6,7 +6,9 @@ const REST_API_BASE_URL = 'https://appoitment-backend.onrender.com/api/appointme
 // ✅ Get upcoming appointments by doctor ID
 export const listUpcomingAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/upcoming`);
-
+// Add this to your AppointmentService.js
+export const listCompletedAppointmentsByPatientId = (patientId) =>
+  axios.get(`${REST_API_BASE_URL}/patient/${patientId}/completed`);
 // ✅ Get completed appointments by doctor ID  
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/completed`);

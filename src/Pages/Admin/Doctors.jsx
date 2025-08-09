@@ -184,7 +184,7 @@ const renderDoctorImage = (doctor) => {
   }
   return <HiUserCircle className="w-10 h-10 text-gray-400" />;
 };
-
+  
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          doctor.specialty?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -210,6 +210,8 @@ const renderDoctorImage = (doctor) => {
       </div>
     );
   }
+
+// const numberofdoctors = doctors.length;
 
   return (
     <div className="p-4 md:p-6">

@@ -1,29 +1,27 @@
-
-
 import DoctorInfoBar from "../../components/DoctorPanel/DoctorInfoBar";
 import DoctorNavbar from "../../components/DoctorPanel/DoctorNavBar";
 import { MedicalAppointments } from "../../components/DoctorPanel/MedicalAppointments";
 
 const DoctorPanelPage = () => {
-  return<>
-  <DoctorNavbar/>
-<div className="flex justify-center pt-6">
-  <h1 className="text-2xl font-extrabold tracking-tight font-serif text-black-600">
-    Doctor Panel
-  </h1>
-</div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DoctorNavbar />
+      
+      <div className="py-6">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Doctor Panel
+          </h1>
+          <p className="mt-2 text-gray-600">Manage your appointments and patient care</p>
+        </div>
 
-
-
-  <div className="max-w-5xl mx-auto px-4">
-  <DoctorInfoBar
-        name="Dr. Sravani"
-        qualification="MBBS, MS, MCh (Neurosurgery)"
-        imageSrc="/doctor.jpg" // adjust as needed
-  />
-  <MedicalAppointments />
-  </div>
-  </>;
+        <div className="max-w-6xl mx-auto px-4 space-y-6">
+          <DoctorInfoBar />
+          <MedicalAppointments />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default DoctorPanelPage;

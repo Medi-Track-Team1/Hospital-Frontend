@@ -1,21 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppointmentCard from '../../components/Admin/AppointmentCard';
+import { fetchAppointments } from './services/appointmentService';
+import LoadingSpinner from '../../components/Admin/LoadingSpinner';
 
 const Appointments = () => {
-  const [appointments] = useState([
-    { id: 1, patient: 'John Doe', doctor: 'Dr. Sarah Johnson', time: '10:00 AM', date: '2023-07-20', status: 'Confirmed', 
-      details: 'Routine checkup', contact: 'john.doe@example.com', phone: '555-0101' },
-    { id: 2, patient: 'Jane Smith', doctor: 'Dr. Michael Chen', time: '11:30 AM', date: '2023-07-20', status: 'Pending',
-      details: 'Dental consultation', contact: 'jane.smith@example.com', phone: '555-0102' },
-    { id: 3, patient: 'Robert Brown', doctor: 'Dr. Emily Wilson', time: '2:15 PM', date: '2023-07-20', status: 'Confirmed',
-      details: 'Follow-up appointment', contact: 'robert.brown@example.com', phone: '555-0103' },
-    { id: 4, patient: 'Emily Davis', doctor: 'Dr. David Kim', time: '4:45 PM', date: '2023-07-21', status: 'Pending',
-      details: 'Annual physical', contact: 'emily.davis@example.com', phone: '555-0104' },
-    { id: 5, patient: 'Michael Wilson', doctor: 'Dr. Sarah Johnson', time: '9:00 AM', date: '2023-07-19', status: 'Completed',
-      details: 'Vaccination', contact: 'michael.wilson@example.com', phone: '555-0105' },
-    { id: 6, patient: 'Sarah Johnson', doctor: 'Dr. Michael Chen', time: '3:30 PM', date: '2023-07-22', status: 'Confirmed',
-      details: 'Cardiology consultation', contact: 'sarah.johnson@example.com', phone: '555-0106' },
-  ]);
+  const [appointments, setAppointments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -23,6 +14,24 @@ const Appointments = () => {
   const [sortOption, setSortOption] = useState('date-asc');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        setIsLoading(true);
+        const filters = {};
+        if (selectedStatus) filters.status = selectedStatus;
+        const data = await fetchAppointments(filters);
+        setAppointments(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAppointments();
+  }, [selectedStatus]);
 
   const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
@@ -39,7 +48,7 @@ const Appointments = () => {
       const matchesSearch = appointment.patient.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            appointment.doctor.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDate = selectedDate ? appointment.date === selectedDate : true;
-      const matchesStatus = selectedStatus ? appointment.status === selectedStatus : true;
+      const matchesStatus = selectedStatus ? appointment.backendStatus === selectedStatus.toUpperCase() : true;
       
       return matchesSearch && matchesDate && matchesStatus;
     })
@@ -56,6 +65,14 @@ const Appointments = () => {
     });
 
   const uniqueDates = [...new Set(appointments.map(app => app.date))].sort();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -100,10 +117,10 @@ const Appointments = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="">All Status</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Pending">Pending</option>
-              <option value="Cancelled">Cancelled</option>
-              <option value="Completed">Completed</option>
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="COMPLETED">Completed</option>
             </select>
           </div>
           <div>

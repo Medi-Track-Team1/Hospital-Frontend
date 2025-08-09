@@ -430,13 +430,7 @@ function App() {
             color: "#10B981",
             bg: "#ECFDF5",
           },
-          {
-            title: "Pending/Overdue",
-            value: pendingBills.length + overdueBills.length,
-            icon: Users,
-            color: "#F59E0B",
-            bg: "#FFFBEB",
-          },
+          
         ].map((stat, index) => {
           const IconComponent = stat.icon;
           return (
@@ -1154,7 +1148,7 @@ function App() {
           >
             🖨️ Print
           </button>
-          <button
+           <button
             onClick={() => {
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();

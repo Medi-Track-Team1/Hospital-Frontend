@@ -27,7 +27,6 @@ function DeptRoute() {
   <Route path="neurology" element={<Neuro />} />
   <Route path="fertility" element={<Fertility />} />
   <Route path="general" element={<General />} />
-  <Route path="generaldoctors" element={<General />} />
 </Routes>
 
     </>

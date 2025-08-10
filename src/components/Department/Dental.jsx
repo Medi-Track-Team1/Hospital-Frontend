@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Smile, Phone, Mail } from "lucide-react";
+import { motion } from "framer-motion";
 import dcare from "../../assets/dcare.jpeg";
 import { useNavigate } from "react-router-dom";
 import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
@@ -14,7 +15,7 @@ const fadeInUp = {
 };
 
 const SkeletonCard = () => (
-  <div className="animate-pulse bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] flex flex-col items-center">
+  <div className="animate-pulse bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center">
     <div className="w-28 h-28 rounded-full bg-gray-300 mb-4" />
     <div className="h-4 w-40 bg-gray-300 rounded mb-2" />
     <div className="h-3 w-24 bg-gray-200 rounded mb-1" />
@@ -37,32 +38,6 @@ const Dental = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const handleBookClick = (doctor) => {
-    if (isDoctorAvailable(doctor.status)) {
-      navigate("/departments/appointment", { state: { doctor } });
-    }
-  };
-
-  const isDoctorAvailable = (status) => {
-    const unavailableStatuses = [
-      "on leave", "On Leave", "ON LEAVE",
-      "leave", "Leave", "LEAVE",
-      "inactive", "Inactive", "INACTIVE",
-      "unavailable", "Unavailable", "UNAVAILABLE"
-    ];
-    return !unavailableStatuses.includes(status);
-  };
-
-  const getButtonStyles = (status) => {
-    return isDoctorAvailable(status)
-      ? "w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer"
-      : "w-full bg-gray-400 text-gray-200 py-2 rounded-lg font-semibold cursor-not-allowed opacity-60";
-  };
-
-  const getButtonText = (status) => {
-    return isDoctorAvailable(status) ? "Book Appointment" : "Currently Unavailable";
-  };
-
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -78,9 +53,12 @@ const Dental = () => {
     fetchDoctors();
   }, []);
 
+  const handleBookClick = (doctor) => {
+    navigate("/departments/appointment", { state: { doctor } });
+  };
+
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center">
-
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
@@ -161,7 +139,6 @@ const Dental = () => {
                 variants={fadeInUp}
                 custom={index + 1}
               >
-                {/* Doctor Image */}
                 <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
                   <img
                     src={doc.photoUrl}
@@ -169,8 +146,6 @@ const Dental = () => {
                     className="w-full h-full object-cover object-top"
                   />
                 </div>
-
-                {/* Name & Specialty */}
                 <div className="mt-4 text-center">
                   <h2 className="text-xl font-semibold">{doc.doctorName}</h2>
                   <p className="text-blue-600 text-sm">{doc.specialty}</p>
@@ -178,36 +153,43 @@ const Dental = () => {
                     ★★★★☆<span className="text-black ml-2">4.5</span>
                   </div>
                 </div>
-
-                {/* Details */}
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
                   <p><strong>ID:</strong> #{doc.doctorId}</p>
                   <span
                     className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
-                    ${doc.status === "Active" || doc.status === "Available"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"}`}
+                    ${doc.status === "Active" || doc.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
                   >
                     {doc.status}
                   </span>
                   <p><strong>Experience:</strong> {doc.experience}</p>
                   <p><strong>Education:</strong> {doc.education}</p>
-                  <p><strong>Languages:</strong> {Array.isArray(doc.languages) ? doc.languages.join(", ") : doc.languages || "N/A"}</p>
+                  <p><strong>Languages:</strong> 
+                    {Array.isArray(doc.languages) ? doc.languages.join(", ") : doc.languages || "N/A"}
+                  </p>
                   <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
                   <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
                 </div>
-
-                {/* Book Button */}
-                <div className="mt-6 w-full px-4">
-                  <button
-                    onClick={() => handleBookClick(doc)}
-                    disabled={!isDoctorAvailable(doc.status)}
-                    className={getButtonStyles(doc.status)}
-                    title={!isDoctorAvailable(doc.status) ? "Doctor is currently unavailable" : "Click to book appointment"}
-                  >
-                    {getButtonText(doc.status)}
-                  </button>
-                </div>
+                // Replace the existing button section in your doctor card with this:
+<div className="mt-6 w-full px-4">
+  <button
+    onClick={() => {
+      if (doc.status === "Active" || doc.status === "Available") {
+        handleBookClick(doc);
+      }
+    }}
+    disabled={doc.status === "On Leave" || doc.status === "Inactive"}
+    className={`w-full py-2 rounded-lg font-semibold transition ${
+      doc.status === "Active" || doc.status === "Available"
+        ? "bg-blue-600 text-white hover:bg-blue-800 cursor-pointer"
+        : "bg-gray-400 text-gray-600 cursor-not-allowed"
+    }`}
+  >
+    {doc.status === "On Leave" || doc.status === "Inactive"
+      ? "Currently Unavailable"
+      : "Book Appointment"
+    }
+  </button>
+</div>
               </motion.div>
             ))
           : <p className="text-center text-gray-600">No dentists found.</p>}

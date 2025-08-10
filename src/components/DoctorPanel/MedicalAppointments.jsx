@@ -39,6 +39,10 @@ export const MedicalAppointments = () => {
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
   
+
+  const navigate = useNavigate();
+  const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
+
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
@@ -234,12 +238,12 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
     setRevisitReason("");
   };
 
-  const handleViewHistory = (appointment) => {
-    const patientId = appointment.patientId || appointment.patient?.id;
-    const patientName = appointment.patientName || appointment.patient?.name;
-    
-    setViewHistoryPatient({ id: patientId, name: patientName });
-  };
+const handleViewHistory = (appointment) => {
+  const patientId = appointment.patientId || appointment.patient?.id;
+  const patientName = appointment.patientName || appointment.patient?.name;
+  
+  setViewHistoryPatient({ id: patientId, name: patientName });
+};
 
   const handleRevisitConfirm = async () => {
     if (!revisitDate || !revisitTime || !revisitReason.trim()) {
@@ -588,15 +592,17 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
                                   Prescription
                                 </Button>
                                 
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs px-2 py-1 h-7 whitespace-nowrap"
-                                  onClick={() => handleViewHistory(appointment)}
-                                >
-                                  <MdVisibility className="h-3 w-3 mr-1" />
-                                  History
-                                </Button>
+
+                               <Button
+  size="sm"
+  variant="outline"
+  className="text-xs"
+  onClick={() => handleViewHistory(appointment)}
+>
+  <MdVisibility className="h-3 w-3 mr-1" />
+  View History
+</Button>
+
 
                                 <button
                                   className="px-2 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 transition-colors h-7 whitespace-nowrap"
@@ -763,15 +769,15 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
         />
       )}
 
-      {viewHistoryPatient && (
-        <PatientHistoryModal
-          isOpen={!!viewHistoryPatient}
-          onClose={() => setViewHistoryPatient(null)}
-          patientId={viewHistoryPatient.id}
-          patientName={viewHistoryPatient.name}
-          doctorId={doctorId}
-        />
-      )}
+{viewHistoryPatient && (
+  <PatientHistoryModal
+    isOpen={!!viewHistoryPatient}
+    onClose={() => setViewHistoryPatient(null)}
+    patientId={viewHistoryPatient.id}
+    patientName={viewHistoryPatient.name}
+    doctorId={doctorId}
+  />
+)}
 
       {/* Revisit Modal */}
       {revisitAppointment && (

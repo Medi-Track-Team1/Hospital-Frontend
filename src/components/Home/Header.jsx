@@ -24,6 +24,7 @@ const Header = ({ onLoginClick }) => {
     { name: "Dental", link: "/departments/Dental" },
     { name: "Fertility", link: "/departments/fertility" },
     { name: "Psychology", link: "/departments/psychology" },
+    { name: "General", link: "/departments/general" }
   ];
 
   useEffect(() => {

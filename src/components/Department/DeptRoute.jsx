@@ -10,6 +10,7 @@ import Pediatrics from "./Pediatrics";
 import Neuro from "./Neuro";
 import Dental from "./Dental";
 import AppointmentPage from "./AppointmentPage";
+import General from "./General";
 
 function DeptRoute() {
 
@@ -26,7 +27,7 @@ function DeptRoute() {
         <Route path="psychology" element={<Psychology />} />
         <Route path="neurology" element={<Neuro />} />
         <Route path="fertility" element={<Fertility />} />
-
+        <Route path="general" element={<General />} />
 
       </Routes>
     </>

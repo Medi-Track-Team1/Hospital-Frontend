@@ -18,9 +18,28 @@ const fadeInUp = {
   }),
 };
 
+// Skeleton Loader
+const DoctorSkeleton = () => (
+  <div className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto animate-pulse flex flex-col items-center gap-4">
+    <div className="w-28 h-28 rounded-full bg-gray-300"></div>
+    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+    <div className="h-3 bg-gray-200 rounded w-full px-4 mt-2 space-y-2">
+      <div className="h-3 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+    </div>
+    <div className="w-full px-4 mt-4">
+      <div className="w-full h-8 bg-gray-300 rounded"></div>
+    </div>
+  </div>
+);
+
 const Hepatology = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBookClick = (doctor) => {
     // Check if doctor is available before navigation
@@ -49,19 +68,20 @@ const Hepatology = () => {
     return isDoctorAvailable(status) ? "Book Appointment" : "Currently Unavailable";
   };
 
- useEffect(() => {
-  const fetchDoctors = async () => {
-    try {
-      const res = await getDoctorsBySpecialty("Hepatology");
-      setDoctors(res || []); // fallback to empty array
-    } catch (err) {
-      console.error("Error fetching hepatologists:", err);
-      setDoctors([]); // also avoid map crash on error
-    }
-  };
-  fetchDoctors();
-}, []);
-
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await getDoctorsBySpecialty("Hepatology");
+        setDoctors(res || []);
+      } catch (err) {
+        console.error("Error fetching hepatologists:", err);
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -140,6 +160,7 @@ const Hepatology = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
+
         {doctors.map((doctor, index) => (
           <motion.div
             key={doctor.doctorId}
@@ -189,6 +210,53 @@ const Hepatology = () => {
             </div>
           </motion.div>
         ))}
+
+        {loading
+          ? Array(1)
+              .fill(0)
+              .map((_, idx) => <DoctorSkeleton key={idx} />)
+          : doctors.map((doctor, index) => (
+              <motion.div
+                key={doctor.doctorId}
+                className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                custom={index + 1}
+              >
+                <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
+                  <img
+                    src={doctor.photoUrl}
+                    alt={doctor.doctorName}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+                  <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                  <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                    ★★★★☆<span className="text-black ml-2">4.2</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+                  <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <p><strong>Experience:</strong> {doctor.experience}</p>
+                  <p><strong>Education:</strong> {doctor.education}</p>
+                  <p><strong>Languages:</strong> {doctor.languages}</p>
+                  <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+                  <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+                </div>
+                <div className="mt-6 w-full px-4">
+                  <button
+                    onClick={() => handleBookClick(doctor)}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+
       </div>
 
       <div className="h-[40px]" />

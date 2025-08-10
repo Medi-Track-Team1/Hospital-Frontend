@@ -9,14 +9,14 @@ import Psychology from "./Psychology";
 import Pediatrics from "./Pediatrics";
 import Neuro from "./Neuro";
 import Dental from "./Dental";
+import General from "./General";
 import AppointmentPage from "./AppointmentPage";
 import General from "./General";
 
 function DeptRoute() {
-
   return (
     <>
-      <Header></Header>
+      <Header />
       <Routes>
         <Route path="cardiology" element={<Cardio />} />
         <Route path="hepatology" element={<Hepatology />} />
@@ -27,12 +27,15 @@ function DeptRoute() {
         <Route path="psychology" element={<Psychology />} />
         <Route path="neurology" element={<Neuro />} />
         <Route path="fertility" element={<Fertility />} />
+
         <Route path="general" element={<General />} />
+
+
+        <Route path="generaldoctors" element={<General />} />
 
       </Routes>
     </>
   );
 }
-
 
 export default DeptRoute;

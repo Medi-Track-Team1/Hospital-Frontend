@@ -24,7 +24,12 @@ const Header = ({ onLoginClick }) => {
     { name: "Dental", link: "/departments/Dental" },
     { name: "Fertility", link: "/departments/fertility" },
     { name: "Psychology", link: "/departments/psychology" },
+
     { name: "General", link: "/departments/general" }
+
+     { name: "General Doctors", link: "/departments/generaldoctors" }
+
+
   ];
 
   useEffect(() => {
@@ -182,7 +187,7 @@ const Header = ({ onLoginClick }) => {
               </button>
               {/* <button
                 onClick={() => handleNavClick("#appointment")}
-                className={`${navLinkClass("#appointment")} hidden lg:block`}
+                className={${navLinkClass("#appointment")} hidden lg:block}
               >
                 Appointment
               </button> */}

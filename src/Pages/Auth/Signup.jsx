@@ -104,6 +104,7 @@ const Signup = ({ onClose, onLoginClick }) => {
   const [formData, setFormData] = useState({
     patientName: "",
     age: "",
+    dateOfBirth: "",
     bloodGroup: "",
     gender: "",
     maritalStatus: "",
@@ -163,6 +164,7 @@ const Signup = ({ onClose, onLoginClick }) => {
     setFormData({
       patientName: "",
       age: "",
+      dateOfBirth: "",
       bloodGroup: "",
       gender: "",
       maritalStatus: "",
@@ -193,6 +195,17 @@ const Signup = ({ onClose, onLoginClick }) => {
       newErrors.age = "Age is required";
     } else if (formData.age < 10 || formData.age > 70) {
       newErrors.age = "Age must be between 1 and 120";
+    }
+
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = "Date of birth is required";
+    } else {
+      // Validate date of birth is not in the future
+      const today = new Date();
+      const dob = new Date(formData.dateOfBirth);
+      if (dob > today) {
+        newErrors.dateOfBirth = "Date of birth cannot be in the future";
+      }
     }
     
     if (!formData.bloodGroup) {
@@ -271,6 +284,7 @@ const Signup = ({ onClose, onLoginClick }) => {
       const patientData = {
         patientName: formData.patientName,
         age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
         bloodGroup: formData.bloodGroup,
         gender: formData.gender,
         maritalStatus: formData.maritalStatus || null,
@@ -376,8 +390,8 @@ const Signup = ({ onClose, onLoginClick }) => {
             </h3>
 
             <div className="space-y-6">
-              {/* Row 1 - Patient Name and Age */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Row 1 - Patient Name, Age, and Date of Birth */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Patient Name *
@@ -418,6 +432,25 @@ const Signup = ({ onClose, onLoginClick }) => {
                   />
                   {errors.age && (
                     <p className="text-red-500 text-sm mt-1">{errors.age}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Birth *
+                  </label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    required
+                  />
+                  {errors.dateOfBirth && (
+                    <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
                   )}
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { HiHome, HiUserGroup, HiUsers, HiCalendar, HiCog, HiArchive, HiExclamation } from 'react-icons/hi';
+import { HiHome, HiUserGroup, HiUsers, HiCalendar, HiCog, HiArchive, HiExclamation,HiChartBar,  HiClipboardList } from 'react-icons/hi';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
   const navItems = [
@@ -13,6 +13,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isMobile }) => {
       path: '/admin/pharmacy',
       alert: true // This could indicate low stock items
     },
+    { name: 'Records', icon: HiChartBar, path: '/admin/records' }, 
     { name: 'Settings', icon: HiCog, path: '/admin/settings' },
   ];
 

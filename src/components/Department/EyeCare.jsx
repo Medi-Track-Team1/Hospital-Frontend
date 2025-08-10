@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Eye, Phone, Mail } from "lucide-react";
 import eyeImage from "../../assets/EyeCare.jpeg";
@@ -168,9 +169,13 @@ const EyeCare = () => {
             <div className="mt-6 w-full px-4">
               <button
                 onClick={() => handleBookClick(doctor)}
+
                 disabled={!isDoctorAvailable(doctor.status)}
                 className={getButtonStyles(doctor.status)}
                 title={!isDoctorAvailable(doctor.status) ? "Doctor is currently unavailable" : "Click to book appointment"}
+
+                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+
               >
                 {getButtonText(doctor.status)}
               </button>

@@ -96,6 +96,7 @@ const PatientRegistrationForm = () => {
   const [formData, setFormData] = useState({
     patientName: "",
     age: "",
+    dateOfBirth: "",
     bloodGroup: "",
     gender: "",
     maritalStatus: "",
@@ -166,6 +167,17 @@ const PatientRegistrationForm = () => {
       newErrors.age = "Age must be between 1 and 120";
     }
     
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = "Date of birth is required";
+    } else {
+      // Validate date of birth is not in the future
+      const today = new Date();
+      const dob = new Date(formData.dateOfBirth);
+      if (dob > today) {
+        newErrors.dateOfBirth = "Date of birth cannot be in the future";
+      }
+    }
+    
     if (!formData.bloodGroup) {
       newErrors.bloodGroup = "Blood group is required";
     }
@@ -215,6 +227,7 @@ const PatientRegistrationForm = () => {
     setFormData({
       patientName: "",
       age: "",
+      dateOfBirth: "",
       bloodGroup: "",
       gender: "",
       maritalStatus: "",
@@ -258,6 +271,7 @@ const PatientRegistrationForm = () => {
       const patientData = {
         patientName: formData.patientName,
         age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
         bloodGroup: formData.bloodGroup,
         gender: formData.gender,
         maritalStatus: formData.maritalStatus || null,
@@ -324,6 +338,15 @@ const PatientRegistrationForm = () => {
     opacity: isSubmitting ? 0.5 : 1,
     cursor: isSubmitting ? 'not-allowed' : 'text',
   });
+
+  const labelStyle = {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#374151",
+    marginBottom: "8px",
+    fontFamily: "Arial, sans-serif",
+  };
 
   const errorTextStyle = {
     color: "#ef4444",
@@ -462,10 +485,11 @@ const PatientRegistrationForm = () => {
         <h2 style={sectionTitleStyle}>Personal Details</h2>
         <div style={rowStyle}>
           <div style={columnStyle}>
+            <label style={labelStyle}>Patient Name *</label>
             <input
               type="text"
               name="patientName"
-              placeholder="Patient Name *"
+              placeholder="Enter patient name"
               value={formData.patientName}
               onChange={handleInputChange}
               style={getInputStyle('patientName')}
@@ -477,10 +501,11 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Age *</label>
             <input
               type="number"
               name="age"
-              placeholder="Age *"
+              placeholder="Enter age"
               value={formData.age}
               onChange={handleInputChange}
               style={getInputStyle('age')}
@@ -493,9 +518,26 @@ const PatientRegistrationForm = () => {
               <span style={errorTextStyle}>{errors.age}</span>
             )}
           </div>
+          <div style={columnStyle}>
+            <label style={labelStyle}>Date of Birth *</label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              placeholder="Date of Birth"
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+              style={getInputStyle('dateOfBirth')}
+              disabled={isSubmitting}
+              required
+            />
+            {errors.dateOfBirth && (
+              <span style={errorTextStyle}>{errors.dateOfBirth}</span>
+            )}
+          </div>
         </div>
         <div style={rowStyle}>
           <div style={columnStyle}>
+            <label style={labelStyle}>Blood Group *</label>
             <select
               name="bloodGroup"
               value={formData.bloodGroup}
@@ -504,7 +546,7 @@ const PatientRegistrationForm = () => {
               disabled={isSubmitting}
               required
             >
-              <option value="">Blood Group *</option>
+              <option value="">Select blood group</option>
               <option value="A+">A+</option>
               <option value="A-">A-</option>
               <option value="B+">B+</option>
@@ -519,6 +561,7 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Gender *</label>
             <select
               name="gender"
               value={formData.gender}
@@ -527,7 +570,7 @@ const PatientRegistrationForm = () => {
               disabled={isSubmitting}
               required
             >
-              <option value="">Gender *</option>
+              <option value="">Select gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
@@ -537,6 +580,7 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Marital Status</label>
             <select
               name="maritalStatus"
               value={formData.maritalStatus}
@@ -544,7 +588,7 @@ const PatientRegistrationForm = () => {
               style={getInputStyle('maritalStatus')}
               disabled={isSubmitting}
             >
-              <option value="">Marital Status</option>
+              <option value="">Select marital status</option>
               <option value="Single">Single</option>
               <option value="Married">Married</option>
               <option value="Divorced">Divorced</option>
@@ -554,10 +598,11 @@ const PatientRegistrationForm = () => {
         </div>
         <div style={rowStyle}>
           <div style={columnStyle}>
+            <label style={labelStyle}>City *</label>
             <input
               type="text"
               name="city"
-              placeholder="City *"
+              placeholder="Enter city"
               value={formData.city}
               onChange={handleInputChange}
               style={getInputStyle('city')}
@@ -569,10 +614,11 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>State *</label>
             <input
               type="text"
               name="state"
-              placeholder="State *"
+              placeholder="Enter state"
               value={formData.state}
               onChange={handleInputChange}
               style={getInputStyle('state')}
@@ -584,10 +630,11 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Zip Code</label>
             <input
               type="text"
               name="zipCode"
-              placeholder="Zip Code"
+              placeholder="Enter zip code"
               value={formData.zipCode}
               onChange={handleInputChange}
               style={getInputStyle('zipCode')}
@@ -597,10 +644,11 @@ const PatientRegistrationForm = () => {
         </div>
         <div style={rowStyle}>
           <div style={columnStyle}>
+            <label style={labelStyle}>Contact Number *</label>
             <input
               type="tel"
               name="contactNumber"
-              placeholder="Contact Number *"
+              placeholder="Enter contact number"
               value={formData.contactNumber}
               onChange={handleInputChange}
               style={getInputStyle('contactNumber')}
@@ -612,10 +660,11 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Email Address *</label>
             <input
               type="email"
               name="patientEmail"
-              placeholder="Email Address *"
+              placeholder="Enter email address"
               value={formData.patientEmail}
               onChange={handleInputChange}
               style={getInputStyle('patientEmail')}
@@ -627,10 +676,11 @@ const PatientRegistrationForm = () => {
             )}
           </div>
           <div style={columnStyle}>
+            <label style={labelStyle}>Password *</label>
             <input
               type="password"
               name="password"
-              placeholder="Password *"
+              placeholder="Enter password"
               value={formData.password}
               onChange={handleInputChange}
               style={getInputStyle('password')}
@@ -643,9 +693,10 @@ const PatientRegistrationForm = () => {
           </div>
         </div>
         <div style={fullWidthStyle}>
+          <label style={labelStyle}>Address *</label>
           <textarea
             name="address"
-            placeholder="Address *"
+            placeholder="Enter full address"
             value={formData.address}
             onChange={handleInputChange}
             style={getTextareaStyle('address')}
@@ -680,9 +731,10 @@ const PatientRegistrationForm = () => {
             </div>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>Emergency Contact Name</label>
                 <input
                   type="text"
-                  placeholder="Emergency Contact Name"
+                  placeholder="Enter emergency contact name"
                   value={contact.name}
                   onChange={(e) =>
                     handleEmergencyContactChange(
@@ -696,9 +748,10 @@ const PatientRegistrationForm = () => {
                 />
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Emergency Contact Phone</label>
                 <input
                   type="tel"
-                  placeholder="Emergency Contact Phone"
+                  placeholder="Enter emergency contact phone"
                   value={contact.phone}
                   onChange={(e) =>
                     handleEmergencyContactChange(
@@ -714,9 +767,10 @@ const PatientRegistrationForm = () => {
             </div>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>Relationship</label>
                 <input
                   type="text"
-                  placeholder="Relation"
+                  placeholder="e.g., Mother, Father, Spouse"
                   value={contact.relation}
                   onChange={(e) =>
                     handleEmergencyContactChange(
@@ -730,9 +784,10 @@ const PatientRegistrationForm = () => {
                 />
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Email</label>
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="Enter emergency contact email"
                   value={contact.email}
                   onChange={(e) =>
                     handleEmergencyContactChange(

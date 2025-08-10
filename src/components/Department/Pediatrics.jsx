@@ -21,6 +21,7 @@ const fadeInUp = {
 const Pediatrics = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
+
  // Helper function to check if doctor is available
   
 const handleBookClick = (doctor) => {
@@ -29,6 +30,9 @@ const handleBookClick = (doctor) => {
       navigate("/departments/appointment", { state: { doctor } });
     }
   };
+
+  const [loading, setLoading] = useState(true);
+
 
   // Helper function to check if doctor is available
   const isDoctorAvailable = (status) => {
@@ -51,14 +55,36 @@ const handleBookClick = (doctor) => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
+        setLoading(true);
         const res = await getDoctorsBySpecialty("Pediatrics");
         setDoctors(res);
       } catch (err) {
         console.error("Error fetching pediatricians:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchDoctors();
   }, []);
+
+  const SkeletonCard = () => (
+    <div className="animate-pulse bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center">
+      <div className="w-28 h-28 rounded-full bg-gray-300" />
+      <div className="mt-4 text-center space-y-2 w-full px-6">
+        <div className="h-4 bg-gray-300 rounded w-2/3 mx-auto" />
+        <div className="h-3 bg-gray-200 rounded w-1/3 mx-auto" />
+        <div className="h-3 bg-gray-200 rounded w-1/4 mx-auto mt-1" />
+      </div>
+      <div className="mt-4 space-y-2 w-full px-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-3 bg-gray-200 rounded w-full" />
+        ))}
+      </div>
+      <div className="mt-6 w-full px-4">
+        <div className="h-10 bg-gray-300 rounded w-full" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -137,6 +163,7 @@ const handleBookClick = (doctor) => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
+
         {doctors.map((doctor, index) => (
           <motion.div
             key={doctor.doctorId}
@@ -189,6 +216,51 @@ const handleBookClick = (doctor) => {
             </div>
           </motion.div>
         ))}
+
+        {loading
+          ? [...Array(1)].map((_, index) => <SkeletonCard key={index} />)
+          : doctors.map((doctor, index) => (
+              <motion.div
+                key={doctor.doctorId}
+                className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                custom={index + 1}
+              >
+                <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
+                  <img
+                    src={doctor.photoUrl}
+                    alt={doctor.doctorName}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+                  <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                  <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                    ★★★★☆<span className="text-black ml-2">4.3</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+                  <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <p><strong>Experience:</strong> {doctor.experience}</p>
+                  <p><strong>Education:</strong> {doctor.education}</p>
+                  <p><strong>Languages:</strong> {doctor.languages}</p>
+                  <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+                  <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+                </div>
+                <div className="mt-6 w-full px-4">
+                  <button
+                    onClick={() => handleBookClick(doctor)}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+
       </div>
 
       <div className="h-[40px]" />

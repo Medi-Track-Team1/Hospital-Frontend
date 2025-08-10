@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit, User, MapPin, Phone, Save, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Edit, User, MapPin, Phone, Save, Loader2, CheckCircle, AlertCircle, Lock, Eye, EyeOff } from 'lucide-react';
 
 // Mock toast implementation
 const toast = {
@@ -65,12 +65,14 @@ const EditPatientModal = ({
   patient,
   onSave,
   isSubmitting,
-  submitStatus
+  submitStatus,
+  onVerifyOldPassword // New prop for verifying old password
 }) => {
   const [formData, setFormData] = useState({
     patientId: '',
     patientName: '',
     age: '',
+    dateOfBirth: '',
     gender: '',
     bloodGroup: '',
     maritalStatus: '',
@@ -80,7 +82,6 @@ const EditPatientModal = ({
     address: '',
     patientEmail: '',
     contactNumber: '',
-    password: ''
   });
 
   const [emergencyContacts, setEmergencyContacts] = useState([
@@ -88,6 +89,22 @@ const EditPatientModal = ({
   ]);
 
   const [errors, setErrors] = useState({});
+  
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const [showPasswords, setShowPasswords] = useState({
+    old: false,
+    new: false,
+    confirm: false
+  });
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
+  const [oldPasswordVerified, setOldPasswordVerified] = useState(false);
 
   // Initialize form data when patient changes
   useEffect(() => {
@@ -96,6 +113,7 @@ const EditPatientModal = ({
         patientId: patient.id || '',
         patientName: patient.name || '',
         age: patient.age || '',
+        dateOfBirth: patient.dateOfBirth || '',
         gender: patient.gender || '',
         bloodGroup: patient.bloodGroup || '',
         maritalStatus: patient.maritalStatus || '',
@@ -105,7 +123,6 @@ const EditPatientModal = ({
         address: patient.rawAddress || patient.address || '',
         patientEmail: patient.patientEmail || '',
         contactNumber: patient.contactNumber || '',
-        password: patient.password || ''
       });
 
       // Set emergency contacts
@@ -121,6 +138,12 @@ const EditPatientModal = ({
       } else {
         setEmergencyContacts([{ id: 1, name: '', phone: '', relation: '', email: '' }]);
       }
+
+      // Reset password change state
+      setShowPasswordChange(false);
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
+      setOldPasswordVerified(false);
     }
   }, [patient]);
 
@@ -137,6 +160,97 @@ const EditPatientModal = ({
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (passwordErrors[name]) {
+      setPasswordErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleChangePasswordClick = () => {
+    setShowPasswordChange(true);
+    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordErrors({});
+    setOldPasswordVerified(false);
+  };
+
+  const handleCancelPasswordChange = () => {
+    setShowPasswordChange(false);
+    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordErrors({});
+    setOldPasswordVerified(false);
+  };
+
+  const verifyOldPassword = async () => {
+    if (!passwordData.oldPassword.trim()) {
+      setPasswordErrors({ oldPassword: 'Please enter your current password' });
+      return;
+    }
+
+    setIsVerifyingPassword(true);
+    setPasswordErrors({});
+
+    try {
+      // Mock verification - replace with actual API call
+      const isValid = await mockVerifyPassword(patient.id, passwordData.oldPassword);
+      
+      if (isValid) {
+        setOldPasswordVerified(true);
+        toast.success('Current password verified successfully');
+      } else {
+        setPasswordErrors({ oldPassword: 'Current password is incorrect' });
+      }
+    } catch (error) {
+      setPasswordErrors({ oldPassword: 'Error verifying password. Please try again.' });
+    } finally {
+      setIsVerifyingPassword(false);
+    }
+  };
+
+  // Mock function to verify old password - replace with actual API call
+  const mockVerifyPassword = async (patientId, oldPassword) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock verification logic - replace with actual verification
+    // For demo purposes, assume password is correct if it's not empty
+    return oldPassword.length >= 6;
+  };
+
+  const validatePasswordChange = () => {
+    const newPasswordErrors = {};
+
+    if (!passwordData.newPassword) {
+      newPasswordErrors.newPassword = 'New password is required';
+    } else if (passwordData.newPassword.length < 6) {
+      newPasswordErrors.newPassword = 'Password must be at least 6 characters long';
+    } else if (passwordData.newPassword === passwordData.oldPassword) {
+      newPasswordErrors.newPassword = 'New password must be different from current password';
+    }
+
+    if (!passwordData.confirmPassword) {
+      newPasswordErrors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newPasswordErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setPasswordErrors(newPasswordErrors);
+    return Object.keys(newPasswordErrors).length === 0;
   };
 
   const handleEmergencyContactChange = (id, field, value) => {
@@ -175,6 +289,17 @@ const EditPatientModal = ({
       newErrors.age = "Age is required";
     } else if (formData.age < 1 || formData.age > 120) {
       newErrors.age = "Age must be between 1 and 120";
+    }
+
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = "Date of birth is required";
+    } else {
+      // Validate date of birth is not in the future
+      const today = new Date();
+      const dob = new Date(formData.dateOfBirth);
+      if (dob > today) {
+        newErrors.dateOfBirth = "Date of birth cannot be in the future";
+      }
     }
 
     if (!formData.bloodGroup) {
@@ -226,6 +351,12 @@ const EditPatientModal = ({
       return;
     }
 
+    // Validate password change if it's being changed
+    if (showPasswordChange && oldPasswordVerified && !validatePasswordChange()) {
+      toast.error("Please fix the password errors before saving");
+      return;
+    }
+
     // Prepare data for save
     const dataToSave = {
       ...formData,
@@ -234,14 +365,19 @@ const EditPatientModal = ({
       )
     };
 
+    // Include new password if it's being changed
+    if (showPasswordChange && oldPasswordVerified && passwordData.newPassword) {
+      dataToSave.newPassword = passwordData.newPassword;
+    }
+
     onSave(dataToSave);
   };
 
-  // Styling functions (same as registration form)
+  // Styling functions
   const getInputStyle = (fieldName) => ({
     width: "100%",
     padding: "12px 16px",
-    border: `1px solid ${errors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
+    border: `1px solid ${errors[fieldName] || passwordErrors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
     borderRadius: "8px",
     fontSize: "14px",
     backgroundColor: "#ffffff",
@@ -251,6 +387,28 @@ const EditPatientModal = ({
     opacity: isSubmitting ? 0.5 : 1,
     cursor: isSubmitting ? 'not-allowed' : 'text',
   });
+
+  const getPasswordInputStyle = (fieldName) => ({
+    width: "100%",
+    padding: "12px 16px",
+    paddingRight: "48px",
+    border: `1px solid ${passwordErrors[fieldName] ? '#ef4444' : '#e5e7eb'}`,
+    borderRadius: "8px",
+    fontSize: "14px",
+    backgroundColor: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+  });
+
+  const labelStyle = {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#374151",
+    marginBottom: "8px",
+    fontFamily: "Arial, sans-serif",
+  };
 
   const errorTextStyle = {
     color: "#ef4444",
@@ -329,6 +487,26 @@ const EditPatientModal = ({
     color: "#ffffff",
   };
 
+  const changePasswordButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#7c3aed",
+    color: "#ffffff",
+    fontSize: "13px",
+    padding: "10px 20px",
+    textTransform: "none",
+    letterSpacing: "normal",
+  };
+
+  const verifyButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#059669",
+    color: "#ffffff",
+    fontSize: "13px",
+    padding: "10px 20px",
+    textTransform: "none",
+    letterSpacing: "normal",
+  };
+
   const addContactButtonStyle = {
     ...buttonStyle,
     backgroundColor: "#3b82f6",
@@ -373,6 +551,31 @@ const EditPatientModal = ({
     display: "flex",
     justifyContent: "flex-end",
     marginTop: "32px",
+  };
+
+  const passwordContainerStyle = {
+    border: "1px solid #e5e7eb",
+    borderRadius: "8px",
+    padding: "24px",
+    backgroundColor: "#f8fafc",
+    marginTop: "20px",
+  };
+
+  const passwordInputContainerStyle = {
+    position: "relative",
+    marginBottom: "16px",
+  };
+
+  const eyeButtonStyle = {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "#6b7280",
+    padding: "4px",
   };
 
   return (
@@ -423,10 +626,11 @@ const EditPatientModal = ({
             <h2 style={sectionTitleStyle}>Personal Details</h2>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>Patient Name *</label>
                 <input
                   type="text"
                   name="patientName"
-                  placeholder="Patient Name *"
+                  placeholder="Enter patient name"
                   value={formData.patientName}
                   onChange={handleInputChange}
                   style={getInputStyle('patientName')}
@@ -438,10 +642,11 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Age *</label>
                 <input
                   type="number"
                   name="age"
-                  placeholder="Age *"
+                  placeholder="Enter age"
                   value={formData.age}
                   onChange={handleInputChange}
                   style={getInputStyle('age')}
@@ -454,9 +659,26 @@ const EditPatientModal = ({
                   <span style={errorTextStyle}>{errors.age}</span>
                 )}
               </div>
+              <div style={columnStyle}>
+                <label style={labelStyle}>Date of Birth *</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  placeholder="Date of Birth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  style={getInputStyle('dateOfBirth')}
+                  disabled={isSubmitting}
+                  required
+                />
+                {errors.dateOfBirth && (
+                  <span style={errorTextStyle}>{errors.dateOfBirth}</span>
+                )}
+              </div>
             </div>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>Blood Group *</label>
                 <select
                   name="bloodGroup"
                   value={formData.bloodGroup}
@@ -465,7 +687,7 @@ const EditPatientModal = ({
                   disabled={isSubmitting}
                   required
                 >
-                  <option value="">Blood Group *</option>
+                  <option value="">Select blood group</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
@@ -480,6 +702,7 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Gender *</label>
                 <select
                   name="gender"
                   value={formData.gender}
@@ -488,7 +711,7 @@ const EditPatientModal = ({
                   disabled={isSubmitting}
                   required
                 >
-                  <option value="">Gender *</option>
+                  <option value="">Select gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -498,6 +721,7 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Marital Status</label>
                 <select
                   name="maritalStatus"
                   value={formData.maritalStatus}
@@ -505,7 +729,7 @@ const EditPatientModal = ({
                   style={getInputStyle('maritalStatus')}
                   disabled={isSubmitting}
                 >
-                  <option value="">Marital Status</option>
+                  <option value="">Select marital status</option>
                   <option value="Single">Single</option>
                   <option value="Married">Married</option>
                   <option value="Divorced">Divorced</option>
@@ -515,10 +739,11 @@ const EditPatientModal = ({
             </div>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>City *</label>
                 <input
                   type="text"
                   name="city"
-                  placeholder="City *"
+                  placeholder="Enter city"
                   value={formData.city}
                   onChange={handleInputChange}
                   style={getInputStyle('city')}
@@ -530,10 +755,11 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>State *</label>
                 <input
                   type="text"
                   name="state"
-                  placeholder="State *"
+                  placeholder="Enter state"
                   value={formData.state}
                   onChange={handleInputChange}
                   style={getInputStyle('state')}
@@ -545,10 +771,11 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>ZIP Code *</label>
                 <input
                   type="text"
                   name="zipCode"
-                  placeholder="ZIP Code *"
+                  placeholder="Enter ZIP code"
                   value={formData.zipCode}
                   onChange={handleInputChange}
                   style={getInputStyle('zipCode')}
@@ -562,10 +789,11 @@ const EditPatientModal = ({
             </div>
             <div style={rowStyle}>
               <div style={columnStyle}>
+                <label style={labelStyle}>Contact Number *</label>
                 <input
                   type="tel"
                   name="contactNumber"
-                  placeholder="Contact Number *"
+                  placeholder="Enter contact number"
                   value={formData.contactNumber}
                   onChange={handleInputChange}
                   style={getInputStyle('contactNumber')}
@@ -577,10 +805,11 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
+                <label style={labelStyle}>Email Address *</label>
                 <input
                   type="email"
                   name="patientEmail"
-                  placeholder="Email Address *"
+                  placeholder="Enter email address"
                   value={formData.patientEmail}
                   onChange={handleInputChange}
                   style={getInputStyle('patientEmail')}
@@ -592,21 +821,190 @@ const EditPatientModal = ({
                 )}
               </div>
               <div style={columnStyle}>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password (leave empty to keep current)"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  style={getInputStyle('password')}
+                <label style={labelStyle}>Security</label>
+                <button
+                  type="button"
+                  onClick={handleChangePasswordClick}
+                  style={changePasswordButtonStyle}
                   disabled={isSubmitting}
-                />
+                >
+                  <Lock className="h-4 w-4" />
+                  Change Password
+                </button>
               </div>
             </div>
+
+            {/* Password Change Section */}
+            {showPasswordChange && (
+              <div style={passwordContainerStyle}>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "20px"
+                }}>
+                  <h3 style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    color: "#374151",
+                    margin: 0
+                  }}>
+                    Change Password
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleCancelPasswordChange}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#6b7280",
+                      cursor: "pointer",
+                      padding: "4px",
+                      fontSize: "12px"
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {!oldPasswordVerified ? (
+                  // Step 1: Verify old password
+                  <div>
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>Current Password *</label>
+                      <input
+                        type={showPasswords.old ? "text" : "password"}
+                        name="oldPassword"
+                        placeholder="Enter your current password"
+                        value={passwordData.oldPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('oldPassword')}
+                        disabled={isVerifyingPassword}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('old')}
+                        style={eyeButtonStyle}
+                        disabled={isVerifyingPassword}
+                      >
+                        {showPasswords.old ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.oldPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.oldPassword}</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={verifyOldPassword}
+                      style={verifyButtonStyle}
+                      disabled={isVerifyingPassword || !passwordData.oldPassword.trim()}
+                    >
+                      {isVerifyingPassword ? (
+                        <>
+                          <div style={{
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid transparent',
+                            borderTop: '2px solid currentColor',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}></div>
+                          Verifying...
+                        </>
+                      ) : (
+                        'Verify Current Password'
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  // Step 2: Enter new password and confirm
+                  <div>
+                    <div style={{
+                      backgroundColor: "#dcfce7",
+                      border: "1px solid #16a34a",
+                      borderRadius: "8px",
+                      padding: "12px",
+                      marginBottom: "20px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px"
+                    }}>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span style={{ fontSize: "14px", color: "#166534" }}>
+                        Current password verified successfully. Now enter your new password.
+                      </span>
+                    </div>
+
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>New Password *</label>
+                      <input
+                        type={showPasswords.new ? "text" : "password"}
+                        name="newPassword"
+                        placeholder="Enter new password (min 6 characters)"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('newPassword')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('new')}
+                        style={eyeButtonStyle}
+                      >
+                        {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.newPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.newPassword}</span>
+                      )}
+                    </div>
+
+                    <div style={passwordInputContainerStyle}>
+                      <label style={labelStyle}>Confirm New Password *</label>
+                      <input
+                        type={showPasswords.confirm ? "text" : "password"}
+                        name="confirmPassword"
+                        placeholder="Confirm your new password"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        style={getPasswordInputStyle('confirmPassword')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirm')}
+                        style={eyeButtonStyle}
+                      >
+                        {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      {passwordErrors.confirmPassword && (
+                        <span style={errorTextStyle}>{passwordErrors.confirmPassword}</span>
+                      )}
+                    </div>
+
+                    <div style={{
+                      backgroundColor: "#fef3c7",
+                      border: "1px solid #f59e0b",
+                      borderRadius: "8px",
+                      padding: "12px",
+                      marginTop: "16px"
+                    }}>
+                      <p style={{ fontSize: "12px", color: "#92400e", margin: 0 }}>
+                        <strong>Password Requirements:</strong>
+                      </p>
+                      <ul style={{ fontSize: "12px", color: "#92400e", margin: "4px 0 0 16px", padding: 0 }}>
+                        <li>At least 6 characters long</li>
+                        <li>Different from your current password</li>
+                        <li>Both password fields must match</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={fullWidthStyle}>
+              <label style={labelStyle}>Address *</label>
               <textarea
                 name="address"
-                placeholder="Address *"
+                placeholder="Enter full address"
                 value={formData.address}
                 onChange={handleInputChange}
                 style={getTextareaStyle('address')}
@@ -642,9 +1040,10 @@ const EditPatientModal = ({
                 </div>
                 <div style={rowStyle}>
                   <div style={columnStyle}>
+                    <label style={labelStyle}>Emergency Contact Name</label>
                     <input
                       type="text"
-                      placeholder="Emergency Contact Name"
+                      placeholder="Enter emergency contact name"
                       value={contact.name}
                       onChange={(e) =>
                         handleEmergencyContactChange(
@@ -658,9 +1057,10 @@ const EditPatientModal = ({
                     />
                   </div>
                   <div style={columnStyle}>
+                    <label style={labelStyle}>Emergency Contact Phone</label>
                     <input
                       type="tel"
-                      placeholder="Emergency Contact Phone"
+                      placeholder="Enter emergency contact phone"
                       value={contact.phone}
                       onChange={(e) =>
                         handleEmergencyContactChange(
@@ -676,9 +1076,10 @@ const EditPatientModal = ({
                 </div>
                 <div style={rowStyle}>
                   <div style={columnStyle}>
+                    <label style={labelStyle}>Relationship</label>
                     <input
                       type="text"
-                      placeholder="Relation"
+                      placeholder="e.g., Mother, Father, Spouse"
                       value={contact.relation}
                       onChange={(e) =>
                         handleEmergencyContactChange(
@@ -692,9 +1093,10 @@ const EditPatientModal = ({
                     />
                   </div>
                   <div style={columnStyle}>
+                    <label style={labelStyle}>Email</label>
                     <input
                       type="email"
-                      placeholder="Email"
+                      placeholder="Enter emergency contact email"
                       value={contact.email}
                       onChange={(e) =>
                         handleEmergencyContactChange(

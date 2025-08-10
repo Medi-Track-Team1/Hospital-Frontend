@@ -18,9 +18,25 @@ const fadeInUp = {
   }),
 };
 
+// Skeleton Card component
+const SkeletonCard = () => (
+  <div className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] animate-pulse flex flex-col items-center">
+    <div className="w-28 h-28 rounded-full bg-gray-300" />
+    <div className="mt-4 w-32 h-5 bg-gray-300 rounded" />
+    <div className="mt-2 w-24 h-4 bg-gray-200 rounded" />
+    <div className="mt-4 space-y-2 w-full">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-4 bg-gray-200 rounded w-full" />
+      ))}
+    </div>
+    <div className="mt-6 w-full h-10 bg-gray-300 rounded" />
+  </div>
+);
+
 const Neuro = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBookClick = (doctor) => {
     // Check if doctor is available before navigation
@@ -56,6 +72,8 @@ const Neuro = () => {
         setDoctors(res);
       } catch (err) {
         console.error("Error fetching neurologists:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchDoctors();
@@ -137,6 +155,7 @@ const Neuro = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
+
         {doctors.map((doctor, index) => (
           <motion.div
             key={doctor.doctorId}
@@ -186,6 +205,51 @@ const Neuro = () => {
             </div>
           </motion.div>
         ))}
+
+        {loading
+          ? [...Array(1)].map((_, i) => <SkeletonCard key={i} />)
+          : doctors.map((doctor, index) => (
+              <motion.div
+                key={doctor.doctorId}
+                className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                custom={index + 1}
+              >
+                <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
+                  <img
+                    src={doctor.photoUrl}
+                    alt={doctor.doctorName}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+                  <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                  <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                    ★★★★☆<span className="text-black ml-2">4.2</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+                  <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <p><strong>Experience:</strong> {doctor.experience}</p>
+                  <p><strong>Education:</strong> {doctor.education}</p>
+                  <p><strong>Languages:</strong> {doctor.languages}</p>
+                  <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+                  <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+                </div>
+                <div className="mt-6 w-full px-4">
+                  <button
+                    onClick={() => handleBookClick(doctor)}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+
       </div>
 
       <div className="h-[40px]" />

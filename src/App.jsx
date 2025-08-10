@@ -16,6 +16,8 @@ import Signup from "./Pages/Auth/Signup";
 import CompletedTreatments from "./components/PatientProfile/CompletedTreatments";
 import PatientHistoryPage from "./Pages/DoctorPanel/PatientHistoryPage";
 
+
+
 function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [showSignupPopup, setShowSignupPopup] = useState(false);

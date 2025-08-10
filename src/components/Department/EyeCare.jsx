@@ -18,7 +18,32 @@ const fadeInUp = {
 const EyeCare = () => {
   const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
+  const handleBookClick = (doctor) => {
+    // Check if doctor is available before navigation
+    if (isDoctorAvailable(doctor.status)) {
+      navigate("/departments/appointment", { state: { doctor } });
+    }
+  };
 
+  // Helper function to check if doctor is available
+  const isDoctorAvailable = (status) => {
+    const unavailableStatuses = ['on leave', 'On Leave', 'ON LEAVE', 'leave', 'Leave', 'LEAVE', 'inactive', 'Inactive', 'INACTIVE', 'unavailable', 'Unavailable', 'UNAVAILABLE'];
+    return !unavailableStatuses.includes(status);
+  };
+
+  // Helper function to get button styles based on availability
+  const getButtonStyles = (status) => {
+    const isAvailable = isDoctorAvailable(status);
+    
+    return isAvailable 
+      ? "w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer"
+      : "w-full bg-gray-400 text-gray-200 py-2 rounded-lg font-semibold cursor-not-allowed opacity-60";
+  };
+
+  // Helper function to get button text based on availability
+  const getButtonText = (status) => {
+    return isDoctorAvailable(status) ? "Book Appointment" : "Currently Unavailable";
+  };
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -32,9 +57,6 @@ const EyeCare = () => {
     fetchDoctors();
   }, []);
 
-  const handleBookClick = (doctor) => {
-    navigate("/departments/appointment", { state: { doctor } });
-  };
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -147,9 +169,15 @@ const EyeCare = () => {
             <div className="mt-6 w-full px-4">
               <button
                 onClick={() => handleBookClick(doctor)}
+
+                disabled={!isDoctorAvailable(doctor.status)}
+                className={getButtonStyles(doctor.status)}
+                title={!isDoctorAvailable(doctor.status) ? "Doctor is currently unavailable" : "Click to book appointment"}
+
                 className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+
               >
-                Book Appointment
+                {getButtonText(doctor.status)}
               </button>
             </div>
           </motion.div>

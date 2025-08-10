@@ -28,20 +28,17 @@ import {
   listCompletedAppointmentsByDoctorId,
   createAppointment,
   cancelAppointmentById,
-} from '../../services/DoctorPanel/AppointmentService';
-import { getPrescriptionByAppointmentId } from '../../services/DoctorPanel/PrescriptionService';
+} from "../../services/DoctorPanel/AppointmentService";
+import { getPrescriptionByAppointmentId } from "../../services/DoctorPanel/PrescriptionService";
 import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
-  const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
+  const [showViewPrescriptionModal, setShowViewPrescriptionModal] =
+    useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
-  
-
-  const navigate = useNavigate();
-  const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
 
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -54,7 +51,7 @@ export const MedicalAppointments = () => {
   const [completedAppointments, setCompletedAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
   const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false);
-  
+
   const { id: doctorId } = useParams();
 
   // Helper functions
@@ -74,99 +71,111 @@ export const MedicalAppointments = () => {
   // Truncate text function
   const truncateText = (text, maxLength = 50) => {
     if (!text) return "";
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   // Computed values for filtered and sorted appointments
-// More robust sorting with better date handling:
-const upcomingAppointments = allAppointments
-  .filter(apt => {
-    const status = apt.status?.toUpperCase();
-    return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
-  })
-  .sort((a, b) => {
-    // Handle different date formats and edge cases
-    const parseDateTime = (appointment) => {
-      try {
-        // Try different date parsing approaches
-        let dateTime;
-        
-        if (appointment.appointmentDateTime) {
-          // If appointmentDateTime exists, use it directly
-          dateTime = new Date(appointment.appointmentDateTime);
-        } else {
-          // Fallback to date + time combination
-          const dateStr = appointment.date;
-          const timeStr = appointment.time;
-          
-          if (!dateStr || !timeStr) {
-            return new Date(0); // Return epoch for invalid dates (will sort to beginning)
+  // More robust sorting with better date handling:
+  const upcomingAppointments = allAppointments
+    .filter((apt) => {
+      const status = apt.status?.toUpperCase();
+      return (
+        status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED"
+      );
+    })
+    .sort((a, b) => {
+      // Handle different date formats and edge cases
+      const parseDateTime = (appointment) => {
+        try {
+          // Try different date parsing approaches
+          let dateTime;
+
+          if (appointment.appointmentDateTime) {
+            // If appointmentDateTime exists, use it directly
+            dateTime = new Date(appointment.appointmentDateTime);
+          } else {
+            // Fallback to date + time combination
+            const dateStr = appointment.date;
+            const timeStr = appointment.time;
+
+            if (!dateStr || !timeStr) {
+              return new Date(0); // Return epoch for invalid dates (will sort to beginning)
+            }
+
+            // Combine date and time
+            dateTime = new Date(`${dateStr} ${timeStr}`);
           }
-          
-          // Combine date and time
-          dateTime = new Date(`${dateStr} ${timeStr}`);
-        }
-        
-        // Check if the date is valid
-        if (isNaN(dateTime.getTime())) {
-          console.warn(`Invalid date for appointment:`, appointment);
+
+          // Check if the date is valid
+          if (isNaN(dateTime.getTime())) {
+            console.warn(`Invalid date for appointment:`, appointment);
+            return new Date(0);
+          }
+
+          return dateTime;
+        } catch (error) {
+          console.error(
+            `Error parsing date for appointment:`,
+            appointment,
+            error
+          );
           return new Date(0);
         }
-        
-        return dateTime;
-      } catch (error) {
-        console.error(`Error parsing date for appointment:`, appointment, error);
-        return new Date(0);
-      }
-    };
-    
-    const aDateTime = parseDateTime(a);
-    const bDateTime = parseDateTime(b);
-    
-    // Ascending order: earliest appointments first
-    return aDateTime - bDateTime;
-  });
+      };
+
+      const aDateTime = parseDateTime(a);
+      const bDateTime = parseDateTime(b);
+
+      // Ascending order: earliest appointments first
+      return aDateTime - bDateTime;
+    });
 
   // Add this helper function at the top of your component
-const removeDuplicateAppointments = (appointments) => {
-  const seen = new Set();
-  return appointments.filter(apt => {
-    const key = getRowKey(apt);
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-};
+  const removeDuplicateAppointments = (appointments) => {
+    const seen = new Set();
+    return appointments.filter((apt) => {
+      const key = getRowKey(apt);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  };
 
-// Then modify your computed values:
-const completedAppointmentsFiltered = removeDuplicateAppointments(
-  allAppointments
-    .filter(apt => {
-      const status = apt.status?.toUpperCase();
-      return status === "COMPLETED";
-    })
-    .concat(completedAppointments.filter(apt => {
-      const status = apt.status?.toUpperCase();
-      return status === "COMPLETED";
-    }))
-    .sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${a.time}`);
-      const bDateTime = new Date(`${b.date} ${b.time}`);
-      return bDateTime - aDateTime;
-    })
-);
+  // Then modify your computed values:
+  const completedAppointmentsFiltered = removeDuplicateAppointments(
+    allAppointments
+      .filter((apt) => {
+        const status = apt.status?.toUpperCase();
+        return status === "COMPLETED";
+      })
+      .concat(
+        completedAppointments.filter((apt) => {
+          const status = apt.status?.toUpperCase();
+          return status === "COMPLETED";
+        })
+      )
+      .sort((a, b) => {
+        const aDateTime = new Date(`${a.date} ${a.time}`);
+        const bDateTime = new Date(`${b.date} ${b.time}`);
+        return bDateTime - aDateTime;
+      })
+  );
 
   const canceledAppointments = allAppointments
-    .filter(apt => {
+    .filter((apt) => {
       const status = apt.status?.toUpperCase();
       return status === "CANCELED" || status === "CANCELLED";
     })
-    .concat(completedAppointments.filter(apt => {
-      const status = apt.status?.toUpperCase();
-      return status === "CANCELED" || status === "CANCELLED";
-    }))
+    .concat(
+      completedAppointments.filter((apt) => {
+        const status = apt.status?.toUpperCase();
+        return status === "CANCELED" || status === "CANCELLED";
+      })
+    )
     .sort((a, b) => {
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
@@ -174,9 +183,13 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
     });
 
   const appointmentHistory = allAppointments
-    .filter(apt => {
+    .filter((apt) => {
       const status = apt.status?.toUpperCase();
-      return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED"
+      return (
+        status === "COMPLETED" ||
+        status === "CANCELED" ||
+        status === "CANCELLED"
+      );
     })
     .concat(completedAppointments)
     .sort((a, b) => {
@@ -193,37 +206,63 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
 
   const fetchAppointments = async () => {
     try {
-      const upcomingResponse = await listUpcomingAppointmentsByDoctorId(doctorId);
+      const upcomingResponse = await listUpcomingAppointmentsByDoctorId(
+        doctorId
+      );
       const upcomingData = upcomingResponse.data;
-      const upcomingAppointments = Array.isArray(upcomingData) ? upcomingData : upcomingData.appointments || [];
-      
-      const transformedUpcoming = upcomingAppointments.map(apt => ({
+      const upcomingAppointments = Array.isArray(upcomingData)
+        ? upcomingData
+        : upcomingData.appointments || [];
+
+      const transformedUpcoming = upcomingAppointments.map((apt) => ({
         ...apt,
-        date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
-        time: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : apt.time,
-        status: apt.status?.toLowerCase() || 'pending'
+        date: apt.appointmentDateTime
+          ? new Date(apt.appointmentDateTime).toISOString().split("T")[0]
+          : apt.date,
+        time: apt.appointmentDateTime
+          ? new Date(apt.appointmentDateTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : apt.time,
+        status: apt.status?.toLowerCase() || "pending",
       }));
 
       try {
-        const completedResponse = await listCompletedAppointmentsByDoctorId(doctorId);
+        const completedResponse = await listCompletedAppointmentsByDoctorId(
+          doctorId
+        );
         const completedData = completedResponse.data;
-        const completedAppointments = Array.isArray(completedData) ? completedData : completedData.appointments || [];
-        
-        const transformedCompleted = completedAppointments.map(apt => ({
+        const completedAppointments = Array.isArray(completedData)
+          ? completedData
+          : completedData.appointments || [];
+
+        const transformedCompleted = completedAppointments.map((apt) => ({
           ...apt,
-          date: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toISOString().split('T')[0] : apt.date,
-          time: apt.appointmentDateTime ? new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : apt.time,
-          status: apt.status?.toLowerCase() || 'completed'
+          date: apt.appointmentDateTime
+            ? new Date(apt.appointmentDateTime).toISOString().split("T")[0]
+            : apt.date,
+          time: apt.appointmentDateTime
+            ? new Date(apt.appointmentDateTime).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })
+            : apt.time,
+          status: apt.status?.toLowerCase() || "completed",
         }));
 
         setCompletedAppointments(transformedCompleted);
       } catch (completedError) {
-        console.log("No completed appointments found or error fetching:", completedError);
+        console.log(
+          "No completed appointments found or error fetching:",
+          completedError
+        );
         setCompletedAppointments([]);
       }
 
       setAllAppointments(transformedUpcoming);
-      
     } catch (error) {
       console.error("Error fetching appointments:", error);
       setAllAppointments([]);
@@ -238,12 +277,12 @@ const completedAppointmentsFiltered = removeDuplicateAppointments(
     setRevisitReason("");
   };
 
-const handleViewHistory = (appointment) => {
-  const patientId = appointment.patientId || appointment.patient?.id;
-  const patientName = appointment.patientName || appointment.patient?.name;
-  
-  setViewHistoryPatient({ id: patientId, name: patientName });
-};
+  const handleViewHistory = (appointment) => {
+    const patientId = appointment.patientId || appointment.patient?.id;
+    const patientName = appointment.patientName || appointment.patient?.name;
+
+    setViewHistoryPatient({ id: patientId, name: patientName });
+  };
 
   const handleRevisitConfirm = async () => {
     if (!revisitDate || !revisitTime || !revisitReason.trim()) {
@@ -273,10 +312,16 @@ const handleViewHistory = (appointment) => {
         appointmentId: newAppointmentId,
         appointmentDateTime: appointmentDateTime.toISOString(),
         date: format(appointmentDateTime, "yyyy-MM-dd"),
-        time: appointmentDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        time: appointmentDateTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
         reason: revisitReason,
-        notes: `Revisit appointment for previous appointment: ${revisitAppointment.appointmentId || revisitAppointment.id}`,
-        status: "pending"
+        notes: `Revisit appointment for previous appointment: ${
+          revisitAppointment.appointmentId || revisitAppointment.id
+        }`,
+        status: "pending",
       };
 
       const response = await createAppointment(newAppointmentData);
@@ -284,7 +329,11 @@ const handleViewHistory = (appointment) => {
 
       toast({
         title: "Revisit Scheduled Successfully",
-        description: `New appointment scheduled for ${revisitAppointment.patientName} on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${newAppointmentData.time}.`,
+        description: `New appointment scheduled for ${
+          revisitAppointment.patientName
+        } on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${
+          newAppointmentData.time
+        }.`,
       });
 
       setRevisitAppointment(null);
@@ -293,7 +342,10 @@ const handleViewHistory = (appointment) => {
       setRevisitReason("");
     } catch (error) {
       console.error("Error creating revisit appointment:", error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to create revisit appointment";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create revisit appointment";
       toast({
         title: "Error Creating Revisit",
         description: errorMessage,
@@ -305,46 +357,49 @@ const handleViewHistory = (appointment) => {
   };
 
   const handlePrescriptionSuccess = async (prescription) => {
-    console.log('Prescription created:', prescription);
-    
+    console.log("Prescription created:", prescription);
+
     try {
-      const appointmentId = getAppointmentIdForPrescription(selectedAppointment);
-      
-      const appointmentToComplete = allAppointments.find(apt => 
-        getAppointmentIdForPrescription(apt) === appointmentId
+      const appointmentId =
+        getAppointmentIdForPrescription(selectedAppointment);
+
+      const appointmentToComplete = allAppointments.find(
+        (apt) => getAppointmentIdForPrescription(apt) === appointmentId
       );
-      
+
       if (appointmentToComplete) {
         const completedAppointment = {
           ...appointmentToComplete,
-          status: "completed"
+          status: "completed",
         };
-        
-        setAllAppointments(prev => 
-          prev.filter(apt => getAppointmentIdForPrescription(apt) !== appointmentId)
+
+        setAllAppointments((prev) =>
+          prev.filter(
+            (apt) => getAppointmentIdForPrescription(apt) !== appointmentId
+          )
         );
-        
-        setCompletedAppointments(prev => [completedAppointment, ...prev]);
-        
+
+        setCompletedAppointments((prev) => [completedAppointment, ...prev]);
+
         toast({
           title: "Success",
-          description: "Prescription created successfully! Appointment moved to history.",
+          description:
+            "Prescription created successfully! Appointment moved to history.",
         });
-        
+
         setShowPrescribeModal(false);
         setSelectedAppointment(null);
-        
+
         setTimeout(() => {
           fetchAppointments();
         }, 1000);
-        
       } else {
         console.warn("Appointment not found in upcoming list");
         toast({
           title: "Success",
           description: "Prescription created successfully!",
         });
-        
+
         setShowPrescribeModal(false);
         setSelectedAppointment(null);
         fetchAppointments();
@@ -355,7 +410,7 @@ const handleViewHistory = (appointment) => {
         title: "Success",
         description: "Prescription created successfully!",
       });
-      
+
       setShowPrescribeModal(false);
       setSelectedAppointment(null);
       fetchAppointments();
@@ -366,7 +421,8 @@ const handleViewHistory = (appointment) => {
     if (isAppointmentCanceled(appointment)) {
       toast({
         title: "Cannot View Prescription",
-        description: "Prescriptions cannot be viewed for canceled appointments.",
+        description:
+          "Prescriptions cannot be viewed for canceled appointments.",
         variant: "destructive",
       });
       return;
@@ -376,7 +432,7 @@ const handleViewHistory = (appointment) => {
       const appointmentId = getAppointmentIdForPrescription(appointment);
       const response = await getPrescriptionByAppointmentId(appointmentId);
       const prescription = response.data;
-      
+
       if (prescription) {
         setCurrentPrescription(prescription);
         setShowViewPrescriptionModal(true);
@@ -400,7 +456,7 @@ const handleViewHistory = (appointment) => {
   const handleCreatePrescription = (appointment) => {
     let patientId = null;
     let patientName = null;
-    
+
     if (appointment.patientId) {
       patientId = appointment.patientId;
     } else if (appointment.patient?.id) {
@@ -408,7 +464,7 @@ const handleViewHistory = (appointment) => {
     } else if (appointment.patient?.patientId) {
       patientId = appointment.patient.patientId;
     }
-    
+
     if (appointment.patientName) {
       patientName = appointment.patientName;
     } else if (appointment.patient?.name) {
@@ -416,20 +472,21 @@ const handleViewHistory = (appointment) => {
     } else if (appointment.patient?.patientName) {
       patientName = appointment.patient.patientName;
     }
-    
+
     if (!patientId || !patientName) {
       toast({
-        title: "Error", 
-        description: "Cannot create prescription: Patient information is missing from appointment data.",
+        title: "Error",
+        description:
+          "Cannot create prescription: Patient information is missing from appointment data.",
         variant: "destructive",
       });
       return;
     }
-    
+
     setSelectedAppointment({
       ...appointment,
       patientId: patientId,
-      patientName: patientName
+      patientName: patientName,
     });
     setShowPrescribeModal(true);
   };
@@ -454,7 +511,9 @@ const handleViewHistory = (appointment) => {
     }
 
     try {
-      await cancelAppointmentById(cancelAppointment.appointmentId || cancelAppointment.id);
+      await cancelAppointmentById(
+        cancelAppointment.appointmentId || cancelAppointment.id
+      );
       await fetchAppointments();
 
       toast({
@@ -476,7 +535,6 @@ const handleViewHistory = (appointment) => {
   return (
     <div className="min-h-screen bg-background p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <AppointmentCard
             title="Upcoming Appointments"
@@ -484,7 +542,7 @@ const handleViewHistory = (appointment) => {
             icon={<MdCalendarToday className="h-6 w-6 text-primary" />}
             bgColor="bg-medical-blue-light"
           />
-         
+
           <AppointmentCard
             title="Completed"
             count={completedAppointmentsFiltered.length}
@@ -503,10 +561,16 @@ const handleViewHistory = (appointment) => {
         {/* Tabs */}
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upcoming" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger
+              value="upcoming"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
               Upcoming Appointments
             </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger
+              value="history"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
               Appointment History
             </TabsTrigger>
           </TabsList>
@@ -517,42 +581,70 @@ const handleViewHistory = (appointment) => {
                 <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
                   <div className="flex items-center space-x-2">
                     <MdCalendarToday className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold">Upcoming Appointments</h3>
-                    <Badge variant="secondary" className="ml-auto bg-white/20 text-white">
+                    <h3 className="text-lg font-semibold">
+                      Upcoming Appointments
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="ml-auto bg-white/20 text-white"
+                    >
                       {upcomingAppointments.length} appointments
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[900px]">
                     <thead className="bg-muted/50">
                       <tr>
-                        <th className="text-left p-3 font-medium w-[200px]">Patient</th>
-                        <th className="text-left p-3 font-medium w-[140px]">Date & Time</th>
-                        <th className="text-left p-3 font-medium w-[150px]">Reason</th>
-                        <th className="text-left p-3 font-medium w-[100px]">Status</th>
-                        <th className="text-left p-3 font-medium w-[310px]">Actions</th>
+                        <th className="text-left p-3 font-medium w-[200px]">
+                          Patient
+                        </th>
+                        <th className="text-left p-3 font-medium w-[140px]">
+                          Date & Time
+                        </th>
+                        <th className="text-left p-3 font-medium w-[150px]">
+                          Reason
+                        </th>
+                        <th className="text-left p-3 font-medium w-[100px]">
+                          Status
+                        </th>
+                        <th className="text-left p-3 font-medium w-[310px]">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {upcomingAppointments.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="text-center p-8 text-gray-500">
+                          <td
+                            colSpan={5}
+                            className="text-center p-8 text-gray-500"
+                          >
                             No pending appointments found for this doctor.
                           </td>
                         </tr>
                       ) : (
                         upcomingAppointments.map((appointment) => (
-                          <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
+                          <tr
+                            key={getRowKey(appointment)}
+                            className="border-b hover:bg-muted/50"
+                          >
                             <td className="p-3 text-sm">
                               <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                   <MdPerson className="h-4 w-4 text-primary-foreground" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium truncate">{appointment.patientName}</p>
-                                  <p className="text-xs text-gray-500 truncate">ID: {getAppointmentIdForPrescription(appointment)}</p>
+                                  <p className="font-medium truncate">
+                                    {appointment.patientName}
+                                  </p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    ID:{" "}
+                                    {getAppointmentIdForPrescription(
+                                      appointment
+                                    )}
+                                  </p>
                                 </div>
                               </div>
                             </td>
@@ -560,15 +652,19 @@ const handleViewHistory = (appointment) => {
                               <div className="flex items-center space-x-2">
                                 <MdSchedule className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium text-xs">{appointment.date}</p>
-                                  <p className="font-medium text-xs">{appointment.time}</p>
+                                  <p className="font-medium text-xs">
+                                    {appointment.date}
+                                  </p>
+                                  <p className="font-medium text-xs">
+                                    {appointment.time}
+                                  </p>
                                 </div>
                               </div>
                             </td>
                             <td className="p-3 text-sm">
                               <div className="max-w-[150px]">
-                                <span 
-                                  className="block truncate" 
+                                <span
+                                  className="block truncate"
                                   title={appointment.reason}
                                 >
                                   {truncateText(appointment.reason, 25)}
@@ -576,8 +672,13 @@ const handleViewHistory = (appointment) => {
                               </div>
                             </td>
                             <td className="p-3 text-sm">
-                              <Badge className={`border text-xs ${getStatusBadge(appointment.status)}`}>
-                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              <Badge
+                                className={`border text-xs ${getStatusBadge(
+                                  appointment.status
+                                )}`}
+                              >
+                                {appointment.status.charAt(0).toUpperCase() +
+                                  appointment.status.slice(1)}
                               </Badge>
                             </td>
                             <td className="p-3 text-sm">
@@ -586,23 +687,23 @@ const handleViewHistory = (appointment) => {
                                   size="sm"
                                   variant="outline"
                                   className="text-xs px-2 py-1 h-7 whitespace-nowrap"
-                                  onClick={() => handleCreatePrescription(appointment)}
+                                  onClick={() =>
+                                    handleCreatePrescription(appointment)
+                                  }
                                 >
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   Prescription
                                 </Button>
-                                
 
-                               <Button
-  size="sm"
-  variant="outline"
-  className="text-xs"
-  onClick={() => handleViewHistory(appointment)}
->
-  <MdVisibility className="h-3 w-3 mr-1" />
-  View History
-</Button>
-
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs px-2 py-1 h-7 whitespace-nowrap"
+                                  onClick={() => handleViewHistory(appointment)}
+                                >
+                                  <MdVisibility className="h-3 w-3 mr-1" />
+                                  History
+                                </Button>
 
                                 <button
                                   className="px-2 py-1 text-xs rounded-md bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 transition-colors h-7 whitespace-nowrap"
@@ -614,7 +715,9 @@ const handleViewHistory = (appointment) => {
 
                                 <button
                                   className="px-2 py-1 text-xs rounded-md bg-red-100 text-red-700 border border-red-200 hover:bg-red-200 transition-colors h-7 whitespace-nowrap"
-                                  onClick={() => setCancelAppointment(appointment)}
+                                  onClick={() =>
+                                    setCancelAppointment(appointment)
+                                  }
                                 >
                                   Cancel
                                 </button>
@@ -636,42 +739,70 @@ const handleViewHistory = (appointment) => {
                 <div className="bg-primary text-primary-foreground p-4 rounded-t-lg">
                   <div className="flex items-center space-x-2">
                     <MdCheckCircle className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold">Appointment History</h3>
-                    <Badge variant="secondary" className="ml-auto bg-white/20 text-white">
+                    <h3 className="text-lg font-semibold">
+                      Appointment History
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="ml-auto bg-white/20 text-white"
+                    >
                       {appointmentHistory.length} completed
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[800px]">
                     <thead className="bg-muted/50">
                       <tr>
-                        <th className="text-left p-3 font-medium w-[200px]">Patient</th>
-                        <th className="text-left p-3 font-medium w-[140px]">Date & Time</th>
-                        <th className="text-left p-3 font-medium w-[150px]">Reason</th>
-                        <th className="text-left p-3 font-medium w-[100px]">Status</th>
-                        <th className="text-left p-3 font-medium w-[210px]">Actions</th>
+                        <th className="text-left p-3 font-medium w-[200px]">
+                          Patient
+                        </th>
+                        <th className="text-left p-3 font-medium w-[140px]">
+                          Date & Time
+                        </th>
+                        <th className="text-left p-3 font-medium w-[150px]">
+                          Reason
+                        </th>
+                        <th className="text-left p-3 font-medium w-[100px]">
+                          Status
+                        </th>
+                        <th className="text-left p-3 font-medium w-[210px]">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {appointmentHistory.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="text-center p-8 text-gray-500">
+                          <td
+                            colSpan={5}
+                            className="text-center p-8 text-gray-500"
+                          >
                             No completed appointments found for this doctor.
                           </td>
                         </tr>
                       ) : (
                         appointmentHistory.map((appointment) => (
-                          <tr key={getRowKey(appointment)} className="border-b hover:bg-muted/50">
+                          <tr
+                            key={getRowKey(appointment)}
+                            className="border-b hover:bg-muted/50"
+                          >
                             <td className="p-3 text-sm">
                               <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                   <MdPerson className="h-4 w-4 text-primary-foreground" />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium truncate">{appointment.patientName}</p>
-                                  <p className="text-xs text-gray-500 truncate">ID: {getAppointmentIdForPrescription(appointment)}</p>
+                                  <p className="font-medium truncate">
+                                    {appointment.patientName}
+                                  </p>
+                                  <p className="text-xs text-gray-500 truncate">
+                                    ID:{" "}
+                                    {getAppointmentIdForPrescription(
+                                      appointment
+                                    )}
+                                  </p>
                                 </div>
                               </div>
                             </td>
@@ -679,15 +810,19 @@ const handleViewHistory = (appointment) => {
                               <div className="flex items-center space-x-2">
                                 <MdSchedule className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium text-xs">{appointment.date}</p>
-                                  <p className="font-medium text-xs">{appointment.time}</p>
+                                  <p className="font-medium text-xs">
+                                    {appointment.date}
+                                  </p>
+                                  <p className="font-medium text-xs">
+                                    {appointment.time}
+                                  </p>
                                 </div>
                               </div>
                             </td>
                             <td className="p-3 text-sm">
                               <div className="max-w-[150px]">
-                                <span 
-                                  className="block truncate" 
+                                <span
+                                  className="block truncate"
                                   title={appointment.reason}
                                 >
                                   {truncateText(appointment.reason, 25)}
@@ -695,8 +830,13 @@ const handleViewHistory = (appointment) => {
                               </div>
                             </td>
                             <td className="p-3 text-sm">
-                              <Badge className={`border text-xs ${getStatusBadge(appointment.status)}`}>
-                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              <Badge
+                                className={`border text-xs ${getStatusBadge(
+                                  appointment.status
+                                )}`}
+                              >
+                                {appointment.status.charAt(0).toUpperCase() +
+                                  appointment.status.slice(1)}
                               </Badge>
                             </td>
                             <td className="p-3 text-sm">
@@ -709,7 +849,9 @@ const handleViewHistory = (appointment) => {
                                       ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
                                       : ""
                                   }`}
-                                  onClick={() => handleViewPrescription(appointment)}
+                                  onClick={() =>
+                                    handleViewPrescription(appointment)
+                                  }
                                   disabled={isAppointmentCanceled(appointment)}
                                   title={
                                     isAppointmentCanceled(appointment)
@@ -733,7 +875,7 @@ const handleViewHistory = (appointment) => {
           </TabsContent>
         </Tabs>
       </div>
-      
+
       {/* Modals */}
       {selectedPatient && (
         <PatientDetailsModal
@@ -769,25 +911,32 @@ const handleViewHistory = (appointment) => {
         />
       )}
 
-{viewHistoryPatient && (
-  <PatientHistoryModal
-    isOpen={!!viewHistoryPatient}
-    onClose={() => setViewHistoryPatient(null)}
-    patientId={viewHistoryPatient.id}
-    patientName={viewHistoryPatient.name}
-    doctorId={doctorId}
-  />
-)}
+      {viewHistoryPatient && (
+        <PatientHistoryModal
+          isOpen={!!viewHistoryPatient}
+          onClose={() => setViewHistoryPatient(null)}
+          patientId={viewHistoryPatient.id}
+          patientName={viewHistoryPatient.name}
+          doctorId={doctorId}
+        />
+      )}
 
       {/* Revisit Modal */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-blue-600">Schedule Revisit</h2>
+            <h2 className="text-lg font-semibold text-blue-600">
+              Schedule Revisit
+            </h2>
             <p className="text-sm text-gray-600">
-              Schedule a follow-up appointment for <strong>{revisitAppointment.patient?.name || revisitAppointment.patientName}</strong>.
+              Schedule a follow-up appointment for{" "}
+              <strong>
+                {revisitAppointment.patient?.name ||
+                  revisitAppointment.patientName}
+              </strong>
+              .
             </p>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -798,18 +947,18 @@ const handleViewHistory = (appointment) => {
                   className="w-full border rounded p-2 text-sm"
                   value={revisitDate}
                   onChange={(e) => setRevisitDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   disabled={isSubmittingRevisit}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Time
                 </label>
                 <DatePicker
                   selected={revisitTime}
-                  onChange={date => setRevisitTime(date)}
+                  onChange={(date) => setRevisitTime(date)}
                   showTimeSelect
                   showTimeSelectOnly
                   timeIntervals={15}
@@ -819,7 +968,7 @@ const handleViewHistory = (appointment) => {
                   disabled={isSubmittingRevisit}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Reason for Revisit
@@ -834,7 +983,7 @@ const handleViewHistory = (appointment) => {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
@@ -845,11 +994,19 @@ const handleViewHistory = (appointment) => {
               </button>
               <button
                 className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${
-                  !revisitDate || !revisitTime || !revisitReason.trim() || isSubmittingRevisit
-                    ? "opacity-50 cursor-not-allowed" 
+                  !revisitDate ||
+                  !revisitTime ||
+                  !revisitReason.trim() ||
+                  isSubmittingRevisit
+                    ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                disabled={!revisitDate || !revisitTime || !revisitReason.trim() || isSubmittingRevisit}
+                disabled={
+                  !revisitDate ||
+                  !revisitTime ||
+                  !revisitReason.trim() ||
+                  isSubmittingRevisit
+                }
                 onClick={handleRevisitConfirm}
               >
                 {isSubmittingRevisit ? (
@@ -870,9 +1027,16 @@ const handleViewHistory = (appointment) => {
       {cancelAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-red-600">Cancel Appointment</h2>
+            <h2 className="text-lg font-semibold text-red-600">
+              Cancel Appointment
+            </h2>
             <p className="text-sm text-gray-600">
-              Please provide a reason for cancelling the appointment with <strong>{cancelAppointment.patient?.name || cancelAppointment.patientName}</strong>.
+              Please provide a reason for cancelling the appointment with{" "}
+              <strong>
+                {cancelAppointment.patient?.name ||
+                  cancelAppointment.patientName}
+              </strong>
+              .
             </p>
             <textarea
               rows={4}

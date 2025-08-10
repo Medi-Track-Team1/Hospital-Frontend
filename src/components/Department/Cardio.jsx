@@ -19,7 +19,32 @@ const fadeInUp = {
 const Cardio = () => {
   const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
+  const handleBookClick = (doctor) => {
+    // Check if doctor is available before navigation
+    if (isDoctorAvailable(doctor.status)) {
+      navigate("/departments/appointment", { state: { doctor } });
+    }
+  };
 
+  // Helper function to check if doctor is available
+  const isDoctorAvailable = (status) => {
+    const unavailableStatuses = ['on leave', 'On Leave', 'ON LEAVE', 'leave', 'Leave', 'LEAVE', 'inactive', 'Inactive', 'INACTIVE', 'unavailable', 'Unavailable', 'UNAVAILABLE'];
+    return !unavailableStatuses.includes(status);
+  };
+
+  // Helper function to get button styles based on availability
+  const getButtonStyles = (status) => {
+    const isAvailable = isDoctorAvailable(status);
+    
+    return isAvailable 
+      ? "w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer"
+      : "w-full bg-gray-400 text-gray-200 py-2 rounded-lg font-semibold cursor-not-allowed opacity-60";
+  };
+
+  // Helper function to get button text based on availability
+  const getButtonText = (status) => {
+    return isDoctorAvailable(status) ? "Book Appointment" : "Currently Unavailable";
+  };
   useEffect(() => {
   const fetchDoctors = async () => {
     try {
@@ -34,9 +59,6 @@ const Cardio = () => {
 }, []);
 
 
-  const handleBookClick = (doctor) => {
-    navigate("/departments/appointment", { state: { doctor } });
-  };
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">
@@ -140,6 +162,12 @@ const Cardio = () => {
             </div>
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
               <p><strong>ID:</strong> #{doctor.doctorId}</p>
+              <span
+              className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
+              ${doctor.status === "Active" || doctor.status==="Available"? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+            >
+              {doctor.status}
+            </span>
               <p><strong>Experience:</strong> {doctor.experience || "Not specified"}</p>
               <p><strong>Education:</strong> {doctor.education || "Not specified"}</p>
               <p><strong>Languages:</strong> {Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "Not specified"}</p>
@@ -147,11 +175,13 @@ const Cardio = () => {
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
             </div>
             <div className="mt-6 w-full px-4">
-              <button
+             <button
                 onClick={() => handleBookClick(doctor)}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
+                disabled={!isDoctorAvailable(doctor.status)}
+                className={getButtonStyles(doctor.status)}
+                title={!isDoctorAvailable(doctor.status) ? "Doctor is currently unavailable" : "Click to book appointment"}
               >
-                Book Appointment
+                {getButtonText(doctor.status)}
               </button>
             </div>
           </motion.div>

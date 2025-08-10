@@ -305,7 +305,7 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
           </div>
           <div className="p-8 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600">Fetching medicines from server...</span>
+            <span className="ml-4 text-gray-600">Loading....</span>
           </div>
         </div>
       </div>

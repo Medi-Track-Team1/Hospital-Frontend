@@ -1201,8 +1201,8 @@ function App() {
                 <div
                   style={{
                     background:
-                      "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
-                    color: "white",
+                      "linear-gradient(135deg, #ffffffff 0%, #f4f4f4ff 100%)",
+                    color: "black",
                     padding: "24px",
                     borderRadius: "12px",
                     marginBottom: "24px",
@@ -1236,7 +1236,7 @@ function App() {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      ⚡ MediTrack
+                      MediTrack
                     </h1>
                   </div>
                   <h2
@@ -1301,11 +1301,15 @@ function App() {
                     🖨️ Print Invoice
                   </button>
                   <button
+                    // Replace the PDF generation button onClick handler with this improved version
+
+                    // Replace the entire PDF generation button onClick handler with this corrected version
+
                     onClick={() => {
                       const doc = new jsPDF("p", "mm", "a4");
                       const pageWidth = doc.internal.pageSize.getWidth();
                       const pageHeight = doc.internal.pageSize.getHeight();
-                      const margin = 20;
+                      const margin = 15;
                       let yPos = margin;
 
                       // Helper function to add new page if needed
@@ -1318,259 +1322,308 @@ function App() {
                         return false;
                       };
 
+                      // Set default font
+                      doc.setFont("helvetica", "normal");
+
                       // Hospital Header Block
                       doc.setFillColor(59, 130, 246);
-                      doc.rect(0, 0, pageWidth, 40, "F");
+                      doc.rect(0, 0, pageWidth, 35, "F");
 
                       // Header text
                       doc.setTextColor(255, 255, 255);
-                      doc.setFontSize(26);
-                      doc.setFont(undefined, "bold");
-                      doc.text("⚡ MediTrack", pageWidth / 2, 18, {
+                      doc.setFontSize(24);
+                      doc.setFont("helvetica", "bold");
+                      doc.text("MediTrack", pageWidth / 2, 15, {
                         align: "center",
                       });
 
-                      doc.setFontSize(11);
-                      doc.setFont(undefined, "normal");
+                      doc.setFontSize(10);
+                      doc.setFont("helvetica", "normal");
                       doc.text(
                         "Advanced Healthcare Management System",
                         pageWidth / 2,
-                        26,
+                        22,
                         { align: "center" }
                       );
                       doc.text(
                         "123 Healthcare Avenue, Medical District, Coimbatore - 641001",
                         pageWidth / 2,
-                        32,
+                        28,
                         { align: "center" }
                       );
 
-                      yPos = 50;
+                      yPos = 45;
 
                       // Contact Info
                       doc.setTextColor(107, 114, 128);
-                      doc.setFontSize(9);
+                      doc.setFontSize(8);
                       doc.text(
                         "Phone: +91-123-456-7890 | Email: info@meditrack.com | www.meditrack.com",
                         pageWidth / 2,
                         yPos,
                         { align: "center" }
                       );
-                      yPos += 20;
+                      yPos += 15;
 
                       // Invoice Title
                       doc.setFillColor(248, 250, 252);
                       doc.roundedRect(
                         margin,
-                        yPos - 5,
+                        yPos - 3,
                         pageWidth - 2 * margin,
-                        18,
+                        15,
                         3,
                         3,
                         "F"
                       );
                       doc.setTextColor(31, 41, 55);
-                      doc.setFontSize(20);
-                      doc.setFont(undefined, "bold");
-                      doc.text("MEDICAL INVOICE", pageWidth / 2, yPos + 7, {
+                      doc.setFontSize(18);
+                      doc.setFont("helvetica", "bold");
+                      doc.text("MEDICAL INVOICE", pageWidth / 2, yPos + 6, {
                         align: "center",
                       });
-                      yPos += 30;
+                      yPos += 25;
 
                       // Patient Information Box
-                      checkPageBreak(60);
+                      checkPageBreak(50);
                       doc.setDrawColor(59, 130, 246);
                       doc.setFillColor(248, 250, 252);
-                      doc.setLineWidth(1);
+                      doc.setLineWidth(0.5);
                       doc.roundedRect(
                         margin,
                         yPos,
                         pageWidth - 2 * margin,
-                        55,
-                        5,
-                        5,
+                        45,
+                        3,
+                        3,
                         "FD"
                       );
 
                       // Patient Info Header
                       doc.setTextColor(59, 130, 246);
-                      doc.setFontSize(14);
-                      doc.setFont(undefined, "bold");
+                      doc.setFontSize(12);
+                      doc.setFont("helvetica", "bold");
+                      yPos += 10;
+                      doc.text("PATIENT INFORMATION", margin + 8, yPos);
                       yPos += 12;
-                      doc.text("PATIENT INFORMATION", margin + 10, yPos);
-                      yPos += 15;
 
-                      // Patient details in two columns
+                      // Patient details in proper columns
                       doc.setTextColor(55, 65, 81);
-                      doc.setFont(undefined, "normal");
-                      doc.setFontSize(10);
-
-                      const leftCol = margin + 10;
-                      const rightCol = pageWidth / 2 + 5;
-                      const labelWidth = 35;
-
-                      // Left column
-                      doc.setFont(undefined, "bold");
-                      doc.text("Patient Name:", leftCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        selectedBillDetails.patientName || "N/A",
-                        leftCol + labelWidth,
-                        yPos
-                      );
-
-                      // Right column
-                      doc.setFont(undefined, "bold");
-                      doc.text("Doctor:", rightCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        `Dr. ${selectedBillDetails.doctorName || "Unknown"}`,
-                        rightCol + 25,
-                        yPos
-                      );
-                      yPos += 8;
-
-                      // Second row
-                      doc.setFont(undefined, "bold");
-                      doc.text("Patient ID:", leftCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        selectedBillDetails.patientId || "N/A",
-                        leftCol + labelWidth,
-                        yPos
-                      );
-
-                      doc.setFont(undefined, "bold");
-                      doc.text("Department:", rightCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        selectedBillDetails.department || "General",
-                        rightCol + 25,
-                        yPos
-                      );
-                      yPos += 8;
-
-                      // Third row
-                      doc.setFont(undefined, "bold");
-                      doc.text("Date:", leftCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        selectedBillDetails.billDate || "N/A",
-                        leftCol + labelWidth,
-                        yPos
-                      );
-
-                      doc.setFont(undefined, "bold");
-                      doc.text("Status:", rightCol, yPos);
-                      doc.setFont(undefined, "normal");
-                      doc.text(
-                        (selectedBillDetails.status || "Paid").toUpperCase(),
-                        rightCol + 25,
-                        yPos
-                      );
-                      yPos += 8;
-
-                      // Consultancy Fee
-                      doc.setFont(undefined, "bold");
-                      doc.setTextColor(34, 197, 94);
-                      doc.text("Consultancy Fee:", leftCol, yPos);
-                      doc.text(
-                        `₹${(
-                          selectedBillDetails.consultancyFee || 0
-                        ).toLocaleString()}`,
-                        leftCol + labelWidth,
-                        yPos
-                      );
-                      yPos += 25;
-
-                      // Items Table
-                      checkPageBreak(40);
-                      doc.setTextColor(31, 41, 55);
-                      doc.setFont(undefined, "bold");
-                      doc.setFontSize(14);
-                      doc.text("MEDICAL ITEMS & SERVICES", margin, yPos);
-                      yPos += 15;
-
-                      // Table dimensions
-                      const tableWidth = pageWidth - 2 * margin;
-                      const colWidths = [
-                        tableWidth * 0.4, // Item Name - 40%
-                        tableWidth * 0.12, // Quantity - 12%
-                        tableWidth * 0.18, // Unit Price - 18%
-                        tableWidth * 0.18, // Amount - 18%
-                        tableWidth * 0.12, // Type - 12%
-                      ];
-
-                      const colX = [
-                        margin,
-                        margin + colWidths[0],
-                        margin + colWidths[0] + colWidths[1],
-                        margin + colWidths[0] + colWidths[1] + colWidths[2],
-                        margin +
-                          colWidths[0] +
-                          colWidths[1] +
-                          colWidths[2] +
-                          colWidths[3],
-                      ];
-
-                      const rowHeight = 10;
-
-                      // Table header
-                      doc.setFillColor(59, 130, 246);
-                      doc.rect(margin, yPos, tableWidth, rowHeight, "F");
-
-                      doc.setTextColor(255, 255, 255);
-                      doc.setFont(undefined, "bold");
-                      doc.setFontSize(10);
-
-                      doc.text("Item Name", colX[0] + 3, yPos + 6);
-                      doc.text("Qty", colX[1] + 3, yPos + 6);
-                      doc.text("Unit Price", colX[2] + 3, yPos + 6);
-                      doc.text("Amount", colX[3] + 3, yPos + 6);
-                      doc.text("Type", colX[4] + 3, yPos + 6);
-                      yPos += rowHeight;
-
-                      // Table rows
-                      doc.setFont(undefined, "normal");
-                      doc.setTextColor(55, 65, 81);
+                      doc.setFont("helvetica", "normal");
                       doc.setFontSize(9);
 
-                      selectedBillDetails.items.forEach((item, index) => {
-                        checkPageBreak(rowHeight + 5);
+                      const leftColStart = margin + 8;
+                      const rightColStart = pageWidth / 2 + 5;
+                      const labelStyle = {
+                        color: [55, 65, 81],
+                        weight: "bold",
+                      };
+                      const valueStyle = {
+                        color: [107, 114, 128],
+                        weight: "normal",
+                      };
 
-                        // Alternate row colors
+                      // Row 1
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Patient Name:", leftColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        selectedBillDetails.patientName || "N/A",
+                        leftColStart + 35,
+                        yPos
+                      );
+
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Doctor:", rightColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        `Dr. ${selectedBillDetails.doctorName || "Unknown"}`,
+                        rightColStart + 20,
+                        yPos
+                      );
+                      yPos += 6;
+
+                      // Row 2
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Patient ID:", leftColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        selectedBillDetails.patientId || "N/A",
+                        leftColStart + 35,
+                        yPos
+                      );
+
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Department:", rightColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        selectedBillDetails.department || "General",
+                        rightColStart + 25,
+                        yPos
+                      );
+                      yPos += 6;
+
+                      // Row 3
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Date:", leftColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        selectedBillDetails.billDate || "N/A",
+                        leftColStart + 35,
+                        yPos
+                      );
+
+                      doc.setFont("helvetica", "bold");
+                      doc.text("Status:", rightColStart, yPos);
+                      doc.setFont("helvetica", "normal");
+                      doc.text(
+                        (selectedBillDetails.status || "Paid").toUpperCase(),
+                        rightColStart + 20,
+                        yPos
+                      );
+                      yPos += 6;
+
+                      // Consultancy Fee
+                      doc.setFont("helvetica", "bold");
+                      doc.setTextColor(34, 197, 94);
+                      doc.text("Consultancy Fee:", leftColStart, yPos);
+                      doc.text(
+                        `Rs. ${(
+                          selectedBillDetails.consultancyFee || 0
+                        ).toLocaleString()}`,
+                        leftColStart + 35,
+                        yPos
+                      );
+                      yPos += 20;
+
+                      // Items Table
+                      checkPageBreak(35);
+                      doc.setTextColor(31, 41, 55);
+                      doc.setFont("helvetica", "bold");
+                      doc.setFontSize(12);
+                      doc.text("MEDICAL ITEMS & SERVICES", margin, yPos);
+                      yPos += 12;
+
+                      // Define table structure
+                      const tableStartY = yPos;
+                      const tableWidth = pageWidth - 2 * margin;
+                      const rowHeight = 8;
+
+                      // Column definitions with exact positions
+                      const columns = [
+                        { title: "Item Name", x: margin, width: 70 },
+                        { title: "Qty", x: margin + 70, width: 20 },
+                        { title: "Unit Price", x: margin + 90, width: 30 },
+                        { title: "Amount", x: margin + 120, width: 30 },
+                        { title: "Type", x: margin + 150, width: 25 },
+                      ];
+
+                      // Draw table header
+                      doc.setFillColor(59, 130, 246);
+                      doc.rect(margin, yPos, tableWidth, rowHeight + 2, "F");
+
+                      doc.setTextColor(255, 255, 255);
+                      doc.setFont("helvetica", "bold");
+                      doc.setFontSize(9);
+
+                      // Header text with proper positioning
+                      columns.forEach((col) => {
+                        if (col.title === "Item Name") {
+                          doc.text(col.title, col.x + 2, yPos + 6);
+                        } else {
+                          doc.text(col.title, col.x + col.width / 2, yPos + 6, {
+                            align: "center",
+                          });
+                        }
+                      });
+
+                      yPos += rowHeight + 2;
+
+                      // Draw table border
+                      doc.setDrawColor(200, 200, 200);
+                      doc.setLineWidth(0.1);
+
+                      // Table rows
+                      doc.setFont("helvetica", "normal");
+                      doc.setTextColor(55, 65, 81);
+                      doc.setFontSize(8);
+
+                      selectedBillDetails.items.forEach((item, index) => {
+                        checkPageBreak(rowHeight + 3);
+
+                        // Alternate row background
                         if (index % 2 === 0) {
                           doc.setFillColor(249, 250, 251);
                           doc.rect(margin, yPos, tableWidth, rowHeight, "F");
                         }
 
-                        // Row data
-                        const itemName = item.name || "Unnamed";
-                        const quantity = item.quantity?.toString() || "-";
-                        const unitPrice = item.unitPrice
-                          ? `₹${item.unitPrice.toLocaleString()}`
-                          : "-";
-                        const totalPrice = item.totalPrice
-                          ? `₹${item.totalPrice.toLocaleString()}`
-                          : "-";
+                        // Item data
+                        const itemName = (item.name || "Unnamed").substring(
+                          0,
+                          35
+                        ); // Truncate long names
+                        const quantity = (item.quantity || 0).toString();
+                        const unitPrice = `Rs. ${(
+                          item.unitPrice || 0
+                        ).toLocaleString()}`;
+                        const totalPrice = `Rs. ${(
+                          item.totalPrice || 0
+                        ).toLocaleString()}`;
                         const type =
                           (item.type || "N/A").charAt(0).toUpperCase() +
                           (item.type || "N/A").slice(1);
 
-                        // Truncate long item names if necessary
-                        const maxNameLength = 35;
-                        const displayName =
-                          itemName.length > maxNameLength
-                            ? itemName.substring(0, maxNameLength) + "..."
-                            : itemName;
-
-                        doc.text(displayName, colX[0] + 3, yPos + 6);
-                        doc.text(quantity, colX[1] + 3, yPos + 6);
-                        doc.text(unitPrice, colX[2] + 3, yPos + 6);
-                        doc.text(totalPrice, colX[3] + 3, yPos + 6);
-                        doc.text(type, colX[4] + 3, yPos + 6);
+                        // Position text in columns
+                        doc.text(itemName, columns[0].x + 2, yPos + 5); // Item Name (left aligned)
+                        doc.text(
+                          quantity,
+                          columns[1].x + columns[1].width / 2,
+                          yPos + 5,
+                          { align: "center" }
+                        ); // Qty (centered)
+                        doc.text(
+                          unitPrice,
+                          columns[2].x + columns[2].width / 2,
+                          yPos + 5,
+                          { align: "center" }
+                        ); // Unit Price (centered)
+                        doc.text(
+                          totalPrice,
+                          columns[3].x + columns[3].width / 2,
+                          yPos + 5,
+                          { align: "center" }
+                        ); // Amount (centered)
+                        doc.text(
+                          type,
+                          columns[4].x + columns[4].width / 2,
+                          yPos + 5,
+                          { align: "center" }
+                        ); // Type (centered)
 
                         yPos += rowHeight;
+                      });
+
+                      // Draw table borders
+                      doc.setDrawColor(200, 200, 200);
+                      doc.setLineWidth(0.2);
+
+                      // Horizontal lines
+                      const tableEndY = yPos;
+                      const numRows = selectedBillDetails.items.length + 1; // +1 for header
+
+                      for (let i = 0; i <= numRows; i++) {
+                        const lineY =
+                          tableStartY + i * (rowHeight + (i === 1 ? 2 : 0)); // Extra space after header
+                        doc.line(margin, lineY, margin + tableWidth, lineY);
+                      }
+
+                      // Vertical lines
+                      let currentX = margin;
+                      doc.line(currentX, tableStartY, currentX, tableEndY); // Left border
+
+                      columns.forEach((col) => {
+                        currentX += col.width;
+                        doc.line(currentX, tableStartY, currentX, tableEndY);
                       });
 
                       // Total Section
@@ -1578,6 +1631,7 @@ function App() {
                       checkPageBreak(25);
 
                       const totalBoxWidth = 80;
+                      const totalBoxHeight = 20;
                       const totalBoxX = pageWidth - margin - totalBoxWidth;
 
                       doc.setFillColor(59, 130, 246);
@@ -1585,24 +1639,24 @@ function App() {
                         totalBoxX,
                         yPos,
                         totalBoxWidth,
-                        25,
-                        5,
-                        5,
+                        totalBoxHeight,
+                        3,
+                        3,
                         "F"
                       );
 
                       doc.setTextColor(255, 255, 255);
-                      doc.setFont(undefined, "bold");
-                      doc.setFontSize(12);
+                      doc.setFont("helvetica", "bold");
+                      doc.setFontSize(10);
                       doc.text(
                         "TOTAL AMOUNT",
                         totalBoxX + totalBoxWidth / 2,
-                        yPos + 8,
+                        yPos + 7,
                         { align: "center" }
                       );
 
-                      doc.setFontSize(18);
-                      const totalAmount = `₹${(
+                      doc.setFontSize(14);
+                      const totalAmount = `Rs. ${(
                         selectedBillDetails.total ||
                         selectedBillDetails.totalAmount ||
                         0
@@ -1610,31 +1664,31 @@ function App() {
                       doc.text(
                         totalAmount,
                         totalBoxX + totalBoxWidth / 2,
-                        yPos + 18,
+                        yPos + 16,
                         { align: "center" }
                       );
 
                       // Footer
-                      const footerY = pageHeight - 25;
+                      const footerY = pageHeight - 20;
                       doc.setDrawColor(59, 130, 246);
                       doc.setLineWidth(0.5);
                       doc.line(margin, footerY, pageWidth - margin, footerY);
 
                       doc.setTextColor(107, 114, 128);
-                      doc.setFont(undefined, "normal");
-                      doc.setFontSize(10);
+                      doc.setFont("helvetica", "normal");
+                      doc.setFontSize(9);
                       doc.text(
                         "Thank you for choosing MediTrack. Wishing you good health!",
                         pageWidth / 2,
-                        footerY + 8,
+                        footerY + 6,
                         { align: "center" }
                       );
 
-                      doc.setFontSize(8);
+                      doc.setFontSize(7);
                       doc.text(
                         "This is a computer-generated invoice. For queries, contact us at info@meditrack.com",
                         pageWidth / 2,
-                        footerY + 15,
+                        footerY + 12,
                         { align: "center" }
                       );
 
@@ -1646,32 +1700,6 @@ function App() {
                         ) || "Patient"
                       }_${selectedBillDetails.patientId || "Unknown"}.pdf`;
                       doc.save(filename);
-                    }}
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)",
-                      color: "white",
-                      border: "none",
-                      padding: "12px 20px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontSize: "15px",
-                      fontWeight: "700",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      boxShadow: "0 4px 16px rgba(220,38,38,0.25)",
-                      transition: "all 0.3s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 8px 24px rgba(220,38,38,0.35)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 16px rgba(220,38,38,0.25)";
                     }}
                   >
                     📄 Download PDF
@@ -2026,8 +2054,8 @@ function App() {
               <div
                 style={{
                   background:
-                    "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
-                  color: "white",
+                    "linear-gradient(135deg, #f5f5f5ff 0%, #f7f7f7ff 100%)",
+                  color: "black",
                   padding: "20px",
                   borderRadius: "12px",
                   textAlign: "center",

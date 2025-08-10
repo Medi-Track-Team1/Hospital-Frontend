@@ -11,6 +11,7 @@ import Neuro from "./Neuro";
 import Dental from "./Dental";
 import General from "./General";
 import AppointmentPage from "./AppointmentPage";
+import General from "./General";
 
 function DeptRoute() {
   return (
@@ -26,7 +27,12 @@ function DeptRoute() {
         <Route path="psychology" element={<Psychology />} />
         <Route path="neurology" element={<Neuro />} />
         <Route path="fertility" element={<Fertility />} />
+
+        <Route path="general" element={<General />} />
+
+
         <Route path="generaldoctors" element={<General />} />
+
       </Routes>
     </>
   );

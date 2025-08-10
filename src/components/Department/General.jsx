@@ -97,6 +97,7 @@ const General = () => {
             <p className="text-lg sm:text-xl font-bold text-gray-500">Your Health, Our Priority</p>
           </div>
         </div>
+        
         <button
           onClick={() => {
             document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });

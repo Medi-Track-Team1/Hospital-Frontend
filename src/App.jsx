@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from "./components/ProtectedRoute";
 import UnauthorizedPage from "./components/UnauthroizedPage";
 // Routes and Components
 import HomeRoutes from "./components/Home/HomeRoutes";
@@ -10,9 +10,6 @@ import Admin from "./components/Admin/Admin";
 import DeptRoute from "./components/Department/DeptRoute";
 import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
 
-
-
- 
 // Login/Signup Components
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
@@ -39,16 +36,19 @@ function App() {
         <Route path="/departments/*" element={<DeptRoute />} />
 
         <Route path="/patient/*" element={<Patient />} />
-        <Route 
-  path="/doctor/:doctorId/patient/:patientId/history" 
-  element={<PatientHistoryPage />} 
-/>
+        <Route
+          path="/doctor/:doctorId/patient/:patientId/history"
+          element={<PatientHistoryPage />}
+        />
 
         <Route path="/patient/:patientId" element={<Patient />} />
-        <Route path="/doctor/:id/patienthistory" element={<CompletedTreatments/>}/>
+        <Route
+          path="/doctor/:id/patienthistory"
+          element={<CompletedTreatments />}
+        />
 
         <Route path="/reception/*" element={<Reception />} />
-        <Route path="/admin/*" element={<Admin/>}/>
+        <Route path="/admin/*" element={<Admin />} />
 
         {/* Don't touch below code or remove comment */}
         {/* Doctor Routes */}
@@ -57,50 +57,45 @@ function App() {
             <DoctorPanelPage />
           </ProtectedRoute>
          } /> */}
-        
+
         {/* <Route path="/doctor-panel/patienthistory" element={
           <ProtectedRoute roles={['ROLE_DOCTOR']}>
             <CompletedTreatments />
           </ProtectedRoute>
         } /> */}
-        
+
         {/* Patient Routes */}
         {/* <Route path="/patient/*" element={
           <ProtectedRoute roles={['ROLE_PATIENT']}>
             <Patient />
           </ProtectedRoute>
         } /> */}
-        
+
         {/* Reception/Nurse Routes */}
         {/* <Route path="/reception/*" element={
           <ProtectedRoute roles={['ROLE_NURSE']}>
             <Reception />
           </ProtectedRoute>
         } /> */}
-        
+
         {/* Admin Routes */}
         {/* <Route path="/admin/*" element={
           <ProtectedRoute roles={['ROLE_ADMIN']}>
             <Admin />
           </ProtectedRoute>
         } /> */}
-        
+
         {/* Department Routes (adjust roles as needed) */}
         {/* <Route path="/departments/*" element={
           <ProtectedRoute roles={['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_NURSE']}>
             <DeptRoute />
           </ProtectedRoute>
         } /> */}
-        
+
         {/* Unauthorized route */}
         {/* <Route path="/unauthorized" element={<UnauthorizedPage />} /> */}
-     
-     
-     
-     
-     
       </Routes>
-      
+
       {/* Show Login Popup */}
       {showLoginPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
@@ -128,7 +123,6 @@ function App() {
       )}
     </Router>
   );
-
 }
 
 export default App;

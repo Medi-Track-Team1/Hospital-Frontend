@@ -161,7 +161,7 @@ const AppointmentPage = () => {
       return;
     }
 
-    const patientId = localStorage.getItem("pat");
+    const patientId = localStorage.getItem("currentUser").userId;
     if (!patientId) {
       toast.error("Patient not logged in. Please login again.", {
         position: "top-center",

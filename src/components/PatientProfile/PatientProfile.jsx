@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import EditProfileModal from "./EditProfileModel";
 import Header from "../Home/Header";
 import { useNavigate, useParams } from "react-router-dom";
+import LoadingSpinner from "../Admin/LoadingSpinner";
 import {
   User,
   Calendar,
@@ -498,9 +499,7 @@ const PatientProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="pt-20 flex items-center justify-center">
-          <p className="text-lg font-medium text-gray-600">Loading patient data...</p>
-        </div>
+        <LoadingSpinner/>
       </div>
     );
   }

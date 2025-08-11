@@ -36,8 +36,7 @@ export const MedicalAppointments = () => {
   const { toast } = useToast();
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
-  const [showViewPrescriptionModal, setShowViewPrescriptionModal] =
-    useState(false);
+  const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
 
   const [cancelAppointment, setCancelAppointment] = useState(null);
@@ -47,8 +46,9 @@ export const MedicalAppointments = () => {
   const [revisitTime, setRevisitTime] = useState(null);
   const [revisitReason, setRevisitReason] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  
+  // SIMPLIFIED STATE - Only store all appointments in one place
   const [allAppointments, setAllAppointments] = useState([]);
-  const [completedAppointments, setCompletedAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
   const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false);
 
@@ -76,127 +76,110 @@ export const MedicalAppointments = () => {
       : text;
   };
 
-  // Computed values for filtered and sorted appointments
-  // More robust sorting with better date handling:
-  const upcomingAppointments = allAppointments
-    .filter((apt) => {
+  // FIXED: Simplified computed values with better duplicate handling
+  const upcomingAppointments = (() => {
+    const upcoming = allAppointments.filter((apt) => {
       const status = apt.status?.toUpperCase();
-      return (
-        status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED"
-      );
-    })
-    .sort((a, b) => {
-      // Handle different date formats and edge cases
+      return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
+    });
+
+    // Remove duplicates
+    const seen = new Set();
+    const unique = upcoming.filter(apt => {
+      const key = getRowKey(apt);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by date/time
+    return unique.sort((a, b) => {
       const parseDateTime = (appointment) => {
         try {
-          // Try different date parsing approaches
-          let dateTime;
-
           if (appointment.appointmentDateTime) {
-            // If appointmentDateTime exists, use it directly
-            dateTime = new Date(appointment.appointmentDateTime);
+            return new Date(appointment.appointmentDateTime);
           } else {
-            // Fallback to date + time combination
-            const dateStr = appointment.date;
-            const timeStr = appointment.time;
-
-            if (!dateStr || !timeStr) {
-              return new Date(0); // Return epoch for invalid dates (will sort to beginning)
-            }
-
-            // Combine date and time
-            dateTime = new Date(`${dateStr} ${timeStr}`);
+            const dateTime = new Date(`${appointment.date} ${appointment.time}`);
+            return isNaN(dateTime.getTime()) ? new Date(0) : dateTime;
           }
-
-          // Check if the date is valid
-          if (isNaN(dateTime.getTime())) {
-            console.warn(`Invalid date for appointment:`, appointment);
-            return new Date(0);
-          }
-
-          return dateTime;
         } catch (error) {
-          console.error(
-            `Error parsing date for appointment:`,
-            appointment,
-            error
-          );
+          console.error("Error parsing date for appointment:", appointment, error);
           return new Date(0);
         }
       };
 
-      const aDateTime = parseDateTime(a);
-      const bDateTime = parseDateTime(b);
+      return parseDateTime(a) - parseDateTime(b);
+    });
+  })();
 
-      // Ascending order: earliest appointments first
-      return aDateTime - bDateTime;
+  const completedAppointments = (() => {
+    const completed = allAppointments.filter((apt) => {
+      const status = apt.status?.toUpperCase();
+      return status === "COMPLETED";
     });
 
-  // Add this helper function at the top of your component
-  const removeDuplicateAppointments = (appointments) => {
+    // Remove duplicates
     const seen = new Set();
-    return appointments.filter((apt) => {
+    const unique = completed.filter(apt => {
       const key = getRowKey(apt);
-      if (seen.has(key)) {
-        return false;
-      }
+      if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  };
 
-  // Then modify your computed values:
-  const completedAppointmentsFiltered = removeDuplicateAppointments(
-    allAppointments
-      .filter((apt) => {
-        const status = apt.status?.toUpperCase();
-        return status === "COMPLETED";
-      })
-      .concat(
-        completedAppointments.filter((apt) => {
-          const status = apt.status?.toUpperCase();
-          return status === "COMPLETED";
-        })
-      )
-      .sort((a, b) => {
-        const aDateTime = new Date(`${a.date} ${a.time}`);
-        const bDateTime = new Date(`${b.date} ${b.time}`);
-        return bDateTime - aDateTime;
-      })
-  );
+    // Sort by date/time (most recent first)
+    return unique.sort((a, b) => {
+      const aDateTime = new Date(`${a.date} ${a.time}`);
+      const bDateTime = new Date(`${b.date} ${b.time}`);
+      return bDateTime - aDateTime;
+    });
+  })();
 
-  const canceledAppointments = allAppointments
-    .filter((apt) => {
+  const canceledAppointments = (() => {
+    const canceled = allAppointments.filter((apt) => {
       const status = apt.status?.toUpperCase();
       return status === "CANCELED" || status === "CANCELLED";
-    })
-    .concat(
-      completedAppointments.filter((apt) => {
-        const status = apt.status?.toUpperCase();
-        return status === "CANCELED" || status === "CANCELLED";
-      })
-    )
-    .sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${a.time}`);
-      const bDateTime = new Date(`${b.date} ${b.time}`);
-      return bDateTime - aDateTime;
     });
 
-  const appointmentHistory = allAppointments
-    .filter((apt) => {
-      const status = apt.status?.toUpperCase();
-      return (
-        status === "COMPLETED" ||
-        status === "CANCELED" ||
-        status === "CANCELLED"
-      );
-    })
-    .concat(completedAppointments)
-    .sort((a, b) => {
+    // Remove duplicates
+    const seen = new Set();
+    const unique = canceled.filter(apt => {
+      const key = getRowKey(apt);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by date/time (most recent first)
+    return unique.sort((a, b) => {
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
       return bDateTime - aDateTime;
     });
+  })();
+
+  const appointmentHistory = (() => {
+    const history = allAppointments.filter((apt) => {
+      const status = apt.status?.toUpperCase();
+      return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED";
+    });
+
+    // Remove duplicates
+    const seen = new Set();
+    const unique = history.filter(apt => {
+      const key = getRowKey(apt);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by date/time (most recent first)
+    return unique.sort((a, b) => {
+      const aDateTime = new Date(`${a.date} ${a.time}`);
+      const bDateTime = new Date(`${b.date} ${b.time}`);
+      return bDateTime - aDateTime;
+    });
+  })();
 
   useEffect(() => {
     if (doctorId) {
@@ -204,17 +187,47 @@ export const MedicalAppointments = () => {
     }
   }, [doctorId]);
 
+  // FIXED: Simplified fetch function that combines all appointments
   const fetchAppointments = async () => {
     try {
-      const upcomingResponse = await listUpcomingAppointmentsByDoctorId(
-        doctorId
-      );
-      const upcomingData = upcomingResponse.data;
-      const upcomingAppointments = Array.isArray(upcomingData)
-        ? upcomingData
-        : upcomingData.appointments || [];
+      console.log("Fetching appointments for doctor:", doctorId);
+      
+      // Fetch from both endpoints
+      const [upcomingResponse, completedResponse] = await Promise.allSettled([
+        listUpcomingAppointmentsByDoctorId(doctorId),
+        listCompletedAppointmentsByDoctorId(doctorId)
+      ]);
 
-      const transformedUpcoming = upcomingAppointments.map((apt) => ({
+      let allFetchedAppointments = [];
+
+      // Process upcoming appointments
+      if (upcomingResponse.status === 'fulfilled') {
+        const upcomingData = upcomingResponse.value.data;
+        const upcomingAppointments = Array.isArray(upcomingData) 
+          ? upcomingData 
+          : upcomingData.appointments || [];
+        
+        console.log("Fetched upcoming appointments:", upcomingAppointments.length);
+        allFetchedAppointments = [...allFetchedAppointments, ...upcomingAppointments];
+      } else {
+        console.warn("Failed to fetch upcoming appointments:", upcomingResponse.reason);
+      }
+
+      // Process completed appointments
+      if (completedResponse.status === 'fulfilled') {
+        const completedData = completedResponse.value.data;
+        const completedAppointments = Array.isArray(completedData) 
+          ? completedData 
+          : completedData.appointments || [];
+        
+        console.log("Fetched completed appointments:", completedAppointments.length);
+        allFetchedAppointments = [...allFetchedAppointments, ...completedAppointments];
+      } else {
+        console.warn("Failed to fetch completed appointments:", completedResponse.reason);
+      }
+
+      // Transform all appointments to consistent format
+      const transformedAppointments = allFetchedAppointments.map((apt) => ({
         ...apt,
         date: apt.appointmentDateTime
           ? new Date(apt.appointmentDateTime).toISOString().split("T")[0]
@@ -229,44 +242,29 @@ export const MedicalAppointments = () => {
         status: apt.status?.toLowerCase() || "pending",
       }));
 
-      try {
-        const completedResponse = await listCompletedAppointmentsByDoctorId(
-          doctorId
-        );
-        const completedData = completedResponse.data;
-        const completedAppointments = Array.isArray(completedData)
-          ? completedData
-          : completedData.appointments || [];
+      // Remove duplicates based on appointment ID
+      const seen = new Set();
+      const uniqueAppointments = transformedAppointments.filter(apt => {
+        const key = getRowKey(apt);
+        if (seen.has(key)) {
+          console.log("Removing duplicate appointment:", key);
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
 
-        const transformedCompleted = completedAppointments.map((apt) => ({
-          ...apt,
-          date: apt.appointmentDateTime
-            ? new Date(apt.appointmentDateTime).toISOString().split("T")[0]
-            : apt.date,
-          time: apt.appointmentDateTime
-            ? new Date(apt.appointmentDateTime).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })
-            : apt.time,
-          status: apt.status?.toLowerCase() || "completed",
-        }));
+      console.log("Final unique appointments:", uniqueAppointments.length);
+      setAllAppointments(uniqueAppointments);
 
-        setCompletedAppointments(transformedCompleted);
-      } catch (completedError) {
-        console.log(
-          "No completed appointments found or error fetching:",
-          completedError
-        );
-        setCompletedAppointments([]);
-      }
-
-      setAllAppointments(transformedUpcoming);
     } catch (error) {
       console.error("Error fetching appointments:", error);
       setAllAppointments([]);
-      setCompletedAppointments([]);
+      toast({
+        title: "Error",
+        description: "Failed to fetch appointments. Please refresh the page.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -356,65 +354,22 @@ export const MedicalAppointments = () => {
     }
   };
 
+  // FIXED: Much simpler prescription success handler
   const handlePrescriptionSuccess = async (prescription) => {
-    console.log("Prescription created:", prescription);
+    console.log("Prescription created successfully:", prescription);
 
-    try {
-      const appointmentId =
-        getAppointmentIdForPrescription(selectedAppointment);
+    // Show success message
+    toast({
+      title: "Success",
+      description: "Prescription created successfully! Appointment moved to history.",
+    });
 
-      const appointmentToComplete = allAppointments.find(
-        (apt) => getAppointmentIdForPrescription(apt) === appointmentId
-      );
+    // Close modal
+    setShowPrescribeModal(false);
+    setSelectedAppointment(null);
 
-      if (appointmentToComplete) {
-        const completedAppointment = {
-          ...appointmentToComplete,
-          status: "completed",
-        };
-
-        setAllAppointments((prev) =>
-          prev.filter(
-            (apt) => getAppointmentIdForPrescription(apt) !== appointmentId
-          )
-        );
-
-        setCompletedAppointments((prev) => [completedAppointment, ...prev]);
-
-        toast({
-          title: "Success",
-          description:
-            "Prescription created successfully! Appointment moved to history.",
-        });
-
-        setShowPrescribeModal(false);
-        setSelectedAppointment(null);
-
-        setTimeout(() => {
-          fetchAppointments();
-        }, 1000);
-      } else {
-        console.warn("Appointment not found in upcoming list");
-        toast({
-          title: "Success",
-          description: "Prescription created successfully!",
-        });
-
-        setShowPrescribeModal(false);
-        setSelectedAppointment(null);
-        fetchAppointments();
-      }
-    } catch (error) {
-      console.error("Error handling prescription success:", error);
-      toast({
-        title: "Success",
-        description: "Prescription created successfully!",
-      });
-
-      setShowPrescribeModal(false);
-      setSelectedAppointment(null);
-      fetchAppointments();
-    }
+    // Refresh appointments from server - this will get the updated status
+    await fetchAppointments();
   };
 
   const handleViewPrescription = async (appointment) => {
@@ -545,7 +500,7 @@ export const MedicalAppointments = () => {
 
           <AppointmentCard
             title="Completed"
-            count={completedAppointmentsFiltered.length}
+            count={completedAppointments.length}
             icon={<MdCheckCircle className="h-6 w-6 text-green-600" />}
             bgColor="bg-green-50"
           />

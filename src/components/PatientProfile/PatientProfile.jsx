@@ -25,15 +25,21 @@ import {
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
-   localStorage.setItem('currentUser', patientId);
-  const getCurrentUser = () => {
+  //  localStorage.setItem('currentUser', patientId);
+const getCurrentUser = () => {
   const userData = localStorage.getItem("currentUser");
   if (!userData) return null;
 
   try {
-    return JSON.parse(userData);
-  } catch {
-    return { userId: userData };
+    const parsed = JSON.parse(userData);
+    return {
+      userId: parsed.userId || parsed.id || "", // Handle different property names
+      username: parsed.username || "",
+      // Add other properties you need
+    };
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
   }
 };
 
@@ -55,16 +61,17 @@ const currentUser = getCurrentUser();
   useEffect(() => {
     if (!patientId) return;
 
-    const currentUserStr = localStorage.getItem('currentUser');
+     const currentUser = getCurrentUser();
+  const patientIdToFetch = currentUser?.userId || patientId;
 
-    // Fetch patient data
-    fetch(`https://patient-service-ntk0.onrender.com/api/patient/${currentUserStr}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-      })
+  // Fetch patient data
+  fetch(`https://patient-service-ntk0.onrender.com/api/patient/${patientIdToFetch}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+    })
       .then(data => {
         if (data.success && data.data) {
           console.log(data.data);

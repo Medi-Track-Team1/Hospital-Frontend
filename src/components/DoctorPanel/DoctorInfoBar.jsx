@@ -45,7 +45,7 @@ if (doctor === null) return <div>No Doctor found</div>;
             <p className="text-blue-600 text-lg font-medium">{doctor.specialty}</p>
             <span
               className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
-              ${doctor.status === "available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              ${doctor.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
             >
               {doctor.status}
             </span>

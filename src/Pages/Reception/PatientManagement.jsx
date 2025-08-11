@@ -357,7 +357,7 @@ const PatientManagement = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 text-xl mb-4">⚠️ Error</div>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-g4 ray-600 mb-4">{error}</p>
           <button 
             onClick={fetchPatients}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

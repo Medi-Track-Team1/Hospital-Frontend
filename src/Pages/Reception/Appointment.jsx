@@ -741,13 +741,13 @@ const formatDisplayDate= (dateTimeString) => {
               color: "linear-gradient(135deg, #10b981, #059669)",
               bgColor: "rgba(16, 185, 129, 0.1)",
             },
-             {
-      title: "Pending",
-      value: stats.pendingCount,
-      icon: Clock,  // Using Clock icon for pending status
-      color: "linear-gradient(135deg, #f59e0b, #d97706)",
-      bgColor: "rgba(245, 158, 11, 0.1)",
-    },
+            {
+              title: "Pending",
+              value: stats.pendingCount,
+              icon: Clock, // Using Clock icon for pending status
+              color: "linear-gradient(135deg, #f59e0b, #d97706)",
+              bgColor: "rgba(245, 158, 11, 0.1)",
+            },
             {
               title: "Cancelled",
               value: stats.cancelledCount,
@@ -1001,7 +1001,9 @@ const formatDisplayDate= (dateTimeString) => {
                 }}
               >
                 <span>
-                  Showing {startIndex + 1}-{Math.min(endIndex, filteredAppointments.length)} of {filteredAppointments.length} appointments
+                  Showing {startIndex + 1}-
+                  {Math.min(endIndex, filteredAppointments.length)} of{" "}
+                  {filteredAppointments.length} appointments
                 </span>
               </div>
             )}
@@ -1116,7 +1118,7 @@ const formatDisplayDate= (dateTimeString) => {
                                   margin: "2px 0 0 0",
                                 }}
                               >
-                                Age: {appointment.age}   {appointment.insurance}
+                                Age: {appointment.age} {appointment.insurance}
                               </p>
                             </div>
                           </div>
@@ -1231,7 +1233,9 @@ const formatDisplayDate= (dateTimeString) => {
                                   fontWeight: "500",
                                 }}
                               >
-                                {formatDisplayDateTime (appointment.appointmentDateTime)}
+                                {formatDisplayDateTime(
+                                  appointment.appointmentDateTime
+                                )}
                               </span>
                             </div>
                             <div
@@ -1249,7 +1253,9 @@ const formatDisplayDate= (dateTimeString) => {
                                   fontWeight: "500",
                                 }}
                               >
-                                {formatDisplayDate (appointment.appointmentDateTime)}
+                                {formatDisplayDate(
+                                  appointment.appointmentDateTime
+                                )}
                               </span>
                             </div>
                           </div>
@@ -1264,7 +1270,7 @@ const formatDisplayDate= (dateTimeString) => {
                           }}
                         >
                           {/* Status Badge */}
-                      <div
+                          <div
                             style={{
                               background: getStatusColor(appointment.status),
                               color: "white",
@@ -1444,9 +1450,10 @@ const formatDisplayDate= (dateTimeString) => {
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
                   style={{
-                    background: currentPage === 1 
-                      ? "rgba(148, 163, 184, 0.2)" 
-                      : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                    background:
+                      currentPage === 1
+                        ? "rgba(148, 163, 184, 0.2)"
+                        : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
                     color: currentPage === 1 ? "#94a3b8" : "white",
                     border: "none",
                     padding: "8px 12px",
@@ -1476,9 +1483,10 @@ const formatDisplayDate= (dateTimeString) => {
                       key={pageNum}
                       onClick={() => goToPage(pageNum)}
                       style={{
-                        background: pageNum === currentPage 
-                          ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
-                          : "white",
+                        background:
+                          pageNum === currentPage
+                            ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+                            : "white",
                         color: pageNum === currentPage ? "white" : "#64748b",
                         border: "2px solid rgba(59, 130, 246, 0.1)",
                         padding: "8px 12px",
@@ -1492,9 +1500,10 @@ const formatDisplayDate= (dateTimeString) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: pageNum === currentPage 
-                          ? "0 4px 15px rgba(59, 130, 246, 0.3)"
-                          : "none",
+                        boxShadow:
+                          pageNum === currentPage
+                            ? "0 4px 15px rgba(59, 130, 246, 0.3)"
+                            : "none",
                       }}
                     >
                       {pageNum}
@@ -1507,14 +1516,16 @@ const formatDisplayDate= (dateTimeString) => {
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
                   style={{
-                    background: currentPage === totalPages 
-                      ? "rgba(148, 163, 184, 0.2)" 
-                      : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                    background:
+                      currentPage === totalPages
+                        ? "rgba(148, 163, 184, 0.2)"
+                        : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
                     color: currentPage === totalPages ? "#94a3b8" : "white",
                     border: "none",
                     padding: "8px 12px",
                     borderRadius: "8px",
-                    cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
                     transition: "all 0.3s ease",
                     display: "flex",
                     alignItems: "center",
@@ -1699,7 +1710,11 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {formatDisplayDateTime(appointmentToCancel.appointmentDateTime)} at {formatDisplayDateTime(appointmentToCancel.appointmentDate)}
+                  {formatDisplayDateTime(
+                    appointmentToCancel.appointmentDateTime
+                  )}{" "}
+                  at{" "}
+                  {formatDisplayDateTime(appointmentToCancel.appointmentDate)}
                 </span>
               </div>
             </div>
@@ -1879,6 +1894,54 @@ const formatDisplayDate= (dateTimeString) => {
                     gap: "20px",
                   }}
                 >
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <label
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: "600",
+                        color: "#374151",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Patient Id *
+                    </label>
+                    <input
+                      type="text"
+                      value={newAppointment.patientName}
+                      onChange={(e) =>
+                        setNewAppointment((prev) => ({
+                          ...prev,
+                          patientName: e.target.value,
+                        }))
+                      }
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "10px",
+                        border: `2px solid ${
+                          formErrors.patientName
+                            ? "#ef4444"
+                            : "rgba(148, 163, 184, 0.2)"
+                        }`,
+                        fontSize: "1rem",
+                        transition: "all 0.3s ease",
+                        outline: "none",
+                        background: "rgba(255, 255, 255, 0.8)",
+                        fontFamily: "inherit",
+                      }}
+                      placeholder="Enter patient full name"
+                    />
+                    {formErrors.patientName && (
+                      <span
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "0.8rem",
+                          marginTop: "4px",
+                        }}
+                      >
+                        {formErrors.patientName}
+                      </span>
+                    )}
+                  </div>
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <label
                       style={{
@@ -2983,7 +3046,9 @@ const formatDisplayDate= (dateTimeString) => {
                   padding: "20px",
                   marginBottom: "20px",
                 }}
-              >                <h3
+              >
+                {" "}
+                <h3
                   style={{
                     fontSize: "1.1rem",
                     fontWeight: "600",
@@ -2997,7 +3062,6 @@ const formatDisplayDate= (dateTimeString) => {
                   <Calendar size={18} />
                   Appointment Details
                 </h3>
-
                 <div
                   style={{
                     display: "grid",
@@ -3570,7 +3634,11 @@ const formatDisplayDate= (dateTimeString) => {
                     fontWeight: "600",
                   }}
                 >
-                  {formatDisplayDateTime(appointmentToDelete.appointmentDateTime)} at {formatDisplayDate(appointmentToDelete.appointmentDateTime)}
+                  {formatDisplayDateTime(
+                    appointmentToDelete.appointmentDateTime
+                  )}{" "}
+                  at{" "}
+                  {formatDisplayDate(appointmentToDelete.appointmentDateTime)}
                 </span>
               </div>
             </div>
@@ -3704,7 +3772,8 @@ const formatDisplayDate= (dateTimeString) => {
               {/* Patient Information */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  background:
+                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
                   borderRadius: "16px",
                   padding: "20px",
                 }}
@@ -3851,7 +3920,8 @@ const formatDisplayDate= (dateTimeString) => {
               {/* Appointment Information */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  background:
+                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
                   borderRadius: "16px",
                   padding: "20px",
                 }}
@@ -3943,7 +4013,9 @@ const formatDisplayDate= (dateTimeString) => {
                         margin: 0,
                       }}
                     >
-                      {formatDisplayDateTime(selectedAppointment.appointmentDateTime)}
+                      {formatDisplayDateTime(
+                        selectedAppointment.appointmentDateTime
+                      )}
                     </p>
                   </div>
 
@@ -3966,7 +4038,9 @@ const formatDisplayDate= (dateTimeString) => {
                         margin: 0,
                       }}
                     >
-                      {formatDisplayDate(selectedAppointment.appointmentDateTime)}
+                      {formatDisplayDate(
+                        selectedAppointment.appointmentDateTime
+                      )}
                     </p>
                   </div>
 
@@ -4006,7 +4080,8 @@ const formatDisplayDate= (dateTimeString) => {
               {/* Medical Information */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                  background:
+                    "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
                   borderRadius: "16px",
                   padding: "20px",
                 }}

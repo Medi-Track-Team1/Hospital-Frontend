@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,6 +24,7 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   MapPin,
   Stethoscope,
   Heart,
@@ -59,6 +59,10 @@ const Appointment = () => {
   const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // New appointment form state
   const [newAppointment, setNewAppointment] = useState({
@@ -101,7 +105,6 @@ const Appointment = () => {
   cancelledCount: 0,
    pendingCount: 0 
 });
-
 
   // Fetch appointments on component mount
   useEffect(() => {
@@ -221,9 +224,51 @@ const Appointment = () => {
     matchesDate = appointmentDate === filterDate;
   }
 
-
   return matchesSearch && matchesStatus && matchesDate;
 });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterDate]);
+
+  // Pagination functions
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
 
   const validateForm = () => {
     const errors = {};
@@ -909,6 +954,11 @@ const formatDisplayDate= (dateTimeString) => {
               padding: "25px",
               borderBottom: "1px solid #e2e8f0",
               background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "15px",
             }}
           >
             <h2
@@ -938,6 +988,23 @@ const formatDisplayDate= (dateTimeString) => {
                 {filteredAppointments.length} appointments
               </span>
             </h2>
+
+            {/* Pagination Info */}
+            {filteredAppointments.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  fontSize: "14px",
+                  color: "#64748b",
+                }}
+              >
+                <span>
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredAppointments.length)} of {filteredAppointments.length} appointments
+                </span>
+              </div>
+            )}
           </div>
 
           <div style={{ padding: "0" }}>
@@ -974,7 +1041,7 @@ const formatDisplayDate= (dateTimeString) => {
                   background: "#e2e8f0",
                 }}
               >
-                {filteredAppointments.map((appointment) => (
+                {currentAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
                     style={{
@@ -1338,8 +1405,168 @@ const formatDisplayDate= (dateTimeString) => {
               </div>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {filteredAppointments.length > itemsPerPage && (
+            <div
+              style={{
+                padding: "20px",
+                borderTop: "1px solid #e2e8f0",
+                background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: "15px",
+              }}
+            >
+              {/* Page Info */}
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "#64748b",
+                  fontWeight: "500",
+                }}
+              >
+                Page {currentPage} of {totalPages}
+              </div>
+
+              {/* Pagination Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                {/* Previous Button */}
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  style={{
+                    background: currentPage === 1 
+                      ? "rgba(148, 163, 184, 0.2)" 
+                      : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                    color: currentPage === 1 ? "#94a3b8" : "white",
+                    border: "none",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "4px",
+                  }}
+                >
+                  {getPageNumbers().map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      style={{
+                        background: pageNum === currentPage 
+                          ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+                          : "white",
+                        color: pageNum === currentPage ? "white" : "#64748b",
+                        border: "2px solid rgba(59, 130, 246, 0.1)",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        minWidth: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: pageNum === currentPage 
+                          ? "0 4px 15px rgba(59, 130, 246, 0.3)"
+                          : "none",
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    background: currentPage === totalPages 
+                      ? "rgba(148, 163, 184, 0.2)" 
+                      : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                    color: currentPage === totalPages ? "#94a3b8" : "white",
+                    border: "none",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                    transition: "all 0.3s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              {/* Items per page selector (optional) */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "14px",
+                  color: "#64748b",
+                }}
+              >
+                <span>Items per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setCurrentPage(1);
+                    // Note: itemsPerPage is const, but you could make it state if needed
+                  }}
+                  style={{
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                    border: "2px solid #e2e8f0",
+                    fontSize: "14px",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                  disabled
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* All the existing modals remain the same - Cancel Appointment Modal, New Appointment Modal, etc. */}
+      {/* ... (keeping all existing modal code unchanged) */}
 
       {/* Cancel Appointment Modal */}
       {showCancelModal && appointmentToCancel && (

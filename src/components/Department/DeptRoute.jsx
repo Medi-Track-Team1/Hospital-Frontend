@@ -1,16 +1,16 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Cardio from "./Cardio";
-import Header from "../Home/Header";
-import Hepatology from "./Hepatology";
-import Eyecare from "./EyeCare";
-import Fertility from "./Fertility";
-import Psychology from "./Psychology";
-import Pediatrics from "./Pediatrics";
-import Neuro from "./Neuro";
-import Dental from "./Dental";
-import General from "./General";
-import AppointmentPage from "./AppointmentPage";
+  import React from "react";
+  import { Routes, Route } from "react-router-dom";
+  import Cardio from "./Cardio";
+  import Header from "../Home/Header";
+  import Hepatology from "./Hepatology";
+  import Eyecare from "./EyeCare";
+  import Fertility from "./Fertility";
+  import Psychology from "./Psychology";
+  import Pediatrics from "./Pediatrics";
+  import Neuro from "./Neuro";
+  import Dental from "./Dental";
+  import General from "./General";
+  import AppointmentPage from "./AppointmentPage";
 
 function DeptRoute() {
   return (
@@ -29,8 +29,8 @@ function DeptRoute() {
   <Route path="general" element={<General />} />
 </Routes>
 
-    </>
-  );
-}
+      </>
+    );
+  }
 
-export default DeptRoute;
+  export default DeptRoute;

@@ -17,6 +17,7 @@ import {
   MdVisibility,
   MdRefresh,
   MdCancel,
+  MdEdit,
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
@@ -31,6 +32,7 @@ import {
 } from "../../services/DoctorPanel/AppointmentService";
 import { getPrescriptionByAppointmentId } from "../../services/DoctorPanel/PrescriptionService";
 import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
+import EditPrescribeModal from "./EditPrescribeModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
@@ -47,7 +49,8 @@ const [isCancelling, setIsCancelling] = useState(false);
   const [revisitTime, setRevisitTime] = useState(null);
   const [revisitReason, setRevisitReason] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  
+  const [showEditPrescriptionModal, setShowEditPrescriptionModal] = useState(false);
+const [editPrescriptionData, setEditPrescriptionData] = useState(null);
   // SIMPLIFIED STATE - Only store all appointments in one place
   const [allAppointments, setAllAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
@@ -275,7 +278,62 @@ const [isCancelling, setIsCancelling] = useState(false);
     setRevisitTime(null);
     setRevisitReason("");
   };
+const handleEditPrescription = async (appointment) => {
+  if (isAppointmentCanceled(appointment)) {
+    toast({
+      title: "Cannot Edit Prescription",
+      description: "Prescriptions cannot be edited for canceled appointments.",
+      variant: "destructive",
+    });
+    return;
+  }
 
+  try {
+    const appointmentId = getAppointmentIdForPrescription(appointment);
+    const response = await getPrescriptionByAppointmentId(appointmentId);
+    const prescription = response.data;
+
+    if (prescription) {
+      // Set the prescription data and appointment info for editing
+      setEditPrescriptionData({
+        prescription: prescription,
+        appointmentId: appointmentId,
+        doctorId: doctorId,
+        patientId: appointment.patientId || appointment.patient?.id,
+        patientName: appointment.patientName || appointment.patient?.name,
+      });
+      setShowEditPrescriptionModal(true);
+    } else {
+      toast({
+        title: "No Prescription Found",
+        description: "No prescription exists for this appointment to edit.",
+        variant: "destructive",
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching prescription for edit:", error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch prescription for editing. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
+const handleEditPrescriptionSuccess = async (updatedPrescription) => {
+  console.log("Prescription updated successfully:", updatedPrescription);
+
+  toast({
+    title: "Success",
+    description: "Prescription updated successfully!",
+  });
+
+  // Close modal
+  setShowEditPrescriptionModal(false);
+  setEditPrescriptionData(null);
+
+  // Refresh appointments to show any updates
+  await fetchAppointments();
+};
   const handleViewHistory = (appointment) => {
     const patientId = appointment.patientId || appointment.patient?.id;
     const patientName = appointment.patientName || appointment.patient?.name;
@@ -450,7 +508,7 @@ const [isCancelling, setIsCancelling] = useState(false);
   const getStatusBadge = (status) => {
     const variants = {
       pending: "bg-orange-100 text-orange-700 border-orange-200",
-      canceled: "bg-red-100 text-red-700 border-red-200",
+      cancelled: "bg-red-100 text-red-700 border-red-200",
       completed: "bg-green-100 text-green-700 border-green-200",
     };
     return variants[status] || variants.pending;
@@ -823,6 +881,26 @@ const handleCancelConfirm = async () => {
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   Prescription
                                 </Button>
+                                 <Button
+      size="sm"
+      variant="outline"
+      className={`text-xs px-2 py-1 h-7 whitespace-nowrap ${
+        isAppointmentCanceled(appointment)
+          ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
+          : "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200"
+      }`}
+      onClick={() => handleEditPrescription(appointment)}
+      disabled={isAppointmentCanceled(appointment)}
+      title={
+        isAppointmentCanceled(appointment)
+          ? "Prescription cannot be edited for canceled appointments"
+          : "Edit Prescription"
+      }
+    >
+      <MdEdit className="h-3 w-3 mr-1" />
+      Edit
+    </Button>
+  
                               </div>
                             </td>
                           </tr>
@@ -881,7 +959,22 @@ const handleCancelConfirm = async () => {
           doctorId={doctorId}
         />
       )}
-
+{/* Edit Prescription Modal */}
+{showEditPrescriptionModal && editPrescriptionData && (
+  <EditPrescribeModal
+    isOpen={showEditPrescriptionModal}
+    appointmentId={editPrescriptionData.appointmentId}
+    doctorId={editPrescriptionData.doctorId}
+    patientId={editPrescriptionData.patientId}
+    patientName={editPrescriptionData.patientName}
+    existingPrescription={editPrescriptionData.prescription}
+    onClose={() => {
+      setShowEditPrescriptionModal(false);
+      setEditPrescriptionData(null);
+    }}
+    onSuccess={handleEditPrescriptionSuccess}
+  />
+)}
       {/* Revisit Modal */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">

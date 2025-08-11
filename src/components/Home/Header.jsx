@@ -7,8 +7,40 @@ const Header = ({ onLoginClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [departmentsTimeout, setDepartmentsTimeout] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("currentUser") !== null
+  );
   const [activeTab, setActiveTab] = useState("#hero");
+const getCurrentUser = () => {
+  const userData = localStorage.getItem("currentUser");
+  if (!userData) return null;
+  let usertemp = localStorage.getItem("currentUser");
+  try {
+    // Try parsing as JSON first
+    const parsed = JSON.parse(userData);
+    console.log(parsed, "ugd");
+    usertemp=parsed;
+    return {
+      userId: parsed.userId || "",
+      username: parsed.username || "",
+      name: parsed.name || parsed.username || "",
+      role: parsed.role ? parsed.role.toLowerCase() : "patient"
+    };
+  } catch (error) {
+    // If it's not JSON, treat it as a plain string (ID)
+    console.log("User data is not JSON, treating as plain string:", userData);
+     return {
+      userId: userData,  // Use the string directly as userId
+      username: userData,  // Use the string directly as username
+      name: userData,  // Use the string directly as name
+      role: "patient"
+    };
+  }
+};
+  const currentUser = isLoggedIn ? getCurrentUser() : null;
+  console.log(currentUser,"wel");
+  const username = currentUser?.username || "Profile";
+  const firstName = currentUser?.username?.split(" ")[0] || "Profile";
 
   const profileRef = useRef(null);
   const mobileMenuRef = useRef(null);
@@ -25,6 +57,18 @@ const Header = ({ onLoginClick }) => {
     { name: "Fertility", link: "/departments/fertility" },
     { name: "Psychology", link: "/departments/psychology" },
   ];
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsLoggedIn(localStorage.getItem("currentUser") !== null);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -57,13 +101,38 @@ const Header = ({ onLoginClick }) => {
   }, []);
 
   const handleLogoutClick = () => {
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
+    setProfileDropdownOpen(false);
+    navigate("/");
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
     setProfileDropdownOpen(false);
   };
 
-  const handleLoginClick = () => {
-    setIsLoggedIn(true);
-    onLoginClick?.();
+  const handleProfileClick = () => {
+    if (!currentUser) return;
+
+    switch (currentUser.role) {
+      case "role_admin":
+        navigate("/admin/dashboard");
+        break;
+      case "role_doctor":
+        navigate("/doctor/profile");
+        break;
+      case "role_nurse":
+        navigate("/nurse/profile");
+        break;
+      case "role_patient":
+        navigate(`/patient/${currentUser.userId}`);
+        break;
+      default:
+        navigate("/");
+    }
+    setProfileDropdownOpen(false);
   };
 
   const handleNavClick = (href) => {
@@ -179,12 +248,6 @@ const Header = ({ onLoginClick }) => {
               >
                 Contact
               </button>
-              {/* <button
-                onClick={() => handleNavClick("#appointment")}
-                className={`${navLinkClass("#appointment")} hidden lg:block`}
-              >
-                Appointment
-              </button> */}
             </div>
 
             {/* Login/Profile */}
@@ -196,10 +259,17 @@ const Header = ({ onLoginClick }) => {
                     className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
                   >
                     <User className="w-4 h-4 mr-2" />
-                    Profile
+                    {username}
                   </button>
                   {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-md rounded-md z-50">
+                      <button
+                        onClick={handleProfileClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-100"
+                      >
+                        <User className="w-4 h-4 inline mr-2" />
+                        My Profile
+                      </button>
                       <button
                         onClick={handleLogoutClick}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
@@ -212,7 +282,7 @@ const Header = ({ onLoginClick }) => {
                 </div>
               ) : (
                 <button
-                  onClick={handleLoginClick}
+                  onClick={() => onLoginClick(handleLoginSuccess)}
                   className="px-3 py-2 lg:px-4 lg:py-2 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200 text-sm lg:text-base"
                 >
                   <LogIn className="w-4 h-4 mr-1 lg:mr-2" />
@@ -222,12 +292,42 @@ const Header = ({ onLoginClick }) => {
             </div>
             {/* Mobile menu */}
             <div className="md:hidden flex items-center space-x-2">
-              <button
-                onClick={handleLoginClick}
-                className="px-2 py-1 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
-              >
-                <LogIn className="w-4 h-4" />
-              </button>
+              {isLoggedIn ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    className="px-3 py-1 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                  >
+                    <User className="w-4 h-4 mr-1" />
+                    <span className="text-xs">{firstName}</span>
+                  </button>
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-md rounded-md z-50">
+                      <button
+                        onClick={handleProfileClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-100"
+                      >
+                        <User className="w-4 h-4 inline mr-2" />
+                        My Profile
+                      </button>
+                      <button
+                        onClick={handleLogoutClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <LogOut className="w-4 h-4 inline mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => onLoginClick(handleLoginSuccess)}
+                  className="px-2 py-1 bg-white text-blue-600 rounded-full hover:bg-blue-100 flex items-center transition duration-200"
+                >
+                  <LogIn className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="text-white hover:text-blue-100 transition duration-200"

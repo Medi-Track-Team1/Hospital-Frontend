@@ -2,9 +2,9 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { isAuthenticated, isAdmin, isDoctor, isNurse, isPatient } from '../Pages/Auth/api';
 
 const ProtectedRoute = ({ roles, redirectPath = '/', children }) => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/" replace />;
-  }
+  if(!isAuthenticated()) {
+  return <Navigate to="/login" />;
+}
 
   if (roles) {
     const hasRequiredRole = roles.some(role => {

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { loginUser, isAdmin, isDoctor, isNurse, isPatient } from './api';
-
+import { loginUser } from './api';
+import { useNavigate } from 'react-router-dom';
 const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
+    const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -31,32 +32,40 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Use the loginUser function from api.js
       const user = await loginUser(formData.email, formData.password);
       
       setSuccessMessage('Login successful!');
-      console.log(localStorage.getItem('currentUser'))
+      
       // Determine where to redirect based on role
-      // let redirectPath = '/';
-      // if (isAdmin()) {
-      //   redirectPath = '/admin/dashboard';
-      // } else if (isDoctor()) {
-      //   redirectPath = '/doctor/dashboard';
-      // } else if (isNurse()) {
-      //   redirectPath = '/nurse/dashboard';
-      // } else if (isPatient()) {
-      //   redirectPath = '/reception/';
-      // }
+      let redirectPath = '/';
+      switch (user.role) {
+        case 'admin':
+          redirectPath = '/admin/dashboard';
+          break;
+        case 'doctor':
+          redirectPath = '/doctor/profile';
+          break;
+        case 'nurse':
+          redirectPath = '/nurse/profile';
+          break;
+        case 'patient':
+          redirectPath = '/patient/profile';
+          break;
+        default:
+          redirectPath = '/';
+      }
 
       // Notify parent component about successful login
       if (onLoginSuccess) {
-        onLoginSuccess(redirectPath);
+        onLoginSuccess();
+        console.log(localStorage.getItem('currentUser'))
       }
 
-      // Close the modal after 2 seconds
+      // Close the modal after 1 second and redirect
       setTimeout(() => {
         onClose();
-      }, 2000);
+         window.location.reload(); 
+      }, 1000);
       
     } catch (error) {
       setError(error.message || 'Login failed. Please try again.');

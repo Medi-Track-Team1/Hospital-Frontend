@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import EditProfileModal from "./EditProfileModel";
 import Header from "../Home/Header";
 import { useNavigate, useParams } from "react-router-dom";
+import {isPatient} from "../../Pages/Auth/api"
 import {
   User,
   Calendar,
@@ -23,8 +24,23 @@ import {
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
-  localStorage.setItem('currentUser', patientId);
+  // localStorage.setItem('currentUser', patientId);
+  const getCurrentUser = () => {
+  const userData = localStorage.getItem("currentUser");
+  if (!userData) return null;
 
+  try {
+    return JSON.parse(userData);
+  } catch {
+    return { userId: userData };
+  }
+};
+
+const currentUser = getCurrentUser();
+  if (isPatient() && currentUser?.userId !== patientId) {
+    console.log(currentUser?.userId )
+  navigate('/unauthorized');
+}
   const [patientData, setPatientData] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [showEditModal, setShowEditModal] = useState(false);
@@ -50,6 +66,7 @@ const PatientProfile = () => {
       })
       .then(data => {
         if (data.success && data.data) {
+          console.log(data.data);
           setPatientData(data.data);
         } else {
           alert(data.message || "Patient data not available");

@@ -26,19 +26,34 @@ const determineRole = (email, decodedToken = null) => {
   return 'ROLE_PATIENT';
 };
 
+// Store user data safely as JSON
 const storeUserData = (user) => {
-  localStorage.setItem('currentUser', JSON.stringify(user));
+  localStorage.setItem('currentUser', " ");
+  if (typeof user === 'object' && user !== null) {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+  } else {
+    console.error("storeUserData: Invalid user object", user);
+  }
 };
+
+// Retrieve current user safely, even if localStorage is corrupted
+const getCurrentUser = () => {
+  const user = localStorage.getItem("currentUser");
+  if (!user) return null;
+  
+  try {
+    // Try to parse as JSON first
+    return JSON.parse(user);
+  } catch (e) {
+    // If parsing fails, it's a plain string ID
+    return { userId: user };
+  }
+};
+
 
 const clearUserData = () => {
   localStorage.removeItem('currentUser');
 };
-
-export const getCurrentUser = () => {
-  const user = localStorage.getItem('currentUser');
-  return user ? JSON.parse(user) : null;
-};
-
 export const getAuthToken = () => {
   const user = getCurrentUser();
   return user ? user.token : null;
@@ -108,8 +123,7 @@ export const loginUser = async (email, password) => {
     email: email,
     role: role,
     username: data.username || email.split('@')[0],
-    userId:data.userid,
-    ...data.userDetails 
+    userId:data.userid
   };
 
   storeUserData(user);
@@ -118,6 +132,7 @@ export const loginUser = async (email, password) => {
 
 export const logoutUser = () => {
   clearUserData();
+ 
 };
 
 export const registerPatientDetails = async (patientData) => {

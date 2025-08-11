@@ -56,11 +56,12 @@ function App() {
         } /> */}
         
         {/* Patient Routes */}
-        {/* <Route path="/patient/*" element={
+        <Route path="/patient/:patientId" element={
           <ProtectedRoute roles={['ROLE_PATIENT']}>
             <Patient />
           </ProtectedRoute>
-        } /> */}
+        } />
+           
         
         {/* Reception/Nurse Routes */}
         {/* <Route path="/reception/*" element={
@@ -70,11 +71,11 @@ function App() {
         } /> */}
         
         {/* Admin Routes */}
-        {/* <Route path="/admin/*" element={
+        <Route path="/admin/*" element={
           <ProtectedRoute roles={['ROLE_ADMIN']}>
             <Admin />
           </ProtectedRoute>
-        } /> */}
+        } />
         
         {/* Department Routes (adjust roles as needed) */}
         {/* <Route path="/departments/*" element={
@@ -84,7 +85,7 @@ function App() {
         } /> */}
         
         {/* Unauthorized route */}
-        {/* <Route path="/unauthorized" element={<UnauthorizedPage />} /> */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
      
      
      

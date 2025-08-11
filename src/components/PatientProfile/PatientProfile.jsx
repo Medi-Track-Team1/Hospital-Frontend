@@ -25,7 +25,7 @@ import {
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
-  // localStorage.setItem('currentUser', patientId);
+   localStorage.setItem('currentUser', patientId);
   const getCurrentUser = () => {
   const userData = localStorage.getItem("currentUser");
   if (!userData) return null;

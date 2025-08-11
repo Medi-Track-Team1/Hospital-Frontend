@@ -99,7 +99,7 @@ const AppointmentPage = () => {
 
   useEffect(() => {
     const fetchPatientDetails = async () => {
-      const patientId = localStorage.getItem("pat");
+      const patientId = localStorage.getItem('currentUser').userId
       if (!patientId) {
         toast.error("No patient ID found in localStorage.", {
           position: "top-center",

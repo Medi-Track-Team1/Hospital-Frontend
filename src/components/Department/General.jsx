@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Stethoscope, Phone, Mail } from "lucide-react";
 import generalImg from "../../assets/general.jpg";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
 

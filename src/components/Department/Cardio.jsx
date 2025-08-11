@@ -18,32 +18,7 @@ const Cardio = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const handleBookClick = (doctor) => {
-    // Check if doctor is available before navigation
-    if (isDoctorAvailable(doctor.status)) {
-      navigate("/departments/appointment", { state: { doctor } });
-    }
-  };
 
-  // Helper function to check if doctor is available
-  const isDoctorAvailable = (status) => {
-    const unavailableStatuses = ['on leave', 'On Leave', 'ON LEAVE', 'leave', 'Leave', 'LEAVE', 'inactive', 'Inactive', 'INACTIVE', 'unavailable', 'Unavailable', 'UNAVAILABLE'];
-    return !unavailableStatuses.includes(status);
-  };
-
-  // Helper function to get button styles based on availability
-  const getButtonStyles = (status) => {
-    const isAvailable = isDoctorAvailable(status);
-    
-    return isAvailable 
-      ? "w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer"
-      : "w-full bg-gray-400 text-gray-200 py-2 rounded-lg font-semibold cursor-not-allowed opacity-60";
-  };
-
-  // Helper function to get button text based on availability
-  const getButtonText = (status) => {
-    return isDoctorAvailable(status) ? "Book Appointment" : "Currently Unavailable";
-  };
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -58,6 +33,9 @@ const Cardio = () => {
     fetchDoctors();
   }, []);
 
+  const handleBookClick = (doctor) => {
+    navigate("/departments/appointment", { state: { doctor } });
+  };
 
   const SkeletonCard = () => (
     <div className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] animate-pulse">
@@ -147,57 +125,6 @@ const Cardio = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
-
-        {doctors.map((doctor, index) => (
-          <motion.div
-            key={doctor.doctorId}
-            className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            custom={index + 1}
-          >
-            <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
-              <img
-                src={doctor.photoUrl}
-                alt={doctor.doctorName}
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
-            <div className="mt-4 text-center">
-              <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
-              <p className="text-blue-600 text-sm">{doctor.specialty}</p>
-              <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                ★★★★☆ <span className="text-black ml-2">4.8</span>
-              </div>
-            </div>
-            <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.doctorId}</p>
-              <span
-              className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
-              ${doctor.status === "Active" || doctor.status==="Available"? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
-            >
-              {doctor.status}
-            </span>
-              <p><strong>Experience:</strong> {doctor.experience || "Not specified"}</p>
-              <p><strong>Education:</strong> {doctor.education || "Not specified"}</p>
-              <p><strong>Languages:</strong> {Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "Not specified"}</p>
-              <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
-              <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
-            </div>
-            <div className="mt-6 w-full px-4">
-             <button
-                onClick={() => handleBookClick(doctor)}
-                disabled={!isDoctorAvailable(doctor.status)}
-                className={getButtonStyles(doctor.status)}
-                title={!isDoctorAvailable(doctor.status) ? "Doctor is currently unavailable" : "Click to book appointment"}
-              >
-                {getButtonText(doctor.status)}
-              </button>
-            </div>
-          </motion.div>
-        ))}
-
         {loading
           ? Array.from({ length: 1}).map((_, i) => <SkeletonCard key={i} />)
           : doctors.map((doctor, index) => (
@@ -225,23 +152,41 @@ const Cardio = () => {
                 </div>
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
                   <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <span
+                    className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
+                    ${doctor.status === "Active" || doctor.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                  >
+                    {doctor.status}
+                  </span>
                   <p><strong>Experience:</strong> {doctor.experience || "Not specified"}</p>
                   <p><strong>Education:</strong> {doctor.education || "Not specified"}</p>
                   <p><strong>Languages:</strong> {Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "Not specified"}</p>
                   <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
                   <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
                 </div>
-                <div className="mt-6 w-full px-4">
-                  <button
-                    onClick={() => handleBookClick(doctor)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
+                // Replace the existing button section in your doctor card with this:
+<div className="mt-6 w-full px-4">
+  <button
+    onClick={() => {
+      if (doctor.status === "Active" || doctor.status === "Available") {
+        handleBookClick(doctor);
+      }
+    }}
+    disabled={doctor.status === "On Leave" || doctor.status === "Inactive"}
+    className={`w-full py-2 rounded-lg font-semibold transition ${
+      doctor.status === "Active" || doctor.status === "Available"
+        ? "bg-blue-600 text-white hover:bg-blue-800 cursor-pointer"
+        : "bg-gray-400 text-gray-600 cursor-not-allowed"
+    }`}
+  >
+    {doctor.status === "On Leave" || doctor.status === "Inactive" 
+      ? "Currently Unavailable" 
+      : "Book Appointment"
+    }
+  </button>
+</div>
               </motion.div>
             ))}
-
       </div>
 
       <div className="h-[40px]" />

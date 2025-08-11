@@ -25,8 +25,7 @@ const departments = [
   { name: "Dental", link: "/departments/dental" },
   { name: "Fertility", link: "/departments/fertility" },
   { name: "Psychology", link: "/departments/psychology" },
-  { name: "General", link: "/departments/general" },
-  { name: "General Doctors", link: "/departments/generaldoctors" }
+  { name: "General", link: "/departments/general" }
 ];
 
 

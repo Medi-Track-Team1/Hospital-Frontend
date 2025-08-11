@@ -12,23 +12,22 @@
   import General from "./General";
   import AppointmentPage from "./AppointmentPage";
 
-  function DeptRoute() {
-    return (
-      <>
-        <Header />
-      <Routes>
-    <Route path="cardiology" element={<Cardio />} />
-    <Route path="hepatology" element={<Hepatology />} />
-    <Route path="eyecare" element={<Eyecare />} />
-    <Route path="dental" element={<Dental />} />
-    <Route path="appointment" element={<AppointmentPage />} />
-    <Route path="pediatrics" element={<Pediatrics />} />
-    <Route path="psychology" element={<Psychology />} />
-    <Route path="neurology" element={<Neuro />} />
-    <Route path="fertility" element={<Fertility />} />
-    <Route path="general" element={<General />} />
-    <Route path="generaldoctors" element={<General />} />
-  </Routes>
+function DeptRoute() {
+  return (
+    <>
+      <Header />
+     <Routes>
+  <Route path="cardiology" element={<Cardio />} />
+  <Route path="hepatology" element={<Hepatology />} />
+  <Route path="eyecare" element={<Eyecare />} />
+  <Route path="dental" element={<Dental />} />
+  <Route path="appointment" element={<AppointmentPage />} />
+  <Route path="pediatrics" element={<Pediatrics />} />
+  <Route path="psychology" element={<Psychology />} />
+  <Route path="neurology" element={<Neuro />} />
+  <Route path="fertility" element={<Fertility />} />
+  <Route path="general" element={<General />} />
+</Routes>
 
       </>
     );

@@ -526,6 +526,11 @@ const PatientProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      <br>
+      </br>
+      <br>
+      </br>
+      
       <div className="pt-16 p-3 sm:p-6 space-y-4 sm:space-y-8">
         {/* Enhanced Header */}
         <div className="bg-white border border-gray-200 text-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl">

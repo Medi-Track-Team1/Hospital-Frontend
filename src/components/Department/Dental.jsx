@@ -155,6 +155,12 @@ const Dental = () => {
                 </div>
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
                   <p><strong>ID:</strong> #{doc.doctorId}</p>
+                  <span
+                    className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
+                    ${doc.status === "Active" || doc.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                  >
+                    {doc.status}
+                  </span>
                   <p><strong>Experience:</strong> {doc.experience}</p>
                   <p><strong>Education:</strong> {doc.education}</p>
                   <p><strong>Languages:</strong> 
@@ -163,14 +169,27 @@ const Dental = () => {
                   <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
                   <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
                 </div>
-                <div className="mt-6 w-full px-4">
-                  <button
-                    onClick={() => handleBookClick(doc)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
+                // Replace the existing button section in your doctor card with this:
+<div className="mt-6 w-full px-4">
+  <button
+    onClick={() => {
+      if (doc.status === "Active" || doc.status === "Available") {
+        handleBookClick(doc);
+      }
+    }}
+    disabled={doc.status === "On Leave" || doc.status === "Inactive"}
+    className={`w-full py-2 rounded-lg font-semibold transition ${
+      doc.status === "Active" || doc.status === "Available"
+        ? "bg-blue-600 text-white hover:bg-blue-800 cursor-pointer"
+        : "bg-gray-400 text-gray-600 cursor-not-allowed"
+    }`}
+  >
+    {doc.status === "On Leave" || doc.status === "Inactive"
+      ? "Currently Unavailable"
+      : "Book Appointment"
+    }
+  </button>
+</div>
               </motion.div>
             ))
           : <p className="text-center text-gray-600">No dentists found.</p>}

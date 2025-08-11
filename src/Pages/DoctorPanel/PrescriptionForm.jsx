@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { markAppointmentCompleted } from '../../services/DoctorPanel/AppointmentService';
 
-const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onClose, onSuccess }) => {
+const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,onSuccess }) => {
   const [search, setSearch] = useState("");
   const [selectedMeds, setSelectedMeds] = useState([]);
   const [injections, setInjections] = useState([]);
@@ -78,7 +78,7 @@ const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onCl
     }, 3000);
   };
 
-  // ✅ UPDATED: Auto-complete appointment after saving prescription using AppointmentService
+  // ✅ UPDATED: Enhanced prescription saving with better success handling
   const handleSavePrescription = async () => {
     try {
       setSubmitting(true);
@@ -89,7 +89,21 @@ const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onCl
         return;
       }
 
-      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId);
+      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId,"PatientId:", patientId,"PatientName:", patientName);
+
+      // Validate patient data exists
+      if (!patientId || !patientName) {
+        console.error("Missing patient data:", { patientId, patientName });
+        showToast("Cannot save prescription: Patient information is missing. Please close and retry.", "error");
+        return;
+      }
+
+      // Validate appointment data exists  
+      if (!appointmentId || !doctorId) {
+        console.error("Missing appointment/doctor data:", { appointmentId, doctorId });
+        showToast("Cannot save prescription: Appointment or doctor information is missing.", "error");
+        return;
+      }
 
       // Prepare prescription data
       const prescriptionData = {
@@ -168,17 +182,14 @@ const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onCl
         }
       }
       
-      // Call success callback if provided
+      // ✅ CRITICAL: Call success callback with prescription data immediately
       if (onSuccess) {
+        console.log("Calling onSuccess callback with prescription result:", prescriptionResult);
         onSuccess(prescriptionResult);
       }
       
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        if (onClose) {
-          onClose();
-        }
-      }, 2000);
+      // ✅ REMOVED: Don't automatically close modal - let parent handle it
+      // The parent component (MedicalAppointments) will close the modal after handling success
 
     } catch (error) {
       console.error('Error saving prescription:', error);
@@ -294,7 +305,7 @@ const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onCl
           </div>
           <div className="p-8 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600">Fetching medicines from server...</span>
+            <span className="ml-4 text-gray-600">Loading....</span>
           </div>
         </div>
       </div>
@@ -559,7 +570,7 @@ const PrescriptionForm = ({appointmentId, doctorId, patientId, patientName, onCl
                             />
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="flex gap-2">
                               {["Morning", "Afternoon", "Night"].map((time) => (
                                 <label key={time} className="flex items-center gap-1 text-xs">
                                   <input

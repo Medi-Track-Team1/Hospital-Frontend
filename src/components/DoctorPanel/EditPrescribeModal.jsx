@@ -1,13 +1,21 @@
 import React from "react";
 import { Dialog, DialogContent } from "./ui/dialog";
-import PrescriptionForm from "../../Pages/DoctorPanel/PrescriptionForm";
+import EditPrescriptionForm from "./EditPrescriptionForm";
 
-const PrescribeModal = ({
-  appointmentId, doctorId, patientId, patientName, onClose, onSuccess
+
+const EditPrescribeModal = ({
+  isOpen,
+  appointmentId,
+  doctorId,
+  patientId,
+  patientName,
+  existingPrescription,
+  onClose,
+  onSuccess
 }) => {
-  // Debug logs to verify correct IDs are being passed
-  console.log("PrescribeModal props:", {
-    appointmentId, doctorId, patientId, patientName, onClose, onSuccess
+  console.log("EditPrescribeModal props:", {
+    appointmentId, doctorId, patientId, patientName, 
+    existingPrescription: existingPrescription?.prescriptionId
   });
 
   return (
@@ -15,11 +23,12 @@ const PrescribeModal = ({
       <DialogContent className="max-w-5xl w-full max-h-[90vh] p-0 overflow-hidden rounded-2xl">
         <div className="h-[90vh] flex flex-col">
           <div className="flex-1 overflow-y-auto px-6 py-4">
-            <PrescriptionForm
+            <EditPrescriptionForm
               appointmentId={appointmentId}
               doctorId={doctorId}
               patientId={patientId}
               patientName={patientName}
+              existingPrescription={existingPrescription}
               onClose={onClose}
               onSuccess={onSuccess}
             />
@@ -30,4 +39,4 @@ const PrescribeModal = ({
   );
 };
 
-export default PrescribeModal;
+export default EditPrescribeModal;

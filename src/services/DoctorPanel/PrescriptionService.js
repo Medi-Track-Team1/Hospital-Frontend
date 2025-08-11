@@ -9,8 +9,8 @@ export const createPrescription = (prescriptionData) =>
 // Get prescription by appointment ID
 export const getPrescriptionByAppointmentId = async (appointmentId) => {
   try {
-    console.log("🔍 Fetching prescription for appointmentId:", appointmentId);
-    console.log("🌐 API URL:", `https://doctorpanel-backend.onrender.com/api/prescriptions/appointment/${appointmentId}`);
+    // console.log("🔍 Fetching prescription for appointmentId:", appointmentId);
+    // console.log("🌐 API URL:", `https://doctorpanel-backend.onrender.com/api/prescriptions/appointment/${appointmentId}`);
     
     const response = await axios.get(
       `https://doctorpanel-backend.onrender.com/api/prescriptions/appointment/${appointmentId}`,

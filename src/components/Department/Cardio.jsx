@@ -152,20 +152,39 @@ const Cardio = () => {
                 </div>
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
                   <p><strong>ID:</strong> #{doctor.doctorId}</p>
+                  <span
+                    className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
+                    ${doctor.status === "Active" || doctor.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                  >
+                    {doctor.status}
+                  </span>
                   <p><strong>Experience:</strong> {doctor.experience || "Not specified"}</p>
                   <p><strong>Education:</strong> {doctor.education || "Not specified"}</p>
                   <p><strong>Languages:</strong> {Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "Not specified"}</p>
                   <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
                   <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
                 </div>
-                <div className="mt-6 w-full px-4">
-                  <button
-                    onClick={() => handleBookClick(doctor)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
+                // Replace the existing button section in your doctor card with this:
+<div className="mt-6 w-full px-4">
+  <button
+    onClick={() => {
+      if (doctor.status === "Active" || doctor.status === "Available") {
+        handleBookClick(doctor);
+      }
+    }}
+    disabled={doctor.status === "On Leave" || doctor.status === "Inactive"}
+    className={`w-full py-2 rounded-lg font-semibold transition ${
+      doctor.status === "Active" || doctor.status === "Available"
+        ? "bg-blue-600 text-white hover:bg-blue-800 cursor-pointer"
+        : "bg-gray-400 text-gray-600 cursor-not-allowed"
+    }`}
+  >
+    {doctor.status === "On Leave" || doctor.status === "Inactive" 
+      ? "Currently Unavailable" 
+      : "Book Appointment"
+    }
+  </button>
+</div>
               </motion.div>
             ))}
       </div>

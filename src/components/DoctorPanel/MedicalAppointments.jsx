@@ -17,6 +17,7 @@ import {
   MdVisibility,
   MdRefresh,
   MdCancel,
+  MdEdit,
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
@@ -31,6 +32,7 @@ import {
 } from "../../services/DoctorPanel/AppointmentService";
 import { getPrescriptionByAppointmentId } from "../../services/DoctorPanel/PrescriptionService";
 import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
+import EditPrescribeModal from "./EditPrescribeModal";
 
 export const MedicalAppointments = () => {
   const { toast } = useToast();
@@ -38,7 +40,8 @@ export const MedicalAppointments = () => {
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
-
+ // Add this line after the other state declarations (around line 27)
+const [isCancelling, setIsCancelling] = useState(false);
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
@@ -46,7 +49,8 @@ export const MedicalAppointments = () => {
   const [revisitTime, setRevisitTime] = useState(null);
   const [revisitReason, setRevisitReason] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  
+  const [showEditPrescriptionModal, setShowEditPrescriptionModal] = useState(false);
+const [editPrescriptionData, setEditPrescriptionData] = useState(null);
   // SIMPLIFIED STATE - Only store all appointments in one place
   const [allAppointments, setAllAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
@@ -274,7 +278,62 @@ export const MedicalAppointments = () => {
     setRevisitTime(null);
     setRevisitReason("");
   };
+const handleEditPrescription = async (appointment) => {
+  if (isAppointmentCanceled(appointment)) {
+    toast({
+      title: "Cannot Edit Prescription",
+      description: "Prescriptions cannot be edited for canceled appointments.",
+      variant: "destructive",
+    });
+    return;
+  }
 
+  try {
+    const appointmentId = getAppointmentIdForPrescription(appointment);
+    const response = await getPrescriptionByAppointmentId(appointmentId);
+    const prescription = response.data;
+
+    if (prescription) {
+      // Set the prescription data and appointment info for editing
+      setEditPrescriptionData({
+        prescription: prescription,
+        appointmentId: appointmentId,
+        doctorId: doctorId,
+        patientId: appointment.patientId || appointment.patient?.id,
+        patientName: appointment.patientName || appointment.patient?.name,
+      });
+      setShowEditPrescriptionModal(true);
+    } else {
+      toast({
+        title: "No Prescription Found",
+        description: "No prescription exists for this appointment to edit.",
+        variant: "destructive",
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching prescription for edit:", error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch prescription for editing. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
+const handleEditPrescriptionSuccess = async (updatedPrescription) => {
+  console.log("Prescription updated successfully:", updatedPrescription);
+
+  toast({
+    title: "Success",
+    description: "Prescription updated successfully!",
+  });
+
+  // Close modal
+  setShowEditPrescriptionModal(false);
+  setEditPrescriptionData(null);
+
+  // Refresh appointments to show any updates
+  await fetchAppointments();
+};
   const handleViewHistory = (appointment) => {
     const patientId = appointment.patientId || appointment.patient?.id;
     const patientName = appointment.patientName || appointment.patient?.name;
@@ -449,43 +508,48 @@ export const MedicalAppointments = () => {
   const getStatusBadge = (status) => {
     const variants = {
       pending: "bg-orange-100 text-orange-700 border-orange-200",
-      canceled: "bg-red-100 text-red-700 border-red-200",
+      cancelled: "bg-red-100 text-red-700 border-red-200",
       completed: "bg-green-100 text-green-700 border-green-200",
     };
     return variants[status] || variants.pending;
   };
 
-  const handleCancelConfirm = async () => {
-    if (!cancelReason.trim()) {
-      toast({
-        title: "Error",
-        description: "Please provide a reason for cancellation.",
-        variant: "destructive",
-      });
-      return;
-    }
+// Replace the existing handleCancelConfirm function with this updated version
+const handleCancelConfirm = async () => {
+  if (!cancelReason.trim()) {
+    toast({
+      title: "Error",
+      description: "Please provide a reason for cancellation.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    try {
-      await cancelAppointmentById(
-        cancelAppointment.appointmentId || cancelAppointment.id
-      );
-      await fetchAppointments();
+  setIsCancelling(true); // Add this line
 
-      toast({
-        title: "Appointment Cancelled",
-        description: `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
-      });
+  try {
+    await cancelAppointmentById(
+      cancelAppointment.appointmentId || cancelAppointment.id
+    );
+    await fetchAppointments();
 
-      setCancelAppointment(null);
-      setCancelReason("");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to cancel appointment. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+    toast({
+      title: "Appointment Cancelled",
+      description: `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
+    });
+
+    setCancelAppointment(null);
+    setCancelReason("");
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Failed to cancel appointment. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsCancelling(false); // Add this line
+  }
+};
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-6">
@@ -817,6 +881,26 @@ export const MedicalAppointments = () => {
                                   <MdDescription className="h-3 w-3 mr-1" />
                                   Prescription
                                 </Button>
+                                 <Button
+      size="sm"
+      variant="outline"
+      className={`text-xs px-2 py-1 h-7 whitespace-nowrap ${
+        isAppointmentCanceled(appointment)
+          ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200"
+          : "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200"
+      }`}
+      onClick={() => handleEditPrescription(appointment)}
+      disabled={isAppointmentCanceled(appointment)}
+      title={
+        isAppointmentCanceled(appointment)
+          ? "Prescription cannot be edited for canceled appointments"
+          : "Edit Prescription"
+      }
+    >
+      <MdEdit className="h-3 w-3 mr-1" />
+      Edit
+    </Button>
+  
                               </div>
                             </td>
                           </tr>
@@ -875,7 +959,22 @@ export const MedicalAppointments = () => {
           doctorId={doctorId}
         />
       )}
-
+{/* Edit Prescription Modal */}
+{showEditPrescriptionModal && editPrescriptionData && (
+  <EditPrescribeModal
+    isOpen={showEditPrescriptionModal}
+    appointmentId={editPrescriptionData.appointmentId}
+    doctorId={editPrescriptionData.doctorId}
+    patientId={editPrescriptionData.patientId}
+    patientName={editPrescriptionData.patientName}
+    existingPrescription={editPrescriptionData.prescription}
+    onClose={() => {
+      setShowEditPrescriptionModal(false);
+      setEditPrescriptionData(null);
+    }}
+    onSuccess={handleEditPrescriptionSuccess}
+  />
+)}
       {/* Revisit Modal */}
       {revisitAppointment && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
@@ -978,51 +1077,60 @@ export const MedicalAppointments = () => {
         </div>
       )}
 
-      {/* Cancel Appointment Modal */}
-      {cancelAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-red-600">
-              Cancel Appointment
-            </h2>
-            <p className="text-sm text-gray-600">
-              Please provide a reason for cancelling the appointment with{" "}
-              <strong>
-                {cancelAppointment.patient?.name ||
-                  cancelAppointment.patientName}
-              </strong>
-              .
-            </p>
-            <textarea
-              rows={4}
-              className="w-full border rounded p-2 text-sm"
-              placeholder="Enter cancellation reason..."
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                onClick={() => {
-                  setCancelAppointment(null);
-                  setCancelReason("");
-                }}
-              >
-                Close
-              </button>
-              <button
-                className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 ${
-                  !cancelReason.trim() ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={!cancelReason.trim()}
-                onClick={handleCancelConfirm}
-              >
-                Confirm Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+{/* Cancel Appointment Modal */}
+{cancelAppointment && (
+  <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-red-600">
+        Cancel Appointment
+      </h2>
+      <p className="text-sm text-gray-600">
+        Please provide a reason for cancelling the appointment with{" "}
+        <strong>
+          {cancelAppointment.patient?.name ||
+            cancelAppointment.patientName}
+        </strong>
+        .
+      </p>
+      <textarea
+        rows={4}
+        className="w-full border rounded p-2 text-sm"
+        placeholder="Enter cancellation reason..."
+        value={cancelReason}
+        onChange={(e) => setCancelReason(e.target.value)}
+        disabled={isCancelling}
+      />
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+          onClick={() => {
+            setCancelAppointment(null);
+            setCancelReason("");
+          }}
+          disabled={isCancelling}
+        >
+          Close
+        </button>
+        <button
+          className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center ${
+            !cancelReason.trim() || isCancelling ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={!cancelReason.trim() || isCancelling}
+          onClick={handleCancelConfirm}
+        >
+          {isCancelling ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Cancelling...
+            </>
+          ) : (
+            "Confirm Cancel"
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

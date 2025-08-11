@@ -101,9 +101,7 @@ const Header = ({ onDrawerToggle }) => {
                 <Menu className="h-6 w-6" />
               </button>
               <div className="flex items-center ml-2 md:ml-0">
-                <div className="bg-white/20 p-2 rounded-lg mr-3">
-                  <Activity className="h-6 w-6 text-white" />
-                </div>
+                
                 <h1 className="text-xl font-bold text-white tracking-wide">
                   MediTrack
                 </h1>
@@ -112,10 +110,7 @@ const Header = ({ onDrawerToggle }) => {
 
             {/* Right Icons */}
             <div className="flex items-center gap-4 pr-2">
-              <button className="relative p-2 rounded-full bg-white/20 hover:bg-white/30 text-white focus:outline-none focus:ring-2 focus:ring-white">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 block h-2 w-2 bg-red-500 rounded-full" />
-              </button>
+              
 
               {/* Profile */}
               <div className="relative">

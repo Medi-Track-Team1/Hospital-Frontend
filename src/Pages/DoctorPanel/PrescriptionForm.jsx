@@ -570,7 +570,7 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
                             />
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="flex gap-2">
                               {["Morning", "Afternoon", "Night"].map((time) => (
                                 <label key={time} className="flex items-center gap-1 text-xs">
                                   <input

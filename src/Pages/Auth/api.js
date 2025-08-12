@@ -105,14 +105,15 @@ export const isAuthenticated = () => {
 export const registerUser = async (userData) => {
   const roles = new Set([determineRole(userData.email)]);
   const payload = {
-    username: userData.patientName,
+    username: userData.username,
     email: userData.email,
     password: userData.password,
     enabled: true,
     roles: Array.from(roles),
-    userid:localStorage.getItem("id")
+    userid:userData.userId
 
-  };
+  }; 
+  console.log(payload)
 
   const response = await fetch(`${API_BASE_URL}/register`, {
     method: 'POST',

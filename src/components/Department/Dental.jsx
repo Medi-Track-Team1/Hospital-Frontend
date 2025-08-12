@@ -154,7 +154,7 @@ const Dental = () => {
                   </div>
                 </div>
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-                  <p><strong>ID:</strong> #{doc.doctorId}</p>
+                  <p><strong>ID:</strong>{doc.doctorId}</p>
                   <span
                     className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
                     ${doc.status === "Active" || doc.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
@@ -169,7 +169,7 @@ const Dental = () => {
                   <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doc.phone}</p>
                   <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doc.email}</p>
                 </div>
-                // Replace the existing button section in your doctor card with this:
+               
 <div className="mt-6 w-full px-4">
   <button
     onClick={() => {

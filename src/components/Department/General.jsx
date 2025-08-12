@@ -177,7 +177,7 @@ const General = () => {
                   </div>
                 </div>
                 <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-                  <p><strong>ID:</strong> #{doc.doctorId}</p>
+                  <p><strong>ID:</strong>{doc.doctorId}</p>
                   <span
                     className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
                     ${doc.status === "Active" || doc.status === "Available"

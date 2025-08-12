@@ -1,5 +1,37 @@
 export const API_BASE_URL = 'https://authentication-n090.onrender.com/api/auth';
+export const requestPasswordReset = async (email) => {
+  const response = await fetch(`${API_BASE_URL}/forgot-password?email=${encodeURIComponent(email)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Password reset request failed');
+  }
+  
+  return data;
+};
 
+export const resetPassword = async (userId, newPassword) => {
+  const response = await fetch(`${API_BASE_URL}/reset-password?userId=${userId}&newPassword=${encodeURIComponent(newPassword)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Password reset failed');
+  }
+  
+  return data;
+};
 // Add this missing JWT parsing function
 const parseJwt = (token) => {
   try {
@@ -73,14 +105,15 @@ export const isAuthenticated = () => {
 export const registerUser = async (userData) => {
   const roles = new Set([determineRole(userData.email)]);
   const payload = {
-    username: userData.username || userData.patientName,
+    username: userData.username,
     email: userData.email,
     password: userData.password,
     enabled: true,
     roles: Array.from(roles),
-    userid:localStorage.getItem("id")
+    userid:userData.userId
 
-  };
+  }; 
+  console.log(payload)
 
   const response = await fetch(`${API_BASE_URL}/register`, {
     method: 'POST',
@@ -122,7 +155,7 @@ export const loginUser = async (email, password) => {
     token: data.token,
     email: email,
     role: role,
-    username: data.username || email.split('@')[0],
+    username: data.username,
     userId:data.userid
   };
 
@@ -186,6 +219,7 @@ export const authFetch = async (url, options = {}) => {
   if (decoded.exp * 1000 - Date.now() < 300000) { // 5 minutes
     console.warn('Access token about to expire, consider refreshing');
   }
+  
   
   const response = await fetch(url, {
     ...options,

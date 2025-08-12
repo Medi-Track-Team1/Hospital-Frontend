@@ -20,22 +20,26 @@ import {
   MoreVertical,
   Stethoscope,
   UserCheck,
-  AlertCircle,
-  FileText,
 } from "lucide-react";
 
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
-   localStorage.setItem('currentUser', patientId);
-  const getCurrentUser = () => {
+  //  localStorage.setItem('currentUser', patientId);
+const getCurrentUser = () => {
   const userData = localStorage.getItem("currentUser");
   if (!userData) return null;
 
   try {
-    return JSON.parse(userData);
-  } catch {
-    return { userId: userData };
+    const parsed = JSON.parse(userData);
+    return {
+      userId: parsed.userId || parsed.id || "", // Handle different property names
+      username: parsed.username || "",
+      // Add other properties you need
+    };
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
   }
 };
 
@@ -45,8 +49,6 @@ const currentUser = getCurrentUser();
   navigate('/unauthorized');
 }
   const [patientData, setPatientData] = useState(null);
-  const [patientLoading, setPatientLoading] = useState(true);
-  const [patientError, setPatientError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -59,142 +61,119 @@ const currentUser = getCurrentUser();
   useEffect(() => {
     if (!patientId) return;
 
-    const fetchPatientData = async () => {
-      setPatientLoading(true);
-      setPatientError(null);
-      
-      try {
-        const currentUserStr = localStorage.getItem('currentUser');
-        const response = await fetch(`https://patient-service-ntk0.onrender.com/api/patient/${currentUserStr}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Patient not found');
-          } else if (response.status === 401) {
-            throw new Error('Unauthorized access');
-          } else {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-        }
-        
-        const data = await response.json();
-        
+     const currentUser = getCurrentUser();
+  const patientIdToFetch = currentUser?.userId || patientId;
+
+  // Fetch patient data
+  fetch(`https://patient-service-ntk0.onrender.com/api/patient/${patientIdToFetch}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      return res.json();
+    })
+      .then(data => {
         if (data.success && data.data) {
           console.log(data.data);
           setPatientData(data.data);
         } else {
-          throw new Error(data.message || "Patient data not available");
+          alert(data.message || "Patient data not available");
         }
-      } catch (error) {
+      })
+      .catch(error => {
         console.error("Fetch error:", error);
-        setPatientError(error.message);
-      } finally {
-        setPatientLoading(false);
-      }
-    };
-
-    fetchPatientData();
+        alert(`Failed to load patient data: ${error.message}`);
+      });
   }, [patientId]);
 
   // Fetch appointments when appointments tab is clicked
   useEffect(() => {
-    if (activeTab === 'appointments' && patientId && patientData) {
+    if (activeTab === 'appointments' && patientId) {
       fetchAppointments();
     }
-  }, [activeTab, patientId, patientData]);
+  }, [activeTab, patientId]);
 
   const fetchAppointments = async () => {
-  setAppointmentsLoading(true);
-  setAppointmentsError(null);
-  
-  try {
-    // FIXED: Use consistent domain name
-    const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/patient/${patientId}/upcoming`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      mode: 'cors',
-      credentials: 'omit'
-    });
+    setAppointmentsLoading(true);
+    setAppointmentsError(null);
     
-    console.log('Fetch appointments response status:', response.status);
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        // No appointments found - this is not an error, just empty state
-        setUpcomingAppointments([]);
-        return;
-      } else {
+    try {
+      const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/patient/${patientId}/upcoming`);
+      
+      if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    }
-    
-    const data = await response.json();
-    console.log("API Response:", data);
-    
-    // Handle different response structures
-    let appointmentsArray = [];
-    
-    if (Array.isArray(data)) {
-      appointmentsArray = data;
-    } else if (data.success && Array.isArray(data.data)) {
-      appointmentsArray = data.data;
-    } else if (data.data && Array.isArray(data.data)) {
-      appointmentsArray = data.data;
-    } else if (typeof data === 'object' && data !== null) {
-      appointmentsArray = [data];
-    }
-    
-    console.log("Appointments Array:", appointmentsArray);
-    
-    if (appointmentsArray.length > 0) {
-      // Transform and filter out cancelled appointments for upcoming view
-      const transformedAppointments = appointmentsArray
-        .filter(appointment => appointment.status !== 'CANCELLED') // Filter out cancelled appointments
-        .map(appointment => {
-          console.log("Processing appointment:", appointment);
+      
+      const data = await response.json();
+      console.log("API Response:", data); // Debug log
+      
+      // Handle different response structures
+      let appointmentsArray = [];
+      
+      if (Array.isArray(data)) {
+        // Direct array response
+        appointmentsArray = data;
+      } else if (data.success && Array.isArray(data.data)) {
+        // Response with success wrapper
+        appointmentsArray = data.data;
+      } else if (data.data && Array.isArray(data.data)) {
+        // Response with data wrapper but no success field
+        appointmentsArray = data.data;
+      } else if (typeof data === 'object' && data !== null) {
+        // Single appointment object
+        appointmentsArray = [data];
+      }
+      
+      console.log("Appointments Array:", appointmentsArray); // Debug log
+      
+      if (appointmentsArray.length > 0) {
+        // Transform the backend data to match your component's expected format
+        const transformedAppointments = appointmentsArray.map(appointment => {
+          console.log("Processing appointment:", appointment); // Debug log
           
+          // Extract date and time from appointmentDateTime or separate fields
           let appointmentDate = appointment.appointmentDate || appointment.date;
           let appointmentTime = appointment.appointmentTime || appointment.time;
           
+          // Handle appointmentDateTime field (e.g., "2025-08-20T05:30:00")
           if (appointment.appointmentDateTime && !appointmentDate) {
             const dateTime = new Date(appointment.appointmentDateTime);
-            appointmentDate = dateTime.toISOString().split('T')[0];
-            appointmentTime = dateTime.toTimeString().split(' ')[0].substring(0, 5);
+            appointmentDate = dateTime.toISOString().split('T')[0]; // Get date part
+            appointmentTime = dateTime.toTimeString().split(' ')[0].substring(0, 5); // Get time part HH:MM
           }
           
           return {
             id: appointment._id || appointment.id || Math.random().toString(),
-            appointmentId: appointment.appointmentId,
             date: formatAppointmentDate(appointmentDate),
             time: formatAppointmentTime(appointmentTime),
             provider: appointment.doctorName || appointment.doctorId || appointment.provider || 'Dr. Unknown',
             department: appointment.department || appointment.specialty || 'General',
             type: appointment.reason || appointment.appointmentType || appointment.type || 'Consultation',
             status: appointment.status || 'PENDING',
+            // Additional fields from your API
             duration: appointment.duration,
             symptoms: appointment.symptoms,
             additionalNotes: appointment.additionalNotes,
             emergency: appointment.emergency,
+            // Include original data for reference
             originalData: appointment
           };
         });
-      
-      console.log("Transformed Appointments:", transformedAppointments);
-      setUpcomingAppointments(transformedAppointments);
-    } else {
-      console.log("No appointments found");
+        
+        console.log("Transformed Appointments:", transformedAppointments); // Debug log
+        setUpcomingAppointments(transformedAppointments);
+      } else {
+        console.log("No appointments found");
+        setUpcomingAppointments([]);
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      setAppointmentsError(`Failed to load appointments: ${error.message}`);
       setUpcomingAppointments([]);
+    } finally {
+      setAppointmentsLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    setAppointmentsError(error.message);
-    setUpcomingAppointments([]);
-  } finally {
-    setAppointmentsLoading(false);
-  }
-};
+  };
 
   // Helper function to format date from backend
   const formatAppointmentDate = (dateString) => {
@@ -287,15 +266,21 @@ const currentUser = getCurrentUser();
     }
   };
 
+  const emergencyContacts = patientData?.emergencyContacts?.length
+    ? patientData.emergencyContacts
+    : [
+        {
+          name: "Emergency Contact",
+          relationship: "N/A",
+          phone: "N/A",
+          email: "",
+          address: "",
+        },
+      ];
+
   const handleSaveProfile = (updatedData) => {
     setPatientData((prev) => ({ ...prev, ...updatedData }));
     setShowEditModal(false);
-  };
-
-  // Updated Medical History navigation handler
-  const handleMedicalHistoryClick = () => {
-    // Navigate to patient history page with patientId
-    navigate(`/patient/${patientId}/history`);
   };
 
   const handleRescheduleAppointment = (appointmentId) => {
@@ -303,228 +288,90 @@ const currentUser = getCurrentUser();
     setShowRescheduleModal(true);
   };
 
-  // FIXED: Updated reschedule function with better error handling and CORS support
-// FIXED: Updated reschedule function with correct URL and appointment ID handling
-const handleConfirmReschedule = async (appointmentId, newDate, newTime) => {
-  console.log(`Attempting to reschedule appointment: ${appointmentId} to ${newDate} ${newTime}`);
-  
-  try {
-    // Find the appointment to get the correct appointmentId format
-    const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
-    
-    // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
-    const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
-    
-    console.log('Using appointment ID for API:', apiAppointmentId);
-    
-    // Convert date and time to LocalDateTime format expected by backend
-    const dateTimeString = `${newDate}T${newTime}:00`; // Format: 2025-08-20T14:30:00
-    console.log('DateTime string:', dateTimeString);
-    
-    // FIXED: Use correct URL (use the same domain as cancellation)
-    const url = `https://appoitment-backend.onrender.com/api/appointments/${apiAppointmentId}/reschedule?newDateTime=${encodeURIComponent(dateTimeString)}`;
-    console.log('Request URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'POST', // Keep POST as it's creating a new schedule
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      mode: 'cors',
-      credentials: 'omit'
-    });
-
-    console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      let errorMessage = `Failed to reschedule appointment (Status: ${response.status})`;
+  const handleConfirmReschedule = async (appointmentId, newDate, newTime) => {
+    try {
+      // You can implement the reschedule API call here
+      // const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/${appointmentId}/reschedule`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ date: newDate, time: newTime })
+      // });
       
-      try {
-        const errorText = await response.text();
-        console.log('Error response text:', errorText);
-        
-        if (errorText) {
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            errorMessage = errorText || errorMessage;
-          }
-        }
-      } catch (textError) {
-        console.log('Could not read error response');
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    const updatedAppointment = await response.json();
-    console.log('Reschedule successful:', updatedAppointment);
-
-    // Update local state with the response from backend
-    setUpcomingAppointments((prev) =>
-      prev.map((a) =>
-        a.id === appointmentId
-          ? {
-              ...a,
-              date: formatAppointmentDate(updatedAppointment.appointmentDateTime),
-              time: formatAppointmentTime(updatedAppointment.appointmentDateTime),
-              status: updatedAppointment.status || "RESCHEDULED"
-            }
-          : a
-      )
-    );
-
-    // Show success message
-    alert('Appointment rescheduled successfully! A confirmation email has been sent.');
-    
-    // Refetch appointments to get updated data from server
-    await fetchAppointments();
-    
-  } catch (error) {
-    console.error("Full error details:", error);
-    
-    // Handle different types of errors
-    let userMessage = 'Failed to reschedule appointment';
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-    } else if (error.message.includes('CORS')) {
-      userMessage = 'Server configuration error. Please contact support.';
-    } else if (error.message) {
-      userMessage = `Failed to reschedule appointment: ${error.message}`;
-    }
-    
-    alert(userMessage);
-    
-    // Don't close modal on error so user can try again
-    return;
-  }
-  
-  // Close modal and reset state only on success
-  setShowRescheduleModal(false);
-  setSelectedAppointmentId(null);
-};
-
-const handleConfirmCancel = async (appointmentId, reason) => {
-  console.log(`Attempting to cancel appointment: ${appointmentId}`);
-  
-  try {
-    // Find the appointment to get the correct appointmentId format
-    const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
-    
-    // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
-    const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
-    
-    console.log('Using appointment ID for API:', apiAppointmentId);
-    
-    // FIXED: Use PUT method instead of DELETE since we're updating status, not deleting
-    const url = `https://appoitment-backend.onrender.com/api/appointments/cancel/${apiAppointmentId}`;
-    console.log('Request URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'PUT', // CHANGED: From DELETE to PUT
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      // Optional: Send cancellation reason in body if needed
-      body: JSON.stringify({
-        cancellationReason: reason || 'No reason provided',
-        status: 'CANCELLED'
-      }),
-      mode: 'cors',
-      credentials: 'omit'
-    });
-
-    console.log('Response status:', response.status);
-
-    if (response.ok) {
-      console.log('Cancellation successful - Response OK');
-      
-      // Parse the response to get updated appointment data
-      let updatedAppointment = null;
-      try {
-        const responseData = await response.json();
-        updatedAppointment = responseData;
-        console.log('Updated appointment data:', updatedAppointment);
-      } catch (parseError) {
-        console.log('No JSON response body or parsing failed:', parseError.message);
-      }
-
-      // Update local state - either update status or remove the appointment
+      // For now, update locally and refetch
       setUpcomingAppointments((prev) =>
         prev.map((a) =>
           a.id === appointmentId
-            ? {
-                ...a,
-                status: 'CANCELLED',
-                // Update with any data returned from server
-                ...(updatedAppointment && {
-                  date: formatAppointmentDate(updatedAppointment.appointmentDateTime),
-                  time: formatAppointmentTime(updatedAppointment.appointmentDateTime),
-                  status: updatedAppointment.status || 'CANCELLED'
-                })
-              }
+            ? { ...a, date: newDate, time: newTime, status: "Rescheduled" }
             : a
-        ).filter(a => a.status !== 'CANCELLED') // Remove cancelled appointments from upcoming list
+        )
+      );
+      
+      // Optionally refetch appointments to get updated data
+      // await fetchAppointments();
+      
+    } catch (error) {
+      console.error("Error rescheduling appointment:", error);
+      alert("Failed to reschedule appointment. Please try again.");
+    }
+    
+    setShowRescheduleModal(false);
+    setSelectedAppointmentId(null);
+  };
+
+  const handleCancelAppointment = (appointmentId) => {
+    setSelectedAppointmentId(appointmentId);
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = async (appointmentId, reason) => {
+    try {
+      // Call the cancellation API - using DELETE method to match backend
+      const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/cancel/${appointmentId}`, {
+        method: 'DELETE', // Backend expects DELETE method
+        headers: { 
+          // Remove Content-Type since we're not sending a body
+          // Add any authorization headers if needed
+          // 'Authorization': `Bearer ${token}`
+        },
+        // Backend doesn't expect a request body, so remove it
+      });
+
+      if (!response.ok) {
+        // For DELETE requests, response might be empty, so handle accordingly
+        let errorMessage = `HTTP error! Status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Response might not have JSON body for DELETE requests
+          console.log("No JSON error response available");
+        }
+        throw new Error(errorMessage);
+      }
+
+      console.log('Cancellation successful');
+
+      // Update local state - remove the cancelled appointment
+      setUpcomingAppointments((prev) =>
+        prev.filter((a) => a.id !== appointmentId)
       );
 
       // Show success message
-      alert('Appointment cancelled successfully! A cancellation email has been sent.');
+      alert('Appointment cancelled successfully!');
       
-      // Refetch appointments to get updated data from server
+      // Optionally refetch appointments to get updated data from server
       await fetchAppointments();
       
-    } else {
-      // Handle error responses
-      let errorMessage = `Failed to cancel appointment (Status: ${response.status})`;
-      
-      try {
-        const errorText = await response.text();
-        console.log('Error response text:', errorText);
-        
-        if (errorText) {
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            errorMessage = errorText || errorMessage;
-          }
-        }
-      } catch (textError) {
-        console.log('Could not read error response');
-      }
-      
-      throw new Error(errorMessage);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      alert(`Failed to cancel appointment: ${error.message}`);
     }
     
-  } catch (error) {
-    console.error("Full error details:", error);
-    
-    // Handle different types of errors
-    let userMessage = 'Failed to cancel appointment';
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-    } else if (error.message.includes('CORS')) {
-      userMessage = 'Server configuration error. Please contact support.';
-    } else if (error.message) {
-      userMessage = `Failed to cancel appointment: ${error.message}`;
-    }
-    
-    alert(userMessage);
-    
-    // Don't close modal on error so user can try again
-    return;
-  }
-  
-  // Close modal and reset state only on success
-  setShowCancelModal(false);
-  setSelectedAppointmentId(null);
-  console.log("Appointment cancelled with reason:", reason);
-};
+    // Close modal and reset state
+    setShowCancelModal(false);
+    setSelectedAppointmentId(null);
+    console.log("Appointment cancelled with reason:", reason);
+  };
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
@@ -549,7 +396,6 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             <p className="font-semibold">{selectedAppointment?.type}</p>
             <p className="text-sm text-gray-600">{selectedAppointment?.provider} - {selectedAppointment?.department}</p>
             <p className="text-sm text-gray-600">Current: {selectedAppointment?.date} at {selectedAppointment?.time}</p>
-            <p className="text-xs text-gray-500 font-mono">ID: {selectedAppointment?.appointmentId || selectedAppointment?.id}</p>
           </div>
           
           <div className="space-y-4">
@@ -559,7 +405,6 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -589,8 +434,17 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             <button
               onClick={() => {
                 if (newDate && newTime) {
-                  // Pass the raw date and time values to the handler
-                  handleConfirmReschedule(selectedAppointmentId, newDate, newTime);
+                  const formattedDate = new Date(newDate).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  });
+                  const formattedTime = new Date(`2000-01-01T${newTime}`).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  });
+                  handleConfirmReschedule(selectedAppointmentId, formattedDate, formattedTime);
                   setNewDate('');
                   setNewTime('');
                 }
@@ -598,7 +452,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
               disabled={!newDate || !newTime}
               className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
             >
-              Confirm Reschedule
+              Confirm
             </button>
           </div>
         </div>
@@ -621,18 +475,15 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             <p className="font-semibold">{selectedAppointment?.type}</p>
             <p className="text-sm text-gray-600">{selectedAppointment?.provider} - {selectedAppointment?.department}</p>
             <p className="text-sm text-gray-600">{selectedAppointment?.date} at {selectedAppointment?.time}</p>
-            <p className="text-xs text-gray-500 font-mono">ID: {selectedAppointment?.appointmentId || selectedAppointment?.id}</p>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason for Cancellation <span className="text-gray-400">(optional)</span>
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Reason for Cancellation</label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Please provide a reason for cancelling this appointment (optional)..."
+                placeholder="Please provide a reason for cancelling this appointment..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows={3}
               />
@@ -652,11 +503,13 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             </button>
             <button
               onClick={() => {
-                // Allow cancellation even without reason since it's optional
-                handleConfirmCancel(selectedAppointmentId, reason || 'No reason provided');
-                setReason('');
+                if (reason.trim()) {
+                  handleConfirmCancel(selectedAppointmentId, reason);
+                  setReason('');
+                }
               }}
-              className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              disabled={!reason.trim()}
+              className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-300 transition-colors"
             >
               Cancel Appointment
             </button>
@@ -666,58 +519,11 @@ const handleConfirmCancel = async (appointmentId, reason) => {
     );
   };
 
-  // Loading state for patient data
-  if (patientLoading) {
+  if (!patientData) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-
-        <div className="pt-20 flex items-center justify-center">
-          <div className="text-center py-12">
-            <RefreshCw className="w-8 h-8 text-blue-500 mx-auto mb-4 animate-spin" />
-            <p className="text-lg font-medium text-gray-600">Loading patient data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state for patient data
-  if (patientError) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20 p-6">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 text-center">
-              <div className="mb-6">
-                <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-red-600 mb-2">Patient Not Found</h2>
-                <p className="text-gray-600 mb-6">
-                  {patientError === 'Patient not found' 
-                    ? `No patient found with ID: ${patientId}`
-                    : `Error loading patient data: ${patientError}`
-                  }
-                </p>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => navigate('/')}
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    Go to Home
-                  </button>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="w-full px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <LoadingSpinner/>
       </div>
     );
   }
@@ -737,18 +543,6 @@ const handleConfirmCancel = async (appointmentId, reason) => {
     zipCode = "",
     address = "",
   } = patientData;
-
-  const emergencyContacts = patientData?.emergencyContacts?.length
-    ? patientData.emergencyContacts
-    : [
-        {
-          name: "Emergency Contact",
-          relationship: "N/A",
-          phone: "N/A",
-          email: "",
-          address: "",
-        },
-      ];
 
   const addressObj = { street: address, city, state, zipCode };
 
@@ -774,7 +568,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
               <button
-                onClick={handleMedicalHistoryClick}
+                onClick={() => navigate("/patient/history")}
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-800 rounded-lg sm:rounded-xl hover:bg-gray-300 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
               >
                 <History className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -838,6 +632,16 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                     <div>
                       <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 text-center lg:text-left">{patientName}</h2>
                       <div className="space-y-2 sm:space-y-3 text-gray-600 text-sm sm:text-base">
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                          <span className="font-semibold">Patient ID:</span> 
+                          <span className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-lg font-medium text-xs sm:text-sm w-fit">{id}</span>
+                        </p>
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                          <span className="font-semibold">DOB:</span> 
+                          {new Date(dateOfBirth).toLocaleDateString()} ({age} years old)
+                        </p>
+                        <p><span className="font-semibold">Gender:</span> {gender}</p>
                         <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                           <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                           <span className="font-semibold">Blood Type:</span> 
@@ -958,7 +762,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
               </div>
             )}
 
-            {/* Appointments List or Empty State */}
+            {/* Appointments List */}
             {!appointmentsLoading && !appointmentsError && (
               <div className="space-y-3 sm:space-y-4">
                 {upcomingAppointments.length > 0 ? (
@@ -966,20 +770,12 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                     <div key={appointment.id} className="p-4 sm:p-6 border border-gray-200 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          {/* Appointment Header with ID */}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                              <h4 className="text-lg sm:text-xl font-semibold text-gray-900">{appointment.type}</h4>
-                              <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-mono w-fit">
-                                ID: {appointment.appointmentId || appointment.id}
-                              </span>
-                            </div>
+                            <h4 className="text-lg sm:text-xl font-semibold text-gray-900">{appointment.type}</h4>
                             <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium w-fit ${getStatusColor(appointment.status)}`}>
                               {appointment.status}
                             </span>
                           </div>
-                          
-                          {/* Appointment Details */}
                           <div className="space-y-1 sm:space-y-2 text-gray-600 text-sm sm:text-base">
                             <p className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
@@ -989,28 +785,8 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                               <Stethoscope className="w-4 h-4" />
                               {appointment.provider} - {appointment.department}
                             </p>
-                            {/* Additional appointment details if available */}
-                            {appointment.duration && (
-                              <p className="flex items-center gap-2">
-                                <Clock className="w-4 h-4" />
-                                Duration: {appointment.duration} minutes
-                              </p>
-                            )}
-                            {appointment.symptoms && (
-                              <p className="flex items-start gap-2">
-                                <AlertCircle className="w-4 h-4 mt-0.5" />
-                                <span><strong>Symptoms:</strong> {appointment.symptoms}</span>
-                              </p>
-                            )}
-                            {appointment.additionalNotes && (
-                              <p className="flex items-start gap-2">
-                                <FileText className="w-4 h-4 mt-0.5" />
-                                <span><strong>Notes:</strong> {appointment.additionalNotes}</span>
-                              </p>
-                            )}
                           </div>
                           
-                          {/* Action Buttons */}
                           <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
                             <button
                               onClick={() => handleRescheduleAppointment(appointment.id)}
@@ -1038,7 +814,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                   <div className="text-center py-12">
                     <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h4 className="text-lg font-semibold text-gray-600 mb-2">No Upcoming Appointments</h4>
-                    <p className="text-gray-600">You don't have any scheduled appointments for patient ID: {patientId}</p>
+                    <p className="text-gray-600">Contact your healthcare provider to schedule an appointment.</p>
                   </div>
                 )}
               </div>

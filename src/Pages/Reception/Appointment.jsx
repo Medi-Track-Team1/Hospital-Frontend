@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   Calendar,
   Clock,
@@ -50,7 +50,8 @@ const Appointment = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
-  const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
+  const [showEditAppointmentModal, setShowEditAppointmentModal] =
+    useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -100,11 +101,13 @@ const Appointment = () => {
   const [formErrors, setFormErrors] = useState({});
   const [editFormErrors, setEditFormErrors] = useState({});
   const [stats, setStats] = useState({
-  todayCount: 0,
-  confirmedCount: 0,
-  cancelledCount: 0,
-   pendingCount: 0 
-});
+
+    todayCount: 0,
+    confirmedCount: 0,
+    cancelledCount: 0,
+    pendingCount: 0,
+  });
+
 
   // Fetch appointments on component mount
   useEffect(() => {
@@ -122,20 +125,20 @@ const Appointment = () => {
 
     fetchAppointments();
     const fetchStats = async () => {
-    try {
-      const statsData = await appointmentService.getAppointmentStats();
-      setStats({
-        todayCount: statsData.totalAppointments,
-        confirmedCount: statsData.confirmedAppointments,
-        cancelledCount: statsData.cancelledAppointments,
-        pendingCount: statsData.pendingAppointments
-      });
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    }
-  };
+      try {
+        const statsData = await appointmentService.getAppointmentStats();
+        setStats({
+          todayCount: statsData.totalAppointments,
+          confirmedCount: statsData.confirmedAppointments,
+          cancelledCount: statsData.cancelledAppointments,
+          pendingCount: statsData.pendingAppointments,
+        });
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      }
+    };
 
-  fetchStats();
+    fetchStats();
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -196,36 +199,41 @@ const Appointment = () => {
     "Anthem",
   ];
 
- const filteredAppointments = appointments.filter((appointment) => {
-  // Safely handle search fields
-  const patientName = appointment.patientName?.toLowerCase() || '';
-  const doctor = appointment.doctor?.toLowerCase() || '';
-  const department = appointment.department?.toLowerCase() || '';
-  const searchTermLower = searchTerm.toLowerCase();
+  const filteredAppointments = appointments.filter((appointment) => {
+    // Safely handle search fields
+    const patientName = appointment.patientName?.toLowerCase() || "";
+    const doctor = appointment.doctor?.toLowerCase() || "";
+    const department = appointment.department?.toLowerCase() || "";
+    const searchTermLower = searchTerm.toLowerCase();
 
-  // Search matches (patient name, doctor, or department)
-  const matchesSearch = 
-    patientName.includes(searchTermLower) ||
-    doctor.includes(searchTermLower) ||
-    department.includes(searchTermLower);
-  
-  // Status filter - handles "All", "Confirmed", "Cancelled"
-  const matchesStatus = 
-    filterStatus === "All" || 
-    appointment.status?.toLowerCase() === filterStatus.toLowerCase();
-  
-  // Date filter
+    // Search matches (patient name, doctor, or department)
+    const matchesSearch =
+      patientName.includes(searchTermLower) ||
+      doctor.includes(searchTermLower) ||
+      department.includes(searchTermLower);
+
+    // Status filter - handles "All", "Confirmed", "Cancelled"
+    const matchesStatus =
+      filterStatus === "All" ||
+      appointment.status?.toLowerCase() === filterStatus.toLowerCase();
+
+    // Date filter
     let matchesDate = true;
-  if (filterDate) {
-    const appointmentDate = appointment.date || 
-                           (appointment.appointmentDateTime 
-                            ? new Date(appointment.appointmentDateTime).toISOString().split('T')[0] 
-                            : '');
-    matchesDate = appointmentDate === filterDate;
-  }
 
-  return matchesSearch && matchesStatus && matchesDate;
-});
+    if (filterDate) {
+      const appointmentDate =
+        appointment.date ||
+        (appointment.appointmentDateTime
+          ? new Date(appointment.appointmentDateTime)
+              .toISOString()
+              .split("T")[0]
+          : "");
+      matchesDate = appointmentDate === filterDate;
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
@@ -281,7 +289,8 @@ const Appointment = () => {
     if (!newAppointment.department)
       errors.department = "Department is required";
     if (!newAppointment.phone.trim()) errors.phone = "Phone number is required";
-    if (!newAppointment.patientEmail.trim()) errors.patientEmail = "patientEmail is required";
+    if (!newAppointment.patientEmail.trim())
+      errors.patientEmail = "patientEmail is required";
     if (!newAppointment.age || newAppointment.age < 1)
       errors.age = "Valid age is required";
     if (!newAppointment.symptoms.trim())
@@ -293,7 +302,10 @@ const Appointment = () => {
 
     // patientEmail validation
     const patientEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (newAppointment.patientEmail && !patientEmailRegex.test(newAppointment.patientEmail)) {
+    if (
+      newAppointment.patientEmail &&
+      !patientEmailRegex.test(newAppointment.patientEmail)
+    ) {
       errors.patientEmail = "Please enter a valid patientEmail address";
     }
 
@@ -322,7 +334,8 @@ const Appointment = () => {
       errors.department = "Department is required";
     if (!editAppointment.phone.trim())
       errors.phone = "Phone number is required";
-    if (!editAppointment.patientEmail.trim()) errors.patientEmail = "patientEmail is required";
+    if (!editAppointment.patientEmail.trim())
+      errors.patientEmail = "patientEmail is required";
     if (!editAppointment.age || editAppointment.age < 1)
       errors.age = "Valid age is required";
     if (!editAppointment.symptoms.trim())
@@ -334,7 +347,10 @@ const Appointment = () => {
 
     // patientEmail validation
     const patientEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (editAppointment.patientEmail && !patientEmailRegex.test(editAppointment.patientEmail)) {
+    if (
+      editAppointment.patientEmail &&
+      !patientEmailRegex.test(editAppointment.patientEmail)
+    ) {
       errors.patientEmail = "Please enter a valid patientEmail address";
     }
 
@@ -351,76 +367,96 @@ const Appointment = () => {
     return Object.keys(errors).length === 0;
   };
 
-const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset parameter
-  // Validate inputs
-  if (!dateStr || !timeStr) return null;
-  
-  // Validate date format (YYYY-MM-DD)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    console.error("Invalid date format. Expected YYYY-MM-DD");
-    return null;
-  }
+  const formatToStrictISO = (dateStr, timeStr) => {
+    // Removed timezoneOffset parameter
+    // Validate inputs
+    if (!dateStr || !timeStr) return null;
 
-  // Process time string
-  let formattedTime;
-  try {
-    // Handle AM/PM format if present
-    let timePart = timeStr.trim();
-    let hours, minutes, seconds = "00";
-    let isPM = false;
-    
-    // Check for AM/PM
-    if (timePart.toUpperCase().includes("PM")) {
-      isPM = true;
-      timePart = timePart.replace(/PM/gi, "").trim();
-    } else if (timePart.toUpperCase().includes("AM")) {
-      timePart = timePart.replace(/AM/gi, "").trim();
+    // Validate date format (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      console.error("Invalid date format. Expected YYYY-MM-DD");
+      return null;
     }
-    
-    const timeParts = timePart.split(':').map(part => part.trim());
-    
-    // Validate we have at least hours and minutes
-    if (timeParts.length < 2) {
-      throw new Error("Time must include at least hours and minutes");
-    }
-    
-    // Convert hours to 24-hour format
-    hours = parseInt(timeParts[0]);
-    if (isPM && hours < 12) {
-      hours += 12;
-    } else if (!isPM && hours === 12) {
-      hours = 0;
-    }
-    hours = hours.toString().padStart(2, '0');
-    
-    minutes = timeParts[1].padStart(2, '0');
-    seconds = (timeParts[2] || '00').padStart(2, '0');
-    
-    // Validate time components
-    if (parseInt(hours) > 23 || parseInt(minutes) > 59 || parseInt(seconds) > 59) {
-      throw new Error("Invalid time values");
-    }
-    
-    formattedTime = `${hours}:${minutes}:${seconds}`;
-  } catch (error) {
-    console.error("Error processing time:", error.message);
-    return null;
-  }
 
-  // Combine into ISO format (without timezone)
-  return `${dateStr}T${formattedTime}`; // Removed timezoneOffset
-};
+    // Process time string
+    let formattedTime;
+    try {
+      // Handle AM/PM format if present
+      let timePart = timeStr.trim();
+      let hours,
+        minutes,
+        seconds = "00";
+      let isPM = false;
+
+      // Check for AM/PM
+      if (timePart.toUpperCase().includes("PM")) {
+        isPM = true;
+        timePart = timePart.replace(/PM/gi, "").trim();
+      } else if (timePart.toUpperCase().includes("AM")) {
+        timePart = timePart.replace(/AM/gi, "").trim();
+      }
+
+      const timeParts = timePart.split(":").map((part) => part.trim());
+
+      // Validate we have at least hours and minutes
+      if (timeParts.length < 2) {
+        throw new Error("Time must include at least hours and minutes");
+      }
+
+      // Convert hours to 24-hour format
+      hours = parseInt(timeParts[0]);
+      if (isPM && hours < 12) {
+        hours += 12;
+      } else if (!isPM && hours === 12) {
+        hours = 0;
+      }
+      hours = hours.toString().padStart(2, "0");
+
+      minutes = timeParts[1].padStart(2, "0");
+      seconds = (timeParts[2] || "00").padStart(2, "0");
+
+      // Validate time components
+      if (
+        parseInt(hours) > 23 ||
+        parseInt(minutes) > 59 ||
+        parseInt(seconds) > 59
+      ) {
+        throw new Error("Invalid time values");
+      }
+
+      formattedTime = `${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      console.error("Error processing time:", error.message);
+      return null;
+    }
+
+    // Combine into ISO format (without timezone)
+    return `${dateStr}T${formattedTime}`; // Removed timezoneOffset
+  };
   const handleCreateAppointment = async () => {
     if (!validateForm()) return;
 
     try {
       const createdAppointment = await appointmentService.createAppointment({
-        patientId:"PAT-1018",doctorId:"DOC-32759",patientName:newAppointment.patientName,phoneNumber:newAppointment.phone,appointmentDateTime:formatToStrictISO(newAppointment.date,newAppointment.time),
-        age: parseInt(newAppointment.age),doctorName:newAppointment.doctor,department:newAppointment.department,patientEmail:newAppointment.patientEmail,duration:20,reason:newAppointment.reason,symptoms:newAppointment.symptoms,status:"PENDING",
-
+        patientId: "PAT-1018",
+        doctorId: "DOC-32759",
+        patientName: newAppointment.patientName,
+        phoneNumber: newAppointment.phone,
+        appointmentDateTime: formatToStrictISO(
+          newAppointment.date,
+          newAppointment.time
+        ),
+        age: parseInt(newAppointment.age),
+        doctorName: newAppointment.doctor,
+        department: newAppointment.department,
+        patientEmail: newAppointment.patientEmail,
+        duration: 20,
+        reason: newAppointment.reason,
+        symptoms: newAppointment.symptoms,
+        status: "PENDING",
       });
       setAppointments((prev) => [createdAppointment, ...prev]);
-      
+
       // Reset form
       setNewAppointment({
         patientName: "",
@@ -438,15 +474,15 @@ const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset para
       });
       setFormErrors({});
       setShowNewAppointmentModal(false);
-      toast.success('Appointment created successfully!');
+      toast.success("Appointment created successfully!");
     } catch (error) {
       console.error("Error creating appointment:", error);
-        toast.error('Failed to create appointment');
+      toast.error("Failed to create appointment");
     }
   };
 
   const handleEditAppointment = (appointment) => {
-      console.log("Original appointment data:", appointment.appointmentId);
+    console.log("Original appointment data:", appointment.appointmentId);
     setEditAppointment({
       appointmentId: appointment.appointmentId,
       patientName: appointment.patientName,
@@ -457,7 +493,7 @@ const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset para
       department: appointment.department,
       phone: appointment.phone,
       patientEmail: appointment.patientEmail,
-      age:  appointment.age ? appointment.age.toString() : '',
+      age: appointment.age ? appointment.age.toString() : "",
       symptoms: appointment.symptoms,
       reason: appointment.reason,
       insurance: appointment.insurance,
@@ -466,105 +502,117 @@ const formatToStrictISO = (dateStr, timeStr) => { // Removed timezoneOffset para
     setShowEditAppointmentModal(true);
   };
 
-const handleUpdateAppointment = async () => {
-  if (!validateEditForm()) return;
+  const handleUpdateAppointment = async () => {
+    if (!validateEditForm()) return;
 
-  try {
-    // Transform frontend data to match backend DTO
-    const updateData = {
-      patientId: editAppointment.patientId || "PAT-1018", // Use actual patientId if available
-      doctorId: editAppointment.doctorId || "DOC-32759", // Use actual doctorId if available
-      patientName: editAppointment.patientName,
-      doctorName: editAppointment.doctor,
-      department: editAppointment.department,
-      patientEmail: editAppointment.patientEmail,
-      age:editAppointment.age,
-      // Combine date and time into LocalDateTime format
-      appointmentDateTime: `${editAppointment.date}T${convertTo24Hour(editAppointment.time)}`,
-      duration: editAppointment.duration || 30, // Use provided duration or default to 30
-      reason: editAppointment.reason,
-      symptoms: editAppointment.symptoms,
-      additionalNotes: editAppointment.additionalNotes || "", // Add if available
-      isEmergency: editAppointment.isEmergency || false,
-      status: editAppointment.status,
-      phoneNumber:editAppointment.phone,
-      // These will typically be set by the backend, but include if needed
-      createdAt: editAppointment.createdAt, // Preserve original if exists
-      updatedAt: new Date().toISOString() // Current timestamp
-    };
-     console.log(updateData);
-     console.log("result");
-    // Remove any undefined fields
-    const cleanedUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, v]) => v !== undefined)
-    );
+    try {
+      // Transform frontend data to match backend DTO
+      const updateData = {
+        patientId: editAppointment.patientId || "PAT-1018", // Use actual patientId if available
+        doctorId: editAppointment.doctorId || "DOC-32759", // Use actual doctorId if available
+        patientName: editAppointment.patientName,
+        doctorName: editAppointment.doctor,
+        department: editAppointment.department,
+        patientEmail: editAppointment.patientEmail,
+        age: editAppointment.age,
+        // Combine date and time into LocalDateTime format
+        appointmentDateTime: `${editAppointment.date}T${convertTo24Hour(
+          editAppointment.time
+        )}`,
+        duration: editAppointment.duration || 30, // Use provided duration or default to 30
+        reason: editAppointment.reason,
+        symptoms: editAppointment.symptoms,
+        additionalNotes: editAppointment.additionalNotes || "", // Add if available
+        isEmergency: editAppointment.isEmergency || false,
+        status: editAppointment.status,
+        phoneNumber: editAppointment.phone,
+        // These will typically be set by the backend, but include if needed
+        createdAt: editAppointment.createdAt, // Preserve original if exists
+        updatedAt: new Date().toISOString(), // Current timestamp
+      };
+      console.log(updateData);
+      console.log("result");
+      // Remove any undefined fields
+      const cleanedUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, v]) => v !== undefined)
+      );
 
-    const updatedAppointment = await appointmentService.updateAppointment(
-      editAppointment.appointmentId,
-      cleanedUpdateData
-    );
+      const updatedAppointment = await appointmentService.updateAppointment(
+        editAppointment.appointmentId,
+        cleanedUpdateData
+      );
 
-    // Update state
-    setAppointments(prev => 
-      prev.map(app => 
-        app.appointmentId === editAppointment.appointmentId ? updatedAppointment : app
-      )
-    );
-    
-    setShowEditAppointmentModal(false);
-    toast.success('Appointment updated successfully!');
-  } catch (error) {
-    console.error('Update error:', error);
-    toast.error(error.message || 'Failed to update appointment');
+      // Update state
+      setAppointments((prev) =>
+        prev.map((app) =>
+          app.appointmentId === editAppointment.appointmentId
+            ? updatedAppointment
+            : app
+        )
+      );
+
+      setShowEditAppointmentModal(false);
+      toast.success("Appointment updated successfully!");
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error(error.message || "Failed to update appointment");
+    }
+  };
+
+  // Helper function to convert "02:30 PM" to "14:30:00"
+  function convertTo24Hour(time12h) {
+    const [time, modifier] = time12h.split(" ");
+    let [hours, minutes] = time.split(":");
+
+    if (hours === "12") hours = "00";
+    if (modifier === "PM") hours = parseInt(hours, 10) + 12;
+
+    return `${hours}:${minutes}:00`;
   }
-};
-
-// Helper function to convert "02:30 PM" to "14:30:00"
-function convertTo24Hour(time12h) {
-  const [time, modifier] = time12h.split(' ');
-  let [hours, minutes] = time.split(':');
-  
-  if (hours === '12') hours = '00';
-  if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
-  
-  return `${hours}:${minutes}:00`;
-}
 
   const handleDeleteClick = (appointment) => {
     setAppointmentToDelete(appointment);
     setShowDeleteConfirmModal(true);
   };
 
- const confirmDelete = async () => {
-  if (appointmentToDelete) {
-    try {
-      // Make sure to use consistent ID (either id or appointmentId)
-      const idToDelete =  appointmentToDelete.appointmentId;
-      
-      await appointmentService.cancelAppointment(idToDelete);
-      
-      // Update state
-      setAppointments(prev => prev.filter(app => 
-        (app.appointmentId) !== idToDelete
-      ));
-      
-      // Reset state and close modal
-      setAppointmentToDelete(null);
-      setShowDeleteConfirmModal(false);
-      
-      // Show success feedback (optional)
-       toast.success('Appointment deleted successfully!');
-      // Or use a toast notification if available:
-      // toast.success('Appointment deleted successfully!');
-      
-    } catch (error) {
-      console.error("Error deleting appointment:", error);
-      // Show error feedback (optional)
-      toast.error('Failed to delete appointment');
-      // Or: toast.error('Failed to delete appointment');
+  const confirmDelete = async () => {
+    if (appointmentToDelete) {
+      try {
+        const appointmentId = appointmentToDelete.appointmentId;
+
+        // Call the delete API directly
+        const response = await fetch(
+          `https://appoitment-backend.onrender.com/api/appointments/${appointmentId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Update state - remove the deleted appointment
+        setAppointments((prev) =>
+          prev.filter((app) => app.appointmentId !== appointmentId)
+        );
+
+        // Reset state and close modal
+        setAppointmentToDelete(null);
+        setShowDeleteConfirmModal(false);
+
+        // Show success feedback
+        toast.success("Appointment deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting appointment:", error);
+        // Show error feedback
+        toast.error("Failed to delete appointment");
+      }
     }
-  }
-};
+  };
 
   const cancelDelete = () => {
     setAppointmentToDelete(null);
@@ -580,10 +628,9 @@ function convertTo24Hour(time12h) {
   const confirmAppointment = async () => {
     if (appointmentToConfirm) {
       try {
-        const confirmedAppointment = await appointmentService.confirmAppointment(
-          appointmentToConfirm.id
-        );
-        
+        const confirmedAppointment =
+          await appointmentService.confirmAppointment(appointmentToConfirm.id);
+
         setAppointments((prev) =>
           prev.map((app) =>
             app.id === appointmentToConfirm.id ? confirmedAppointment : app
@@ -591,10 +638,10 @@ function convertTo24Hour(time12h) {
         );
         setAppointmentToConfirm(null);
         setShowConfirmModal(false);
-        toast.success('Appointment confirmed successfully!');
+        toast.success("Appointment confirmed successfully!");
       } catch (error) {
         console.error("Error confirming appointment:", error);
-        toast.error('Failed to confirm appointment');
+        toast.error("Failed to confirm appointment");
       }
     }
   };
@@ -616,7 +663,7 @@ function convertTo24Hour(time12h) {
         const cancelledAppointment = await appointmentService.cancelAppointment(
           appointmentToCancel.id
         );
-        
+
         setAppointments((prev) =>
           prev.map((app) =>
             app.id === appointmentToCancel.id ? cancelledAppointment : app
@@ -624,10 +671,10 @@ function convertTo24Hour(time12h) {
         );
         setAppointmentToCancel(null);
         setShowCancelModal(false);
-        toast.success('Appointment cancelled successfully!');
+        toast.success("Appointment cancelled successfully!");
       } catch (error) {
         console.error("Error canceling appointment:", error);
-         toast.error('Failed to cancel appointment');
+        toast.error("Failed to cancel appointment");
       }
     }
   };
@@ -657,45 +704,35 @@ function convertTo24Hour(time12h) {
       default:
         return <Clock size={16} />;
     }
-  };  
-   const formatDisplayDateTime = (dateTimeString) => {
-  if (!dateTimeString) return 'Not scheduled';
-  return new Date(dateTimeString).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-const formatDisplayDate= (dateTimeString) => {
-  if (!dateTimeString) return 'Not scheduled';
-  return new Date(dateTimeString).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
-// Output: "9:30 AM"
-// Output: "Sun, Aug 6"
-
-  // const todayAppointments = appointments.filter(
-  //   (app) => app.date === new Date().toISOString().split("T")[0]
-  // );
-  // const confirmedCount = appointments.filter(
-  //   (app) => app.status === "Confirmed"
-  // ).length;
-  // const cancelledCount = appointments.filter(
-  //   (app) => app.status === "Cancelled"
-  // ).length;
+  };
+  const formatDisplayDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "Not scheduled";
+    return new Date(dateTimeString).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  };
+  const formatDisplayDate = (dateTimeString) => {
+    if (!dateTimeString) return "Not scheduled";
+    return new Date(dateTimeString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+        }}
+      >
         <div>Loading appointments...</div>
       </div>
     );

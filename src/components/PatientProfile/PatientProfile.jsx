@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import EditProfileModal from "./EditProfileModel";
 import Header from "../Home/Header";
 import { useNavigate, useParams } from "react-router-dom";
+import LoadingSpinner from "../Admin/LoadingSpinner";
 import {
   User,
   Calendar,
@@ -653,6 +654,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
+
         <div className="pt-20 flex items-center justify-center">
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 text-blue-500 mx-auto mb-4 animate-spin" />
@@ -698,6 +700,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             </div>
           </div>
         </div>
+
       </div>
     );
   }
@@ -735,6 +738,11 @@ const handleConfirmCancel = async (appointmentId, reason) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      <br>
+      </br>
+      <br>
+      </br>
+      
       <div className="pt-16 p-3 sm:p-6 space-y-4 sm:space-y-8">
         {/* Enhanced Header */}
         <div className="bg-white border border-gray-200 text-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl">

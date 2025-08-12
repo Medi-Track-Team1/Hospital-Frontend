@@ -230,28 +230,30 @@ const fetchAppointments = async () => {
       console.warn("Failed to fetch completed appointments:", completedResponse.reason);
     }
 
-    // Helper function to safely parse dates
+    // Helper function to safely parse dates - FIXED FOR ARRAY FORMAT
     const parseDateTime = (dateTimeValue) => {
       if (!dateTimeValue) return null;
       
       try {
-        // Handle different date formats
         let parsedDate;
         
-        if (typeof dateTimeValue === 'string') {
-          // Try parsing as ISO string first
+        // Handle array format [year, month, day, hour, minute]
+        if (Array.isArray(dateTimeValue) && dateTimeValue.length >= 3) {
+          const [year, month, day, hour = 0, minute = 0] = dateTimeValue;
+          // Note: JavaScript Date constructor expects month to be 0-indexed (0-11)
+          // But your data appears to use 1-indexed months (1-12)
+          parsedDate = new Date(year, month - 1, day, hour, minute);
+        }
+        // Handle string format
+        else if (typeof dateTimeValue === 'string') {
           parsedDate = new Date(dateTimeValue);
-          
-          // If invalid, try other common formats
-          if (isNaN(parsedDate.getTime())) {
-            // Try parsing as date string with various formats
-            const cleanedValue = dateTimeValue.trim();
-            parsedDate = new Date(cleanedValue);
-          }
-        } else if (dateTimeValue instanceof Date) {
+        }
+        // Handle Date object
+        else if (dateTimeValue instanceof Date) {
           parsedDate = dateTimeValue;
-        } else {
-          // If it's neither string nor Date, try to convert
+        }
+        // Try to convert other formats
+        else {
           parsedDate = new Date(dateTimeValue);
         }
         
@@ -270,7 +272,7 @@ const fetchAppointments = async () => {
 
     // Helper function to format time safely
     const formatTime = (dateTime) => {
-      if (!dateTime) return "00:00 AM";
+      if (!dateTime) return "12:00 AM";
       
       try {
         return dateTime.toLocaleTimeString([], {
@@ -280,7 +282,7 @@ const fetchAppointments = async () => {
         });
       } catch (error) {
         console.warn("Error formatting time:", dateTime, error);
-        return "00:00 AM";
+        return "12:00 AM";
       }
     };
 
@@ -296,11 +298,11 @@ const fetchAppointments = async () => {
       }
     };
 
-    // Transform all appointments to consistent format with safe date handling
+    // Transform all appointments to consistent format with FIXED date handling
     const transformedAppointments = allFetchedAppointments.map((apt, index) => {
       try {
         let appointmentDate = null;
-        let appointmentTime = "00:00 AM";
+        let appointmentTime = "12:00 AM";
         
         // Try to parse appointmentDateTime first
         if (apt.appointmentDateTime) {
@@ -308,6 +310,7 @@ const fetchAppointments = async () => {
           if (parsedDateTime) {
             appointmentDate = formatDate(parsedDateTime);
             appointmentTime = formatTime(parsedDateTime);
+            console.log(`Parsed appointment ${apt.appointmentId || apt.id}: ${appointmentDate} ${appointmentTime}`);
           }
         }
         
@@ -316,11 +319,15 @@ const fetchAppointments = async () => {
           const parsedDate = parseDateTime(apt.date);
           if (parsedDate) {
             appointmentDate = formatDate(parsedDate);
+            // Keep the parsed time from appointmentDateTime or use existing time
+            if (appointmentTime === "12:00 AM" && apt.time) {
+              appointmentTime = apt.time;
+            }
           }
         }
         
-        // Use existing time if available
-        if (apt.time && !appointmentTime) {
+        // Use existing time if available and we haven't set a proper time yet
+        if (apt.time && appointmentTime === "12:00 AM") {
           appointmentTime = apt.time;
         }
         
@@ -344,7 +351,7 @@ const fetchAppointments = async () => {
         return {
           ...apt,
           date: new Date().toISOString().split("T")[0],
-          time: "00:00 AM",
+          time: "12:00 AM",
           status: apt.status?.toLowerCase() || "pending",
         };
       }

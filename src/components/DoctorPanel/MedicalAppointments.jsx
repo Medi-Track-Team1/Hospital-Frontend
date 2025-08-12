@@ -191,86 +191,199 @@ const [editPrescriptionData, setEditPrescriptionData] = useState(null);
     }
   }, [doctorId]);
 
-  // FIXED: Simplified fetch function that combines all appointments
-  const fetchAppointments = async () => {
-    try {
-      console.log("Fetching appointments for doctor:", doctorId);
+// FIXED: Enhanced fetchAppointments function with proper date validation
+const fetchAppointments = async () => {
+  try {
+    console.log("Fetching appointments for doctor:", doctorId);
+    
+    // Fetch from both endpoints
+    const [upcomingResponse, completedResponse] = await Promise.allSettled([
+      listUpcomingAppointmentsByDoctorId(doctorId),
+      listCompletedAppointmentsByDoctorId(doctorId)
+    ]);
+
+    let allFetchedAppointments = [];
+
+    // Process upcoming appointments
+    if (upcomingResponse.status === 'fulfilled') {
+      const upcomingData = upcomingResponse.value.data;
+      const upcomingAppointments = Array.isArray(upcomingData) 
+        ? upcomingData 
+        : upcomingData.appointments || [];
       
-      // Fetch from both endpoints
-      const [upcomingResponse, completedResponse] = await Promise.allSettled([
-        listUpcomingAppointmentsByDoctorId(doctorId),
-        listCompletedAppointmentsByDoctorId(doctorId)
-      ]);
-
-      let allFetchedAppointments = [];
-
-      // Process upcoming appointments
-      if (upcomingResponse.status === 'fulfilled') {
-        const upcomingData = upcomingResponse.value.data;
-        const upcomingAppointments = Array.isArray(upcomingData) 
-          ? upcomingData 
-          : upcomingData.appointments || [];
-        
-        console.log("Fetched upcoming appointments:", upcomingAppointments.length);
-        allFetchedAppointments = [...allFetchedAppointments, ...upcomingAppointments];
-      } else {
-        console.warn("Failed to fetch upcoming appointments:", upcomingResponse.reason);
-      }
-
-      // Process completed appointments
-      if (completedResponse.status === 'fulfilled') {
-        const completedData = completedResponse.value.data;
-        const completedAppointments = Array.isArray(completedData) 
-          ? completedData 
-          : completedData.appointments || [];
-        
-        console.log("Fetched completed appointments:", completedAppointments.length);
-        allFetchedAppointments = [...allFetchedAppointments, ...completedAppointments];
-      } else {
-        console.warn("Failed to fetch completed appointments:", completedResponse.reason);
-      }
-
-      // Transform all appointments to consistent format
-      const transformedAppointments = allFetchedAppointments.map((apt) => ({
-        ...apt,
-        date: apt.appointmentDateTime
-          ? new Date(apt.appointmentDateTime).toISOString().split("T")[0]
-          : apt.date,
-        time: apt.appointmentDateTime
-          ? new Date(apt.appointmentDateTime).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })
-          : apt.time,
-        status: apt.status?.toLowerCase() || "pending",
-      }));
-
-      // Remove duplicates based on appointment ID
-      const seen = new Set();
-      const uniqueAppointments = transformedAppointments.filter(apt => {
-        const key = getRowKey(apt);
-        if (seen.has(key)) {
-          console.log("Removing duplicate appointment:", key);
-          return false;
-        }
-        seen.add(key);
-        return true;
-      });
-
-      console.log("Final unique appointments:", uniqueAppointments.length);
-      setAllAppointments(uniqueAppointments);
-
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-      setAllAppointments([]);
-      toast({
-        title: "Error",
-        description: "Failed to fetch appointments. Please refresh the page.",
-        variant: "destructive",
-      });
+      console.log("Fetched upcoming appointments:", upcomingAppointments.length);
+      allFetchedAppointments = [...allFetchedAppointments, ...upcomingAppointments];
+    } else {
+      console.warn("Failed to fetch upcoming appointments:", upcomingResponse.reason);
     }
-  };
+
+    // Process completed appointments
+    if (completedResponse.status === 'fulfilled') {
+      const completedData = completedResponse.value.data;
+      const completedAppointments = Array.isArray(completedData) 
+        ? completedData 
+        : completedData.appointments || [];
+      
+      console.log("Fetched completed appointments:", completedAppointments.length);
+      allFetchedAppointments = [...allFetchedAppointments, ...completedAppointments];
+    } else {
+      console.warn("Failed to fetch completed appointments:", completedResponse.reason);
+    }
+
+    // Helper function to safely parse dates - FIXED FOR ARRAY FORMAT
+    const parseDateTime = (dateTimeValue) => {
+      if (!dateTimeValue) return null;
+      
+      try {
+        let parsedDate;
+        
+        // Handle array format [year, month, day, hour, minute]
+        if (Array.isArray(dateTimeValue) && dateTimeValue.length >= 3) {
+          const [year, month, day, hour = 0, minute = 0] = dateTimeValue;
+          // Note: JavaScript Date constructor expects month to be 0-indexed (0-11)
+          // But your data appears to use 1-indexed months (1-12)
+          parsedDate = new Date(year, month - 1, day, hour, minute);
+        }
+        // Handle string format
+        else if (typeof dateTimeValue === 'string') {
+          parsedDate = new Date(dateTimeValue);
+        }
+        // Handle Date object
+        else if (dateTimeValue instanceof Date) {
+          parsedDate = dateTimeValue;
+        }
+        // Try to convert other formats
+        else {
+          parsedDate = new Date(dateTimeValue);
+        }
+        
+        // Validate the parsed date
+        if (isNaN(parsedDate.getTime())) {
+          console.warn("Invalid date value:", dateTimeValue);
+          return null;
+        }
+        
+        return parsedDate;
+      } catch (error) {
+        console.warn("Error parsing date:", dateTimeValue, error);
+        return null;
+      }
+    };
+
+    // Helper function to format time safely
+    const formatTime = (dateTime) => {
+      if (!dateTime) return "12:00 AM";
+      
+      try {
+        return dateTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      } catch (error) {
+        console.warn("Error formatting time:", dateTime, error);
+        return "12:00 AM";
+      }
+    };
+
+    // Helper function to format date safely
+    const formatDate = (dateTime) => {
+      if (!dateTime) return new Date().toISOString().split("T")[0];
+      
+      try {
+        return dateTime.toISOString().split("T")[0];
+      } catch (error) {
+        console.warn("Error formatting date:", dateTime, error);
+        return new Date().toISOString().split("T")[0];
+      }
+    };
+
+    // Transform all appointments to consistent format with FIXED date handling
+    const transformedAppointments = allFetchedAppointments.map((apt, index) => {
+      try {
+        let appointmentDate = null;
+        let appointmentTime = "12:00 AM";
+        
+        // Try to parse appointmentDateTime first
+        if (apt.appointmentDateTime) {
+          const parsedDateTime = parseDateTime(apt.appointmentDateTime);
+          if (parsedDateTime) {
+            appointmentDate = formatDate(parsedDateTime);
+            appointmentTime = formatTime(parsedDateTime);
+            console.log(`Parsed appointment ${apt.appointmentId || apt.id}: ${appointmentDate} ${appointmentTime}`);
+          }
+        }
+        
+        // If no valid appointmentDateTime, try individual date and time fields
+        if (!appointmentDate && apt.date) {
+          const parsedDate = parseDateTime(apt.date);
+          if (parsedDate) {
+            appointmentDate = formatDate(parsedDate);
+            // Keep the parsed time from appointmentDateTime or use existing time
+            if (appointmentTime === "12:00 AM" && apt.time) {
+              appointmentTime = apt.time;
+            }
+          }
+        }
+        
+        // Use existing time if available and we haven't set a proper time yet
+        if (apt.time && appointmentTime === "12:00 AM") {
+          appointmentTime = apt.time;
+        }
+        
+        // Fallback to current date if nothing works
+        if (!appointmentDate) {
+          console.warn(`No valid date found for appointment ${apt.appointmentId || apt.id || index}, using current date`);
+          appointmentDate = new Date().toISOString().split("T")[0];
+        }
+
+        return {
+          ...apt,
+          date: appointmentDate,
+          time: appointmentTime,
+          status: apt.status?.toLowerCase() || "pending",
+        };
+      } catch (error) {
+        console.error(`Error transforming appointment ${apt.appointmentId || apt.id || index}:`, error);
+        console.error("Problematic appointment data:", apt);
+        
+        // Return a safe fallback appointment
+        return {
+          ...apt,
+          date: new Date().toISOString().split("T")[0],
+          time: "12:00 AM",
+          status: apt.status?.toLowerCase() || "pending",
+        };
+      }
+    });
+
+    // Remove duplicates based on appointment ID
+    const seen = new Set();
+    const uniqueAppointments = transformedAppointments.filter(apt => {
+      const key = getRowKey(apt);
+      if (seen.has(key)) {
+        console.log("Removing duplicate appointment:", key);
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+
+    console.log("Final unique appointments:", uniqueAppointments.length);
+    console.log("Sample transformed appointment:", uniqueAppointments[0]);
+    
+    setAllAppointments(uniqueAppointments);
+
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    setAllAppointments([]);
+    toast({
+      title: "Error",
+      description: "Failed to fetch appointments. Please refresh the page.",
+      variant: "destructive",
+    });
+  }
+};
 
   const handleRevisit = (appointment) => {
     setRevisitAppointment(appointment);

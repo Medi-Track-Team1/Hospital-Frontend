@@ -33,7 +33,7 @@ export const MedicalAppointments = () => {
   const { toast } = useToast();
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
-  const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
+  // const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
   const navigate = useNavigate();
   const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
   const [cancelAppointment, setCancelAppointment] = useState(null);
@@ -389,6 +389,7 @@ export const MedicalAppointments = () => {
           isOpen={!!rescheduleAppointment}
           onClose={() => setRescheduleAppointment(null)}
           onReschedule={(date, time) =>
+            // eslint-disable-next-line no-undef
             handleRescheduleConfirm(rescheduleAppointment.id, date, time)
           }
           patientName={rescheduleAppointment.patient?.name || rescheduleAppointment.patientName}

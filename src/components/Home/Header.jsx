@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LogIn, Menu, X, ChevronDown, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Header = ({ onLoginClick }) => {
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
@@ -15,16 +16,18 @@ const Header = ({ onLoginClick }) => {
 
   const navigate = useNavigate();
 
-  const departments = [
-    { name: "Cardiology", link: "/departments/cardiology" },
-    { name: "Neurology", link: "/departments/neurology" },
-    { name: "Hepatology", link: "/departments/hepatology" },
-    { name: "Pediatrics", link: "/departments/pediatrics" },
-    { name: "Eye Care", link: "/departments/Eyecare" },
-    { name: "Dental", link: "/departments/Dental" },
-    { name: "Fertility", link: "/departments/fertility" },
-    { name: "Psychology", link: "/departments/psychology" },
-  ];
+const departments = [
+  { name: "Cardiology", link: "/departments/cardiology" },
+  { name: "Neurology", link: "/departments/neurology" },
+  { name: "Hepatology", link: "/departments/hepatology" },
+  { name: "Pediatrics", link: "/departments/pediatrics" },
+  { name: "Eye Care", link: "/departments/eyecare" },
+  { name: "Dental", link: "/departments/dental" },
+  { name: "Fertility", link: "/departments/fertility" },
+  { name: "Psychology", link: "/departments/psychology" },
+  { name: "General", link: "/departments/general" }
+];
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -152,19 +155,22 @@ const Header = ({ onLoginClick }) => {
                   Departments
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </button>
-                {isDepartmentsOpen && (
-                  <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 shadow-lg rounded-md z-10 p-2 grid grid-cols-2 gap-1">
-                    {departments.map((dept, idx) => (
-                      <a
-                        key={idx}
-                        href={dept.link}
-                        className="block px-4 py-2 text-sm text-black hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        {dept.name}
-                      </a>
-                    ))}
-                  </div>
-                )}
+
+{isDepartmentsOpen && (
+  <div className="absolute left-0 mt-2 w-96 bg-white border border-gray-200 shadow-lg rounded-md z-10 p-2 grid grid-cols-2 gap-1">
+    {departments.map((dept, idx) => (
+      <Link
+        key={idx}
+        to={dept.link}   // use "to" instead of "href"
+        className="block px-4 py-2 text-sm text-black hover:bg-blue-50 hover:text-blue-600"
+        onClick={() => setIsDepartmentsOpen(false)} // optional: close dropdown after click
+      >
+        {dept.name}
+      </Link>
+    ))}
+  </div>
+)}
+
               </div>
 
               <button
@@ -181,7 +187,7 @@ const Header = ({ onLoginClick }) => {
               </button>
               {/* <button
                 onClick={() => handleNavClick("#appointment")}
-                className={`${navLinkClass("#appointment")} hidden lg:block`}
+                className={${navLinkClass("#appointment")} hidden lg:block}
               >
                 Appointment
               </button> */}

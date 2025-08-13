@@ -108,8 +108,27 @@ const PharmacyInventory = () => {
     setSortConfig({ key, direction });
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
-  if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 md:p-6 bg-red-50 text-red-600 rounded-lg">
+        <p>Error loading medicines: {error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">

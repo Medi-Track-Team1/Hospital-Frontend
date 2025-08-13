@@ -23,6 +23,8 @@ const DoctorInfoBar = () => {
 
 
   if (!doctor) return <div className="text-center py-10">Loading...</div>;
+if (doctor === null) return <div>No Doctor found</div>;
+
 
   return (
     <div className="w-full bg-white shadow-md rounded-xl p-6 md:p-10 max-w-6xl mx-auto mt-8 mb-8">
@@ -43,7 +45,7 @@ const DoctorInfoBar = () => {
             <p className="text-blue-600 text-lg font-medium">{doctor.specialty}</p>
             <span
               className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
-              ${doctor.status === "available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              ${doctor.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
             >
               {doctor.status}
             </span>

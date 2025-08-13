@@ -23,9 +23,10 @@ import {
   createDoctor,
   updateDoctor,
   deleteDoctor,
-  getDoctorProfile
-} from '../Admin/services/doctorService';
+  getDoctorById
+} from './services/doctorService';
 import LoadingSpinner from '../../components/Admin/LoadingSpinner';
+import {registerUser} from '../Auth/api';
 
 const Doctors = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,31 +44,57 @@ const Doctors = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getAllDoctors();
-        setDoctors(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-        toast.error(`Failed to fetch doctors: ${err.message}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     fetchDoctors();
   }, []);
 
+  const fetchDoctors = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllDoctors();
+      setDoctors(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      toast.error(`Failed to fetch doctors: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleAddDoctor = async (newDoctor) => {
     try {
+      console.log('Adding doctor:', newDoctor);
+      
+      // Remove confirmPassword from the payload
       const { confirmPassword, ...doctorData } = newDoctor;
+      
+      // Validate required fields
+      if (!doctorData.doctorName || !doctorData.email || !doctorData.password || !doctorData.phone || !doctorData.specialty || !doctorData.nmrId) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+
+      // Validate password match
+      if (doctorData.password !== confirmPassword) {
+        toast.error('Passwords do not match');
+        return;
+      }
+
       const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
       
       const createdDoctor = await createDoctor(doctorData, profilePhoto);
+      console.log(createdDoctor);
+      const authResponse = await registerUser({
+        username: createdDoctor.doctorName,
+        email: createdDoctor.email,
+        password: createdDoctor.password,
+        userId: createdDoctor.doctorId
+      });
+      console.log('Auth response:', authResponse);
+
+      // Refresh the doctors list
+      await fetchDoctors();
       
-      setDoctors([...doctors, createdDoctor]);
       setIsModalOpen(false);
       toast.success('Doctor added successfully!');
     } catch (err) {
@@ -78,17 +105,30 @@ const Doctors = () => {
 
   const handleUpdateDoctor = async (updatedDoctor) => {
     try {
-      const profilePhoto = updatedDoctor.profilePhoto instanceof File ? 
-        updatedDoctor.profilePhoto : 
-        null;
+      console.log('Updating doctor:', updatedDoctor);
       
-      const { id, confirmPassword, ...doctorData } = updatedDoctor;
+      const { id, confirmPassword, profilePhoto, ...doctorData } = updatedDoctor;
       
-      const updated = await updateDoctor(id, doctorData, profilePhoto);
+      // Use the doctorId from the selected doctor, not the id field
+      const doctorId = selectedDoctor?.doctorId || id;
       
-      setDoctors(doctors.map(doctor => 
-        doctor.doctorId === updated.doctorId ? updated : doctor
-      ));
+      if (!doctorId) {
+        toast.error('Doctor ID not found');
+        return;
+      }
+
+      // For updates, we keep the existing password if not changed
+      const updateData = {
+        ...doctorData,
+        // Keep existing password if none provided
+        password: doctorData.password || selectedDoctor.password
+      };
+      
+      const updated = await updateDoctor(doctorId, updateData, null);
+      
+      // Refresh the doctors list
+      await fetchDoctors();
+      
       setIsModalOpen(false);
       setIsEditMode(false);
       setSelectedDoctor(null);
@@ -100,11 +140,16 @@ const Doctors = () => {
   };
 
   const handleEditDoctor = (doctor) => {
+    console.log('Editing doctor:', doctor);
+    
     setSelectedDoctor({
       ...doctor,
-      id: doctor.doctorId,
+      id: doctor.doctorId, // Use doctorId as id for form handling
+      // Convert array to comma-separated string if needed
       languages: Array.isArray(doctor.languages) ? doctor.languages.join(', ') : doctor.languages || '',
-      confirmPassword: doctor.password,
+      // Don't include password in edit form for security
+      password: '',
+      confirmPassword: '',
       status: doctor.status || 'Active',
       departmentId: doctor.departmentId || 'DEP-00001'
     });
@@ -115,7 +160,7 @@ const Doctors = () => {
   const handleViewProfile = async (doctor) => {
     try {
       setProfileLoading(true);
-      const profileData = await getDoctorProfile(doctor.doctorId);
+      const profileData = await getDoctorById(doctor.doctorId);
       setSelectedDoctor({
         ...doctor,
         ...profileData
@@ -139,7 +184,10 @@ const Doctors = () => {
   const confirmDeleteDoctor = async () => {
     try {
       await deleteDoctor(doctorToDelete.doctorId);
-      setDoctors(doctors.filter(doctor => doctor.doctorId !== doctorToDelete.doctorId));
+      
+      // Refresh the doctors list
+      await fetchDoctors();
+      
       setDeleteModalOpen(false);
       setDoctorToDelete(null);
       toast.success('Doctor deleted successfully!');
@@ -154,18 +202,20 @@ const Doctors = () => {
       e.target.src = '/default-doctor.png';
     };
 
-    return doctor.photoUrl ? (
-      <img 
-        src={doctor.photoUrl} 
-        alt={doctor.doctorName}
-        className="w-10 h-10 rounded-full object-cover"
-        onError={handleImageError}
-      />
-    ) : (
-      <HiUserCircle className="w-10 h-10 text-gray-400" />
-    );
+    if (doctor.photoUrl) {
+      return (
+        <img 
+          src={doctor.photoUrl} 
+          alt={doctor.doctorName}
+          className="w-10 h-10 rounded-full object-cover"
+          onError={handleImageError}
+          loading="lazy"
+        />
+      );
+    }
+    return <HiUserCircle className="w-10 h-10 text-gray-400" />;
   };
-
+  
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          doctor.specialty?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -254,8 +304,8 @@ const Doctors = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
               <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="on leave">On Leave</option>
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
             </select>
           </div>
         </div>
@@ -450,7 +500,7 @@ const Doctors = () => {
           { name: 'phone', label: 'Phone', type: 'tel', required: true },
           { name: 'bio', label: 'Bio', type: 'textarea', required: false },
           { name: 'education', label: 'Education', type: 'text', required: false },
-          { name: 'experience', label: 'Experience', type: 'textarea', required: false },
+          { name: 'experience', label: 'Experience', type: 'text', required: false },
           { name: 'languages', label: 'Languages (comma separated)', type: 'text', required: false },
           { 
             name: 'status', 

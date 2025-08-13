@@ -26,7 +26,9 @@ const ReceptionBilling = () => {
       return;
     }
     try {
-      const res = await axios.get(`/api/patient/${pid}`);
+      const res = await axios.get(
+        `https://billing-backend-0zk0.onrender.com/api/patient/${pid}`
+      );
       console.log("Fetched patient:", res.data);
       if (res.data && res.data.name) setPatientName(res.data.name);
       else setPatientName("");
@@ -39,7 +41,9 @@ const ReceptionBilling = () => {
   const fetchBillByPatientId = async (enteredPatientId) => {
     if (!enteredPatientId) return;
     try {
-      const res = await axios.get(`/api/billing/${enteredPatientId}`);
+      const res = await axios.get(
+        `https://billing-backend-0zk0.onrender.com/api/billing/${enteredPatientId}`
+      );
       if (res.data && res.data.success && res.data.data) {
         const billing = res.data.data;
 

@@ -45,6 +45,29 @@ const Psychology = () => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
+  // Check if doctor is available for booking
+  const isDoctorAvailable = (status) => {
+    const availableStatuses = ["Active", "Available"];
+    return availableStatuses.includes(status);
+  };
+
+  // Get button text based on status
+  const getButtonText = (status) => {
+    switch (status.toLowerCase()) {
+      case "inactive":
+        return "Currently Unavailable";
+      case "on leave":
+      case "on_leave":
+        return "Doctor on Leave";
+      case "busy":
+        return "Currently Busy";
+      case "offline":
+        return "Currently Offline";
+      default:
+        return isDoctorAvailable(status) ? "Book Appointment" : "Not Available";
+    }
+  };
+
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -131,47 +154,76 @@ const Psychology = () => {
       <div className="flex flex-wrap justify-center gap-6 px-2 sm:px-0">
         {loading
           ? Array.from({ length: 1 }).map((_, idx) => <SkeletonCard key={idx} />)
-          : doctors.map((doctor, index) => (
-              <motion.div
-                key={doctor.doctorId}
-                className="bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center"
-                initial="hidden"
-                animate="visible"
-                variants={fadeInUp}
-                custom={index + 1}
-              >
-                <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow">
-                  <img
-                    src={doctor.photoUrl}
-                    alt={doctor.doctorName}
-                    className="w-full h-full object-cover object-top"
-                  />
-                </div>
-                <div className="mt-4 text-center">
-                  <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
-                  <p className="text-blue-600 text-sm">{doctor.specialty}</p>
-                  <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
-                    ★★★★☆<span className="text-black ml-2">4.3</span>
+          : doctors.map((doctor, index) => {
+              const isAvailable = isDoctorAvailable(doctor.status);
+              
+              return (
+                <motion.div
+                  key={doctor.doctorId}
+                  className={`bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center ${
+                    !isAvailable ? 'opacity-75' : ''
+                  }`}
+                  initial="hidden"
+                  animate="visible"
+                  variants={fadeInUp}
+                  custom={index + 1}
+                >
+                  <div className="w-28 h-28 overflow-hidden rounded-full bg-white shadow relative">
+                    <img
+                      src={doctor.photoUrl}
+                      alt={doctor.doctorName}
+                      className={`w-full h-full object-cover object-top ${
+                        !isAvailable ? 'grayscale' : ''
+                      }`}
+                    />
+                    {!isAvailable && (
+                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                        <span className="text-white text-xs font-semibold">Unavailable</span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-                  <p><strong>ID:</strong> #{doctor.doctorId}</p>
-                  <p><strong>Experience:</strong> {doctor.experience}</p>
-                  <p><strong>Education:</strong> {doctor.education}</p>
-                  <p><strong>Languages:</strong> {doctor.languages}</p>
-                  <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
-                  <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
-                </div>
-                <div className="mt-6 w-full px-4">
-                  <button
-                    onClick={() => handleBookClick(doctor)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="mt-4 text-center">
+                    <h2 className="text-xl font-semibold">{doctor.doctorName}</h2>
+                    <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                    <div className="flex justify-center items-center text-yellow-500 text-sm mt-1">
+                      ★★★★☆<span className="text-black ml-2">4.3</span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
+                    <p><strong>ID:</strong> {doctor.doctorId}</p>
+                    <span
+                      className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
+                      ${
+                        doctor.status === "Active" || doctor.status === "Available" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {doctor.status}
+                    </span>
+                    <p><strong>Experience:</strong> {doctor.experience}</p>
+                    <p><strong>Education:</strong> {doctor.education}</p>
+                    <p><strong>Languages:</strong> {doctor.languages}</p>
+                    <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
+                    <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
+                  </div>
+                  <div className="mt-6 w-full px-4">
+                    <button
+                      onClick={isAvailable ? () => handleBookClick(doctor) : undefined}
+                      disabled={!isAvailable}
+                      className={`w-full py-2 rounded-lg font-semibold transition-all duration-200 ${
+                        isAvailable
+                          ? 'bg-blue-600 text-white hover:bg-blue-800 cursor-pointer'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300'
+                      }`}
+                      title={!isAvailable ? 'Doctor is currently not available for appointments' : 'Click to book appointment'}
+                    >
+                      {getButtonText(doctor.status)}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
       </div>
 
       <div className="h-[40px]" />

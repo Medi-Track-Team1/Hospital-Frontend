@@ -25,8 +25,7 @@ const Dashboard = () => {
     doctorCount: 'https://doctorpanel-backend.onrender.com/api/doctor/count',
     topDoctors: 'https://doctorpanel-backend.onrender.com/api/doctor/top-doctors-by-prescriptions',
     appointments: 'https://appoitment-backend.onrender.com/api/appointments/stats',
-    revenue: 'https://billing-backend-0zk0.onrender.com/api/billing/total-amount',
-    recentAppointments: 'https://appoitment-backend.onrender.com/api/appointments/recent'
+    revenue: 'https://billing-backend-0zk0.onrender.com/api/billing/total-amount'
   };
 
   const fetchWithRetry = async (url, options = {}, retries = 3) => {
@@ -114,7 +113,7 @@ const Dashboard = () => {
         languages: doctor.languages?.split(', ') || [],
         status: doctor.status?.toLowerCase() || 'active',
         prescriptionCount: doctor.prescriptionCount || 0,
-        photo: doctor.photolw1
+        photo: doctor.photoUr1
       }));
       setDoctors(formattedDoctors);
 
@@ -232,7 +231,7 @@ const Dashboard = () => {
                 {doctors.length > 0 ? (
                   doctors.slice(0, 5).map((doctor) => (
                     <DoctorCard 
-                      key={doctor.id} 
+                      key={doctor.doctorId} 
                       {...doctor} 
                       onViewProfile={() => handleViewProfile(doctor)}
                     />

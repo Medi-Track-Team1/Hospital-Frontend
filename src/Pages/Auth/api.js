@@ -1,5 +1,37 @@
 export const API_BASE_URL = 'https://authentication-n090.onrender.com/api/auth';
+export const requestPasswordReset = async (email) => {
+  const response = await fetch(`${API_BASE_URL}/forgot-password?email=${encodeURIComponent(email)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Password reset request failed');
+  }
+  
+  return data;
+};
 
+export const resetPassword = async (userId, newPassword) => {
+  const response = await fetch(`${API_BASE_URL}/reset-password?userId=${userId}&newPassword=${encodeURIComponent(newPassword)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Password reset failed');
+  }
+  
+  return data;
+};
 // Add this missing JWT parsing function
 const parseJwt = (token) => {
   try {
@@ -26,19 +58,34 @@ const determineRole = (email, decodedToken = null) => {
   return 'ROLE_PATIENT';
 };
 
+// Store user data safely as JSON
 const storeUserData = (user) => {
-  localStorage.setItem('currentUser', JSON.stringify(user));
+  localStorage.setItem('currentUser', " ");
+  if (typeof user === 'object' && user !== null) {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+  } else {
+    console.error("storeUserData: Invalid user object", user);
+  }
 };
+
+// Retrieve current user safely, even if localStorage is corrupted
+const getCurrentUser = () => {
+  const user = localStorage.getItem("currentUser");
+  if (!user) return null;
+  
+  try {
+    // Try to parse as JSON first
+    return JSON.parse(user);
+  } catch (e) {
+    // If parsing fails, it's a plain string ID
+    return { userId: user };
+  }
+};
+
 
 const clearUserData = () => {
   localStorage.removeItem('currentUser');
 };
-
-export const getCurrentUser = () => {
-  const user = localStorage.getItem('currentUser');
-  return user ? JSON.parse(user) : null;
-};
-
 export const getAuthToken = () => {
   const user = getCurrentUser();
   return user ? user.token : null;
@@ -58,14 +105,15 @@ export const isAuthenticated = () => {
 export const registerUser = async (userData) => {
   const roles = new Set([determineRole(userData.email)]);
   const payload = {
-    username: userData.username || userData.patientName,
+    username: userData.username,
     email: userData.email,
     password: userData.password,
     enabled: true,
     roles: Array.from(roles),
     userid:userData.userId
 
-  };
+  }; 
+  console.log(payload)
 
   const response = await fetch(`${API_BASE_URL}/register`, {
     method: 'POST',
@@ -107,9 +155,8 @@ export const loginUser = async (email, password) => {
     token: data.token,
     email: email,
     role: role,
-    username: data.username || email.split('@')[0],
-    userId:data.userid,
-    ...data.userDetails 
+    username: data.username,
+    userId:data.userid
   };
 
   storeUserData(user);
@@ -118,6 +165,7 @@ export const loginUser = async (email, password) => {
 
 export const logoutUser = () => {
   clearUserData();
+ 
 };
 
 export const registerPatientDetails = async (patientData) => {
@@ -171,6 +219,7 @@ export const authFetch = async (url, options = {}) => {
   if (decoded.exp * 1000 - Date.now() < 300000) { // 5 minutes
     console.warn('Access token about to expire, consider refreshing');
   }
+  
   
   const response = await fetch(url, {
     ...options,

@@ -47,13 +47,19 @@ const EyeCare = () => {
         <div className="flex items-center space-x-4 mb-4 sm:mb-0">
           <Eye className="w-10 h-10 text-blue-600" />
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-black">Eye Care</h2>
-            <p className="text-lg sm:text-xl font-bold text-gray-500">Vision You Can Trust</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-black">
+              Eye Care
+            </h2>
+            <p className="text-lg sm:text-xl font-bold text-gray-500">
+              Vision You Can Trust
+            </p>
           </div>
         </div>
         <button
           onClick={() => {
-            document.getElementById("Doctors")?.scrollIntoView({ behavior: "smooth" });
+            document
+              .getElementById("Doctors")
+              ?.scrollIntoView({ behavior: "smooth" });
           }}
           className="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-full font-semibold transition"
         >
@@ -104,7 +110,10 @@ const EyeCare = () => {
       </motion.div>
 
       {/* Doctor Section */}
-      <h1 className="text-3xl font-bold text-black text-center scroll-mt-28" id="Doctors">
+      <h1
+        className="text-3xl font-bold text-black text-center scroll-mt-28"
+        id="Doctors"
+      >
         Meet Our <span className="text-blue-600">Eye Specialists</span>
       </h1>
       <p className="text-md text-gray-800 mt-2 mb-6 text-center max-w-xl">
@@ -136,7 +145,7 @@ const EyeCare = () => {
               </div>
             </div>
             <div className="text-sm text-gray-700 mt-4 text-left w-full px-4 space-y-1">
-              <p><strong>ID:</strong> #{doctor.doctorId}</p>
+              <p><strong>ID:</strong>{doctor.doctorId}</p>
               <span
                     className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
                     ${doctor.status === "Active" || doctor.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
@@ -149,7 +158,7 @@ const EyeCare = () => {
               <p className="flex items-center"><Phone className="w-4 h-4 mr-1" /> {doctor.phone}</p>
               <p className="flex items-center"><Mail className="w-4 h-4 mr-1" /> {doctor.email}</p>
             </div>
-            // Replace the existing button section in your doctor card with this:
+           
 <div className="mt-6 w-full px-4">
   <button
     onClick={() => {

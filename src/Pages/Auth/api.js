@@ -63,7 +63,7 @@ export const registerUser = async (userData) => {
     password: userData.password,
     enabled: true,
     roles: Array.from(roles),
-    userid:localStorage.getItem("id")
+    userid:userData.userId
 
   };
 

@@ -6,9 +6,11 @@ const REST_API_BASE_URL = 'https://appoitment-backend.onrender.com/api/appointme
 // ✅ Get upcoming appointments by doctor ID
 export const listUpcomingAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/upcoming`);
+
 // Add this to your AppointmentService.js
 export const listCompletedAppointmentsByPatientId = (patientId) =>
   axios.get(`${REST_API_BASE_URL}/patient/${patientId}/completed`);
+
 // ✅ Get completed appointments by doctor ID  
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/completed`);
@@ -41,15 +43,25 @@ export const markAppointmentCompleted = async (appointmentId) => {
   }
 };
 
-// ✅ FIXED: Cancel appointment (UPDATE status to CANCELED)
-export const cancelAppointmentById = async (appointmentId) => {
+// ✅ FIXED: Cancel appointment with reason (sends reason as query parameter)
+export const cancelAppointmentById = async (appointmentId, reason) => {
   try {
-    console.log(`Cancelling appointment ${appointmentId}`);
-    const response = await axios.put(`${REST_API_BASE_URL}/cancel/${appointmentId}`);
+    console.log(`Cancelling appointment ${appointmentId} with reason: ${reason}`);
+    
+    // Send reason as query parameter to match backend expectation
+    const response = await axios.put(
+      `${REST_API_BASE_URL}/cancel/${appointmentId}?reason=${encodeURIComponent(reason)}`
+    );
+    
     console.log('Appointment cancelled successfully:', response.data);
     return response;
   } catch (error) {
     console.error('Error cancelling appointment:', error);
+    if (error.response?.status === 404) {
+      console.error(`Appointment with ID ${appointmentId} not found`);
+    } else if (error.response?.status === 400) {
+      console.error('Bad request - reason may be missing or invalid');
+    }
     throw error;
   }
 };

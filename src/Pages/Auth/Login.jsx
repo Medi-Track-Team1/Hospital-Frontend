@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { loginUser, requestPasswordReset } from './api';
+import { loginUser, requestPasswordReset, resetPassword } from './api';
 import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
@@ -15,6 +15,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [userId, setUserId] = useState(null);
 
     const handleInputChange = (e) => {
@@ -92,9 +93,9 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
         try {
             const response = await requestPasswordReset(forgotPasswordEmail);
             setUserId(response.userId);
-            setForgotPasswordSuccess('Password reset link sent. Please check your email.');
+            setForgotPasswordSuccess('Please enter your new password');
         } catch (error) {
-            setError(error.message || 'Failed to send reset link');
+            setError(error.message || 'Failed to verify email. Please check your email address.');
         } finally {
             setIsLoading(false);
         }
@@ -104,8 +105,13 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
         e.preventDefault();
         setError('');
         
-        if (!newPassword) {
-            setError('New password is required');
+        if (!newPassword || !confirmPassword) {
+            setError('Both password fields are required');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setError('Passwords do not match');
             return;
         }
 
@@ -118,6 +124,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
                 setShowForgotPassword(false);
                 setForgotPasswordEmail('');
                 setNewPassword('');
+                setConfirmPassword('');
                 setUserId(null);
             }, 2000);
         } catch (error) {
@@ -217,7 +224,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
             ) : (
                 <>
                     <h2 className="text-2xl font-bold text-center text-black mb-2">Reset Password</h2>
-                    <p className="text-black text-center mb-6">Enter your email to receive a reset link</p>
+                    <p className="text-black text-center mb-6">Enter your email to reset your password</p>
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
@@ -262,7 +269,7 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
                                     disabled={isLoading}
                                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                 >
-                                    {isLoading ? 'Sending...' : 'Send Reset Link'}
+                                    {isLoading ? 'Verifying...' : 'Verify Email'}
                                 </button>
                             </div>
                         </form>
@@ -275,6 +282,18 @@ const Login = ({ onClose, onSignupClick, onLoginSuccess }) => {
                                     placeholder="Enter new password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm text-black mb-1">Confirm Password:</label>
+                                <input
+                                    type="password"
+                                    placeholder="Confirm new password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="w-full px-4 py-2 border border-blue-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 />

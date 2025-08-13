@@ -121,13 +121,13 @@ const departments = [
 
     switch (currentUser.role) {
       case "role_admin":
-        navigate("/admin/dashboard");
+        navigate("/admin/*");
         break;
       case "role_doctor":
-        navigate("/doctor/profile");
+        navigate(`/doctor/${currentUser.userId}`);
         break;
       case "role_nurse":
-        navigate("/nurse/profile");
+        navigate("/reception/");
         break;
       case "role_patient":
         navigate(`/patient/${currentUser.userId}`);

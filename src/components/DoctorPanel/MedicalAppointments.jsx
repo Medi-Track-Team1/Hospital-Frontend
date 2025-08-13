@@ -24,8 +24,6 @@ import {
 } from "react-icons/md";
 import { AppointmentCard } from "./AppointmentCard";
 import { PatientDetailsModal } from "./PatientDetailsModal";
-// Remove the problematic useToast import
-// import { useToast } from "../../hooks/DoctorPanelHooks/use-toast";
 import PrescribeModal from "./PrescribeModal";
 import ViewPrescriptionModal from "./ViewPrescriptionModel";
 import {
@@ -731,7 +729,7 @@ export const MedicalAppointments = () => {
     return variants[status] || variants.pending;
   };
 
-  // Replace the existing handleCancelConfirm function with this updated version
+  // UPDATED: handleCancelConfirm function with reason parameter
   const handleCancelConfirm = async () => {
     if (!cancelReason.trim()) {
       showToast(
@@ -745,13 +743,15 @@ export const MedicalAppointments = () => {
     setIsCancelling(true);
 
     try {
+      // ✅ FIXED: Pass the cancellation reason to the service function
       await cancelAppointmentById(
-        cancelAppointment.appointmentId || cancelAppointment.id
+        cancelAppointment.appointmentId || cancelAppointment.id,
+        cancelReason.trim()  // Pass the reason as second parameter
       );
 
       showToast(
         "Appointment Cancelled",
-        `Appointment for ${cancelAppointment.patientName} has been cancelled.`,
+        `Appointment for ${cancelAppointment.patientName} has been cancelled. Email notification sent with reason.`,
         "success"
       );
 
@@ -765,9 +765,20 @@ export const MedicalAppointments = () => {
 
     } catch (error) {
       console.error("Error cancelling appointment:", error);
+      
+      // Better error handling
+      let errorMessage = "Failed to cancel appointment. Please try again.";
+      if (error.response?.status === 400) {
+        errorMessage = "Invalid cancellation reason provided.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Appointment not found.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       showToast(
         "Error",
-        "Failed to cancel appointment. Please try again.",
+        errorMessage,
         "destructive"
       );
     } finally {
@@ -1315,40 +1326,64 @@ export const MedicalAppointments = () => {
 
       {/* Cancel Appointment Modal */}
       {cancelAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-red-600">
-              Cancel Appointment
-            </h2>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 text-sm">⚠</span>
+              </div>
+              <h2 className="text-lg font-semibold text-red-600">
+                Cancel Appointment
+              </h2>
+            </div>
+            
             <p className="text-sm text-gray-600">
               Please provide a reason for cancelling the appointment with{" "}
-              <strong>
-                {cancelAppointment.patient?.name ||
-                  cancelAppointment.patientName}
-              </strong>
-              .
+              <strong>{cancelAppointment.patientName}</strong>.
+              <br />
+              <span className="text-xs text-gray-500 mt-1 block">
+                The patient will receive an email with this cancellation reason.
+              </span>
             </p>
-            <textarea
-              rows={4}
-              className="w-full border rounded p-2 text-sm"
-              placeholder="Enter cancellation reason..."
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              disabled={isCancelling}
-            />
-            <div className="flex justify-end space-x-2">
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cancellation Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="Please enter a detailed reason for cancellation (e.g., doctor unavailable due to emergency, facility maintenance, etc.)..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                disabled={isCancelling}
+                maxLength={500}
+              />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-gray-500">
+                  {cancelReason.length}/500 characters
+                </span>
+                {!cancelReason.trim() && (
+                  <span className="text-xs text-red-500">
+                    Reason is required
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4">
               <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                 onClick={() => {
                   setCancelAppointment(null);
                   setCancelReason("");
                 }}
                 disabled={isCancelling}
               >
-                Close
+                Keep Appointment
               </button>
               <button
-                className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center ${
+                className={`px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center ${
                   !cancelReason.trim() || isCancelling ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={!cancelReason.trim() || isCancelling}
@@ -1360,9 +1395,24 @@ export const MedicalAppointments = () => {
                     Cancelling...
                   </>
                 ) : (
-                  "Confirm Cancel"
+                  <>
+                    <span className="mr-2">📧</span>
+                    Cancel & Send Email
+                  </>
                 )}
               </button>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <div className="flex">
+                <span className="text-yellow-600 mr-2">💡</span>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">What happens next?</p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    The patient will receive an email notification with your cancellation reason and can reschedule if needed.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
-// PatientHistory.jsx - Main component
+// PatientHistory.jsx - Updated with patientId support
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, X, Filter, Calendar, Stethoscope } from "lucide-react";
 
 import Header from "./Header";
@@ -16,6 +16,8 @@ import { searchPrescriptions } from "../../Utils/SearchUtils";
 
 const PatientHistory = () => {
   const navigate = useNavigate();
+  const { patientId } = useParams(); // Get patientId from URL parameters
+  
   const [prescriptions, setPrescriptions] = useState([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
@@ -38,8 +40,17 @@ const PatientHistory = () => {
     const fetchPrescriptions = async () => {
       setIsLoading(true);
       try {
-        setPrescriptions(mockPrescriptions);
-        setFilteredPrescriptions(mockPrescriptions);
+        // TODO: Replace with actual API call using patientId
+        // const response = await fetch(`/api/prescriptions/patient/${patientId}`);
+        // const data = await response.json();
+        
+        // For now, using mock data - filter by patientId if needed
+        const patientPrescriptions = mockPrescriptions.filter(p => 
+          p.patientId === patientId || !p.patientId // fallback for mock data
+        );
+        
+        setPrescriptions(patientPrescriptions);
+        setFilteredPrescriptions(patientPrescriptions);
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
       } finally {
@@ -47,8 +58,10 @@ const PatientHistory = () => {
       }
     };
 
-    fetchPrescriptions();
-  }, []);
+    if (patientId) {
+      fetchPrescriptions();
+    }
+  }, [patientId]);
 
   // Filter prescriptions based on active tab, search query, and filters
   useEffect(() => {
@@ -90,6 +103,11 @@ const PatientHistory = () => {
     }));
   };
 
+  // Handle back navigation to patient profile
+  const handleBackToProfile = () => {
+    navigate(`/patient/${patientId}`);
+  };
+
   const activeFiltersCount = Object.values(filters).filter((value) =>
     typeof value === "object" ? value.start || value.end : value
   ).length;
@@ -99,6 +117,23 @@ const PatientHistory = () => {
       <Header navigate={navigate} />
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Back to Profile Button */}
+        <div className="mb-6">
+          <button
+            onClick={handleBackToProfile}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Profile
+          </button>
+        </div>
+
+        {/* Patient History Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical History</h1>
+          <p className="text-gray-600">Patient ID: {patientId}</p>
+        </div>
+
         <SearchAndFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

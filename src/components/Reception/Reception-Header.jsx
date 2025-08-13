@@ -12,6 +12,7 @@ import {
   FileText,
   CreditCard,
   History,
+  LogIn
 } from "lucide-react";
 
 const Header = ({ onDrawerToggle }) => {
@@ -126,7 +127,7 @@ const Header = ({ onDrawerToggle }) => {
                   className="flex items-center space-x-2 px-3 py-2 rounded-full bg-white/20 text-white border border-white/30 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
                 >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5" />
+                    <LogIn className="w-4 h-4 mr-1 lg:mr-2" />
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </button>

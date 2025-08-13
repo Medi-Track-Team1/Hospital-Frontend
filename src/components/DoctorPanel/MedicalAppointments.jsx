@@ -121,6 +121,7 @@ export const MedicalAppointments = () => {
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
@@ -1168,6 +1169,7 @@ export const MedicalAppointments = () => {
           patient={selectedPatient}
         />
       )}
+
 
       {showPrescribeModal && selectedAppointment && (
         <PrescribeModal

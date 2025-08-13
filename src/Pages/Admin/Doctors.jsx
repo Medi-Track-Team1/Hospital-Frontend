@@ -26,6 +26,7 @@ import {
   getDoctorById
 } from './services/doctorService';
 import LoadingSpinner from '../../components/Admin/LoadingSpinner';
+import {registerUser} from '../Auth/api';
 
 const Doctors = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,7 +83,15 @@ const Doctors = () => {
       const profilePhoto = newDoctor.profilePhoto instanceof File ? newDoctor.profilePhoto : null;
       
       const createdDoctor = await createDoctor(doctorData, profilePhoto);
-      
+      console.log(createdDoctor);
+      const authResponse = await registerUser({
+        username: createdDoctor.doctorName,
+        email: createdDoctor.email,
+        password: createdDoctor.password,
+        userId: createdDoctor.doctorId
+      });
+      console.log('Auth response:', authResponse);
+
       // Refresh the doctors list
       await fetchDoctors();
       

@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import EditProfileModal from "./EditProfileModel";
 import Header from "../Home/Header";
 import { useNavigate, useParams } from "react-router-dom";
+
+
 import LoadingSpinner from "../Admin/LoadingSpinner";
+
 import {
   User,
   Calendar,
@@ -86,108 +89,35 @@ const PatientProfile = () => {
     }
   }, [activeTab, patientId, patientData]);
 
-  const fetchAppointments = async () => {
-  setAppointmentsLoading(true);
-  setAppointmentsError(null);
-  
-  try {
-    // FIXED: Use consistent domain name
-    const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/patient/${patientId}/upcoming`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-      mode: 'cors',
-      credentials: 'omit'
-    });
-    
-    console.log('Fetch appointments response status:', response.status);
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        // No appointments found - this is not an error, just empty state
-        setUpcomingAppointments([]);
-        return;
-      } else {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-    }
-    
-    const data = await response.json();
-    console.log("API Response:", data);
-    
-    // Handle different response structures
-    let appointmentsArray = [];
-    
-    if (Array.isArray(data)) {
-      appointmentsArray = data;
-    } else if (data.success && Array.isArray(data.data)) {
-      appointmentsArray = data.data;
-    } else if (data.data && Array.isArray(data.data)) {
-      appointmentsArray = data.data;
-    } else if (typeof data === 'object' && data !== null) {
-      appointmentsArray = [data];
-    }
-    
-    console.log("Appointments Array:", appointmentsArray);
-    
-    if (appointmentsArray.length > 0) {
-      // Transform and filter out cancelled appointments for upcoming view
-      const transformedAppointments = appointmentsArray
-        .filter(appointment => appointment.status !== 'CANCELLED') // Filter out cancelled appointments
-        .map(appointment => {
-          console.log("Processing appointment:", appointment);
-          
-          let appointmentDate = appointment.appointmentDate || appointment.date;
-          let appointmentTime = appointment.appointmentTime || appointment.time;
-          
-          if (appointment.appointmentDateTime && !appointmentDate) {
-            const dateTime = new Date(appointment.appointmentDateTime);
-            appointmentDate = dateTime.toISOString().split('T')[0];
-            appointmentTime = dateTime.toTimeString().split(' ')[0].substring(0, 5);
-          }
-          
-          return {
-            id: appointment._id || appointment.id || Math.random().toString(),
-            appointmentId: appointment.appointmentId,
-            date: formatAppointmentDate(appointmentDate),
-            time: formatAppointmentTime(appointmentTime),
-            provider: appointment.doctorName || appointment.doctorId || appointment.provider || 'Dr. Unknown',
-            department: appointment.department || appointment.specialty || 'General',
-            type: appointment.reason || appointment.appointmentType || appointment.type || 'Consultation',
-            status: appointment.status || 'PENDING',
-            duration: appointment.duration,
-            symptoms: appointment.symptoms,
-            additionalNotes: appointment.additionalNotes,
-            emergency: appointment.emergency,
-            originalData: appointment
-          };
-        });
-      
-      console.log("Transformed Appointments:", transformedAppointments);
-      setUpcomingAppointments(transformedAppointments);
-    } else {
-      console.log("No appointments found");
-      setUpcomingAppointments([]);
-    }
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    setAppointmentsError(error.message);
-    setUpcomingAppointments([]);
-  } finally {
-    setAppointmentsLoading(false);
-  }
-};
-
   // Helper function to format date from backend
-  const formatAppointmentDate = (dateString) => {
-    if (!dateString) return 'TBD';
+  const formatAppointmentDate = (dateInput) => {
+    if (!dateInput) return 'TBD';
+    
     try {
-      const date = new Date(dateString);
+      let date;
+      
+      // Handle array format [year, month, day, hour, minute]
+      if (Array.isArray(dateInput) && dateInput.length >= 3) {
+        // Month in array is 1-based, but Date constructor expects 0-based
+        date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+      }
+      // Handle string format
+      else if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+      }
+      // Handle direct date object
+      else if (dateInput instanceof Date) {
+        date = dateInput;
+      }
+      else {
+        return dateInput.toString(); // Return original if can't parse
+      }
+      
       // Check if date is valid
       if (isNaN(date.getTime())) {
-        return dateString; // Return original if can't parse
+        return dateInput.toString(); // Return original if can't parse
       }
+      
       return date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric', 
@@ -195,46 +125,166 @@ const PatientProfile = () => {
       });
     } catch (error) {
       console.error("Error formatting date:", error);
-      return dateString;
+      return dateInput ? dateInput.toString() : 'TBD';
     }
   };
 
   // Helper function to format time from backend
-  const formatAppointmentTime = (timeString) => {
-    if (!timeString) return 'TBD';
+  const formatAppointmentTime = (timeInput, dateTimeArray) => {
+    if (!timeInput && !dateTimeArray) return 'TBD';
+    
     try {
-      // If it's already in format like "10:30 AM", return as is
-      if (timeString.includes('AM') || timeString.includes('PM')) {
-        return timeString;
+      // If we have a dateTimeArray, use the hour and minute from it
+      if (Array.isArray(dateTimeArray) && dateTimeArray.length >= 5) {
+        const hour = dateTimeArray[3];
+        const minute = dateTimeArray[4];
+        
+        const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const formattedMinute = minute.toString().padStart(2, '0');
+        
+        return `${hour12}:${formattedMinute} ${ampm}`;
       }
       
-      // Handle full datetime string (e.g., "2025-08-20T05:30:00")
-      if (timeString.includes('T')) {
-        const date = new Date(timeString);
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          });
+      // Handle string input
+      if (typeof timeInput === 'string') {
+        // If it's already in format like "10:30 AM", return as is
+        if (timeInput.includes('AM') || timeInput.includes('PM')) {
+          return timeInput;
+        }
+        
+        // Handle full datetime string (e.g., "2025-08-20T05:30:00")
+        if (timeInput.includes('T')) {
+          const date = new Date(timeInput);
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+        
+        // If it's in 24-hour format like "14:30" or "05:30"
+        if (timeInput.includes(':') && timeInput.length <= 8) {
+          const [hours, minutes] = timeInput.split(':');
+          const hour24 = parseInt(hours);
+          if (!isNaN(hour24)) {
+            const hour12 = hour24 > 12 ? hour24 - 12 : hour24 === 0 ? 12 : hour24;
+            const ampm = hour24 >= 12 ? 'PM' : 'AM';
+            return `${hour12}:${minutes || '00'} ${ampm}`;
+          }
         }
       }
       
-      // If it's in 24-hour format like "14:30" or "05:30"
-      if (timeString.includes(':') && timeString.length <= 8) {
-        const [hours, minutes] = timeString.split(':');
-        const hour24 = parseInt(hours);
-        if (!isNaN(hour24)) {
-          const hour12 = hour24 > 12 ? hour24 - 12 : hour24 === 0 ? 12 : hour24;
-          const ampm = hour24 >= 12 ? 'PM' : 'AM';
-          return `${hour12}:${minutes || '00'} ${ampm}`;
-        }
-      }
-      
-      return timeString; // Return original if can't parse
+      return timeInput ? timeInput.toString() : 'TBD';
     } catch (error) {
       console.error("Error formatting time:", error);
-      return timeString;
+      return timeInput ? timeInput.toString() : 'TBD';
+    }
+  };
+
+  const fetchAppointments = async () => {
+    setAppointmentsLoading(true);
+    setAppointmentsError(null);
+    
+    try {
+      // FIXED: Use consistent domain name
+      const response = await fetch(`https://appoitment-backend.onrender.com/api/appointments/patient/${patientId}/upcoming`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      console.log('Fetch appointments response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No appointments found - this is not an error, just empty state
+          setUpcomingAppointments([]);
+          return;
+        } else {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      }
+      
+      const data = await response.json();
+      console.log("API Response:", data);
+      
+      // Handle different response structures
+      let appointmentsArray = [];
+      
+      if (Array.isArray(data)) {
+        appointmentsArray = data;
+      } else if (data.success && Array.isArray(data.data)) {
+        appointmentsArray = data.data;
+      } else if (data.data && Array.isArray(data.data)) {
+        appointmentsArray = data.data;
+      } else if (typeof data === 'object' && data !== null) {
+        appointmentsArray = [data];
+      }
+      
+      console.log("Appointments Array:", appointmentsArray);
+      
+      if (appointmentsArray.length > 0) {
+        // Transform and filter out cancelled appointments for upcoming view
+        const transformedAppointments = appointmentsArray
+          .filter(appointment => appointment.status !== 'CANCELLED')
+          .map(appointment => {
+            console.log("Processing appointment:", appointment);
+            
+            let appointmentDate, appointmentTime;
+            
+            // Handle different date/time formats from API
+            if (appointment.appointmentDateTime) {
+              if (Array.isArray(appointment.appointmentDateTime)) {
+                // Handle array format [year, month, day, hour, minute]
+                appointmentDate = appointment.appointmentDateTime;
+                appointmentTime = appointment.appointmentDateTime;
+              } else {
+                // Handle string format
+                const dateTime = new Date(appointment.appointmentDateTime);
+                appointmentDate = dateTime.toISOString().split('T')[0];
+                appointmentTime = dateTime.toTimeString().split(' ')[0].substring(0, 5);
+              }
+            } else {
+              // Fallback to separate date/time fields
+              appointmentDate = appointment.appointmentDate || appointment.date;
+              appointmentTime = appointment.appointmentTime || appointment.time;
+            }
+            
+            return {
+              id: appointment._id || appointment.id || Math.random().toString(),
+              appointmentId: appointment.appointmentId,
+              date: formatAppointmentDate(appointmentDate),
+              time: formatAppointmentTime(appointmentTime, Array.isArray(appointment.appointmentDateTime) ? appointment.appointmentDateTime : null),
+              provider: appointment.doctorName || appointment.doctorId || appointment.provider || 'Dr. Unknown',
+              department: appointment.department || appointment.specialty || 'General',
+              type: appointment.reason || appointment.appointmentType || appointment.type || 'Consultation',
+              status: appointment.status || 'PENDING',
+              duration: appointment.duration,
+              symptoms: appointment.symptoms,
+              additionalNotes: appointment.additionalNotes,
+              emergency: appointment.emergency,
+              originalData: appointment
+            };
+          });
+        
+        console.log("Transformed Appointments:", transformedAppointments);
+        setUpcomingAppointments(transformedAppointments);
+      } else {
+        console.log("No appointments found");
+        setUpcomingAppointments([]);
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      setAppointmentsError(error.message);
+      setUpcomingAppointments([]);
+    } finally {
+      setAppointmentsLoading(false);
     }
   };
 
@@ -286,228 +336,220 @@ const PatientProfile = () => {
     setShowRescheduleModal(true);
   };
 
-  // FIXED: Updated reschedule function with better error handling and CORS support
-// FIXED: Updated reschedule function with correct URL and appointment ID handling
-const handleConfirmReschedule = async (appointmentId, newDate, newTime) => {
-  console.log(`Attempting to reschedule appointment: ${appointmentId} to ${newDate} ${newTime}`);
-  
-  try {
-    // Find the appointment to get the correct appointmentId format
-    const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
-    
-    // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
-    const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
-    
-    console.log('Using appointment ID for API:', apiAppointmentId);
-    
-    // Convert date and time to LocalDateTime format expected by backend
-    const dateTimeString = `${newDate}T${newTime}:00`; // Format: 2025-08-20T14:30:00
-    console.log('DateTime string:', dateTimeString);
-    
-    // FIXED: Use correct URL (use the same domain as cancellation)
-    const url = `https://appoitment-backend.onrender.com/api/appointments/${apiAppointmentId}/reschedule?newDateTime=${encodeURIComponent(dateTimeString)}`;
-    console.log('Request URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'POST', // Keep POST as it's creating a new schedule
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      mode: 'cors',
-      credentials: 'omit'
-    });
+  const handleCancelAppointment = (appointmentId) => {
+    setSelectedAppointmentId(appointmentId);
+    setShowCancelModal(true);
+  };
 
-    console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      let errorMessage = `Failed to reschedule appointment (Status: ${response.status})`;
+  const handleConfirmReschedule = async (appointmentId, newDate, newTime) => {
+    console.log(`Attempting to reschedule appointment: ${appointmentId} to ${newDate} ${newTime}`);
+    
+    try {
+      // Find the appointment to get the correct appointmentId format
+      const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
       
-      try {
-        const errorText = await response.text();
-        console.log('Error response text:', errorText);
+      // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
+      const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
+      
+      console.log('Using appointment ID for API:', apiAppointmentId);
+      
+      // Convert date and time to LocalDateTime format expected by backend
+      const dateTimeString = `${newDate}T${newTime}:00`; // Format: 2025-08-20T14:30:00
+      console.log('DateTime string:', dateTimeString);
+      
+      const url = `https://appoitment-backend.onrender.com/api/appointments/${apiAppointmentId}/reschedule?newDateTime=${encodeURIComponent(dateTimeString)}`;
+      console.log('Request URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        let errorMessage = `Failed to reschedule appointment (Status: ${response.status})`;
         
-        if (errorText) {
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            errorMessage = errorText || errorMessage;
-          }
-        }
-      } catch (textError) {
-        console.log('Could not read error response');
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    const updatedAppointment = await response.json();
-    console.log('Reschedule successful:', updatedAppointment);
-
-    // Update local state with the response from backend
-    setUpcomingAppointments((prev) =>
-      prev.map((a) =>
-        a.id === appointmentId
-          ? {
-              ...a,
-              date: formatAppointmentDate(updatedAppointment.appointmentDateTime),
-              time: formatAppointmentTime(updatedAppointment.appointmentDateTime),
-              status: updatedAppointment.status || "RESCHEDULED"
+        try {
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          
+          if (errorText) {
+            try {
+              const errorData = JSON.parse(errorText);
+              errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (jsonError) {
+              errorMessage = errorText || errorMessage;
             }
-          : a
-      )
-    );
-
-    // Show success message
-    alert('Appointment rescheduled successfully! A confirmation email has been sent.');
-    
-    // Refetch appointments to get updated data from server
-    await fetchAppointments();
-    
-  } catch (error) {
-    console.error("Full error details:", error);
-    
-    // Handle different types of errors
-    let userMessage = 'Failed to reschedule appointment';
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-    } else if (error.message.includes('CORS')) {
-      userMessage = 'Server configuration error. Please contact support.';
-    } else if (error.message) {
-      userMessage = `Failed to reschedule appointment: ${error.message}`;
-    }
-    
-    alert(userMessage);
-    
-    // Don't close modal on error so user can try again
-    return;
-  }
-  
-  // Close modal and reset state only on success
-  setShowRescheduleModal(false);
-  setSelectedAppointmentId(null);
-};
-
-const handleConfirmCancel = async (appointmentId, reason) => {
-  console.log(`Attempting to cancel appointment: ${appointmentId}`);
-  
-  try {
-    // Find the appointment to get the correct appointmentId format
-    const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
-    
-    // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
-    const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
-    
-    console.log('Using appointment ID for API:', apiAppointmentId);
-    
-    // FIXED: Use PUT method instead of DELETE since we're updating status, not deleting
-    const url = `https://appoitment-backend.onrender.com/api/appointments/cancel/${apiAppointmentId}`;
-    console.log('Request URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'PUT', // CHANGED: From DELETE to PUT
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      // Optional: Send cancellation reason in body if needed
-      body: JSON.stringify({
-        cancellationReason: reason || 'No reason provided',
-        status: 'CANCELLED'
-      }),
-      mode: 'cors',
-      credentials: 'omit'
-    });
-
-    console.log('Response status:', response.status);
-
-    if (response.ok) {
-      console.log('Cancellation successful - Response OK');
-      
-      // Parse the response to get updated appointment data
-      let updatedAppointment = null;
-      try {
-        const responseData = await response.json();
-        updatedAppointment = responseData;
-        console.log('Updated appointment data:', updatedAppointment);
-      } catch (parseError) {
-        console.log('No JSON response body or parsing failed:', parseError.message);
+          }
+        } catch (textError) {
+          console.log('Could not read error response');
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      // Update local state - either update status or remove the appointment
+      const updatedAppointment = await response.json();
+      console.log('Reschedule successful:', updatedAppointment);
+
+      // Update local state with the response from backend
       setUpcomingAppointments((prev) =>
         prev.map((a) =>
           a.id === appointmentId
             ? {
                 ...a,
-                status: 'CANCELLED',
-                // Update with any data returned from server
-                ...(updatedAppointment && {
-                  date: formatAppointmentDate(updatedAppointment.appointmentDateTime),
-                  time: formatAppointmentTime(updatedAppointment.appointmentDateTime),
-                  status: updatedAppointment.status || 'CANCELLED'
-                })
+                // Handle both array and string formats for appointmentDateTime
+                date: Array.isArray(updatedAppointment.appointmentDateTime) 
+                  ? formatAppointmentDate(updatedAppointment.appointmentDateTime)
+                  : formatAppointmentDate(updatedAppointment.appointmentDateTime),
+                time: Array.isArray(updatedAppointment.appointmentDateTime)
+                  ? formatAppointmentTime(null, updatedAppointment.appointmentDateTime)
+                  : formatAppointmentTime(updatedAppointment.appointmentDateTime),
+                status: updatedAppointment.status || "RESCHEDULED"
               }
             : a
-        ).filter(a => a.status !== 'CANCELLED') // Remove cancelled appointments from upcoming list
+        )
       );
 
       // Show success message
-      alert('Appointment cancelled successfully! A cancellation email has been sent.');
+      alert('Appointment rescheduled successfully! A confirmation email has been sent.');
       
       // Refetch appointments to get updated data from server
       await fetchAppointments();
       
-    } else {
-      // Handle error responses
-      let errorMessage = `Failed to cancel appointment (Status: ${response.status})`;
+    } catch (error) {
+      console.error("Full error details:", error);
       
-      try {
-        const errorText = await response.text();
-        console.log('Error response text:', errorText);
-        
-        if (errorText) {
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            errorMessage = errorText || errorMessage;
-          }
-        }
-      } catch (textError) {
-        console.log('Could not read error response');
+      // Handle different types of errors
+      let userMessage = 'Failed to reschedule appointment';
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('CORS')) {
+        userMessage = 'Server configuration error. Please contact support.';
+      } else if (error.message) {
+        userMessage = `Failed to reschedule appointment: ${error.message}`;
       }
       
-      throw new Error(errorMessage);
+      alert(userMessage);
+      
+      // Don't close modal on error so user can try again
+      return;
     }
     
-  } catch (error) {
-    console.error("Full error details:", error);
+    // Close modal and reset state only on success
+    setShowRescheduleModal(false);
+    setSelectedAppointmentId(null);
+  };
+
+  const handleConfirmCancel = async (appointmentId, reason) => {
+    console.log(`Attempting to cancel appointment: ${appointmentId}`);
     
-    // Handle different types of errors
-    let userMessage = 'Failed to cancel appointment';
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
-    } else if (error.message.includes('CORS')) {
-      userMessage = 'Server configuration error. Please contact support.';
-    } else if (error.message) {
-      userMessage = `Failed to cancel appointment: ${error.message}`;
+    try {
+      // Find the appointment to get the correct appointmentId format
+      const selectedAppointment = upcomingAppointments.find(apt => apt.id === appointmentId);
+      
+      // Use the formatted appointmentId (APP-XXXX) instead of MongoDB _id
+      const apiAppointmentId = selectedAppointment?.appointmentId || appointmentId;
+      
+      console.log('Using appointment ID for API:', apiAppointmentId);
+      
+      const url = `https://appoitment-backend.onrender.com/api/appointments/cancel/${apiAppointmentId}`;
+      console.log('Request URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          cancellationReason: reason || 'No reason provided',
+          status: 'CANCELLED'
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      console.log('Response status:', response.status);
+
+      if (response.ok) {
+        console.log('Cancellation successful - Response OK');
+        
+        // Parse the response to get updated appointment data
+        let updatedAppointment = null;
+        try {
+          const responseData = await response.json();
+          updatedAppointment = responseData;
+          console.log('Updated appointment data:', updatedAppointment);
+        } catch (parseError) {
+          console.log('No JSON response body or parsing failed:', parseError.message);
+        }
+
+        // Update local state - remove the appointment from upcoming list
+        setUpcomingAppointments((prev) =>
+          prev.filter(a => a.id !== appointmentId)
+        );
+
+        // Show success message
+        alert('Appointment cancelled successfully! A cancellation email has been sent.');
+        
+        // Refetch appointments to get updated data from server
+        await fetchAppointments();
+        
+      } else {
+        // Handle error responses
+        let errorMessage = `Failed to cancel appointment (Status: ${response.status})`;
+        
+        try {
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          
+          if (errorText) {
+            try {
+              const errorData = JSON.parse(errorText);
+              errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (jsonError) {
+              errorMessage = errorText || errorMessage;
+            }
+          }
+        } catch (textError) {
+          console.log('Could not read error response');
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+    } catch (error) {
+      console.error("Full error details:", error);
+      
+      // Handle different types of errors
+      let userMessage = 'Failed to cancel appointment';
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        userMessage = 'Network error: Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('CORS')) {
+        userMessage = 'Server configuration error. Please contact support.';
+      } else if (error.message) {
+        userMessage = `Failed to cancel appointment: ${error.message}`;
+      }
+      
+      alert(userMessage);
+      
+      // Don't close modal on error so user can try again
+      return;
     }
     
-    alert(userMessage);
-    
-    // Don't close modal on error so user can try again
-    return;
-  }
-  
-  // Close modal and reset state only on success
-  setShowCancelModal(false);
-  setSelectedAppointmentId(null);
-  console.log("Appointment cancelled with reason:", reason);
-};
+    // Close modal and reset state only on success
+    setShowCancelModal(false);
+    setSelectedAppointmentId(null);
+    console.log("Appointment cancelled with reason:", reason);
+  };
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
@@ -542,7 +584,7 @@ const handleConfirmCancel = async (appointmentId, reason) => {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -572,7 +614,6 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             <button
               onClick={() => {
                 if (newDate && newTime) {
-                  // Pass the raw date and time values to the handler
                   handleConfirmReschedule(selectedAppointmentId, newDate, newTime);
                   setNewDate('');
                   setNewTime('');
@@ -635,7 +676,6 @@ const handleConfirmCancel = async (appointmentId, reason) => {
             </button>
             <button
               onClick={() => {
-                // Allow cancellation even without reason since it's optional
                 handleConfirmCancel(selectedAppointmentId, reason || 'No reason provided');
                 setReason('');
               }}

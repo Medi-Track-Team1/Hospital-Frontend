@@ -33,7 +33,7 @@ const Patient = () => {
     <Routes>
       <Route index element={<PatientProfile />} />
       <Route path="edit-profile" element={<EditProfileModel />} />
-      <Route path="history" element={<PatientHistory />} />
+     <Route path=":patientId/history" element={<PatientHistory />} />
     </Routes>
   );
 };

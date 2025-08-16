@@ -4,7 +4,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
-
 const AppointmentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,16 +27,10 @@ const AppointmentPage = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // UPDATED API URLs - Let's test different variations
   const API_BASE_URL = "https://appoitment-backend.onrender.com";
-  const API_ENDPOINTS = [
-    `${API_BASE_URL}/api/appointments`,           // Original
-    `${API_BASE_URL}/appointments`,               // Without /api
-    `${API_BASE_URL}/api/appointment`,            // Singular
-    `${API_BASE_URL}/appointment`,                // Singular without /api
-  ];
-  
-  const PATIENT_API_URL = "https://patient-service-ntk0.onrender.com/api/patient";
+  const APPOINTMENT_API_URL = `${API_BASE_URL}/api/appointments/create`;
+  const PATIENT_API_URL =
+    "https://patient-service-ntk0.onrender.com/api/patient";
 
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
@@ -62,97 +55,73 @@ const AppointmentPage = () => {
   };
 
   const createAppointmentDateTime = (date, time) => {
-    console.log("🔧 createAppointmentDateTime called with:", { date, time });
+    if (!date || !time) return null;
 
-    if (!date || !time) {
-      console.log("⚠️ Missing date or time, returning null");
-      return null;
+    const dateTimeString = `${date}T${time}`;
+    const localDateTime = new Date(dateTimeString);
+    const utcDateTime = new Date(
+      localDateTime.getTime() - localDateTime.getTimezoneOffset() * 60000
+    );
+
+    const isoString = utcDateTime.toISOString();
+    const hoursUTC = utcDateTime.getUTCHours();
+
+    if (hoursUTC < 9 || hoursUTC >= 17) {
+      throw new Error("Appointments must be between 9AM and 5PM UTC");
     }
 
-    const dateTimeString = `${date}T${time}:00.000Z`;
-    const dateTime = new Date(dateTimeString);
-
-    console.log("📅 Created Date object:", dateTime);
-    console.log("🔍 Date validation:", {
-      isValid: !isNaN(dateTime.getTime()),
-      isoString: dateTime.toISOString(),
-    });
-
-    if (isNaN(dateTime.getTime())) {
-      console.log("❌ Invalid date created");
-      return null;
-    }
-
-    const isoString = dateTime.toISOString();
-    console.log("📤 Final ISO string:", isoString);
     return isoString;
   };
 
-  // Test API endpoint availability
-  const testApiEndpoints = async () => {
-    console.log("🔍 Testing API endpoints...");
-    
-    for (const endpoint of API_ENDPOINTS) {
-      try {
-        console.log(`Testing: ${endpoint}`);
-        const response = await axios.get(endpoint, { timeout: 5000 });
-        console.log(`✅ ${endpoint} - Status: ${response.status}`);
-        return endpoint; // Return the first working endpoint
-      } catch (error) {
-        console.log(`❌ ${endpoint} - Error: ${error.response?.status || error.message}`);
-      }
-    }
-    
-    // Test base URL
-    try {
-      console.log(`Testing base URL: ${API_BASE_URL}`);
-      const response = await axios.get(API_BASE_URL, { timeout: 5000 });
-      console.log(`✅ Base URL working - Status: ${response.status}`);
-    } catch (error) {
-      console.log(`❌ Base URL - Error: ${error.response?.status || error.message}`);
-    }
-    
-    return null;
-  };
-
-  // Enhanced retry function with endpoint testing
+  // Enhanced retry function with better 409 handling
   const makeRequestWithRetry = async (data, maxRetries = 3) => {
-    // First, test which endpoint works
-    const workingEndpoint = await testApiEndpoints();
-    
-    if (!workingEndpoint) {
-      console.log("❌ No working endpoints found");
-      throw new Error("API service is not available. All endpoints returned 404.");
-    }
-
-    console.log(`🎯 Using working endpoint: ${workingEndpoint}`);
-
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`🔄 Attempt ${attempt}/${maxRetries}`);
-        console.log(`📤 Sending POST to: ${workingEndpoint}`);
+        console.log(`📤 Sending POST to: ${APPOINTMENT_API_URL}`);
         console.log(`📦 Request data:`, JSON.stringify(data, null, 2));
-        
-        const response = await axios.post(workingEndpoint, data, {
+
+        const response = await axios.post(APPOINTMENT_API_URL, data, {
           timeout: 30000,
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
         });
-        
+
         console.log(`✅ Success! Response:`, response.data);
         return response;
       } catch (error) {
         console.log(`❌ Attempt ${attempt} failed:`, error.message);
-        
+
         if (error.response) {
           console.log(`📋 Error details:`, {
             status: error.response.status,
             statusText: error.response.statusText,
             data: error.response.data,
-            headers: error.response.headers
+            headers: error.response.headers,
           });
+
+          // Handle 409 Conflict specifically - DON'T RETRY
+          if (error.response.status === 409) {
+            const conflictMessage =
+              error.response.data?.message ||
+              "The selected time slot is not available";
+            console.log(
+              "🚫 409 Conflict - Not retrying for scheduling conflicts"
+            );
+            throw new Error(conflictMessage);
+          }
+        }
+
+        // Only retry for network errors or server errors (5xx), not for 4xx client errors
+        if (
+          error.response &&
+          error.response.status >= 400 &&
+          error.response.status < 500
+        ) {
+          console.log("❌ Client error - not retrying");
+          throw error;
         }
 
         if (attempt === maxRetries) {
@@ -194,7 +163,7 @@ const AppointmentPage = () => {
         localStorage.getItem("currentUser") || "{}"
       );
       const patientId = storedUser.userId;
-      console.log("ksihore"+patientId);
+
       if (!patientId) {
         toast.error("No patient ID found in localStorage.", {
           position: "top-center",
@@ -276,18 +245,6 @@ const AppointmentPage = () => {
       return;
     }
 
-    console.log("🔍 FORM DEBUG - Raw form data:");
-    console.log("📋 Form State:", {
-      date: form.date,
-      time: form.time,
-      name: form.name,
-      doctorId: form.doctorId,
-      specialty: form.specialty,
-      email: form.email,
-      reason: form.reason,
-      emergency: form.emergency,
-    });
-
     const appointmentDateTime = createAppointmentDateTime(form.date, form.time);
 
     if (!appointmentDateTime) {
@@ -299,131 +256,93 @@ const AppointmentPage = () => {
       return;
     }
 
-    // Try multiple payload formats
-    const payloadVariations = [
-      // Format 1: Matching your working Postman format exactly
-      {
-        patientId: patientId,
-        doctorId: form.doctorId,
-        appointmentId: `APP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        patientName: form.name,
-        age: parseInt(form.age) || 0,
-        department: form.specialty,
-        patientEmail: form.email,
-        appointmentDateTime: appointmentDateTime,
-        duration: 30,
-        reason: form.reason,
-        symptoms: form.reason,
-        additionalNotes: form.notes || "",
-        status: "PENDING",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        emergency: form.emergency,
-        phoneNumber: form.phone,
-        doctorName: null
-      },
-      
-      // Format 2: Simplified version
-      {
-        patientId: patientId,
-        doctorId: form.doctorId,
-        patientName: form.name,
-        department: form.specialty,
-        patientEmail: form.email,
-        appointmentDateTime: appointmentDateTime,
-        duration: 30,
-        reason: form.reason,
-        symptoms: form.reason,
-        additionalNotes: form.notes || "",
-        emergency: form.emergency
-      },
-      
-      // Format 3: Basic required fields only
-      {
-        patientId: patientId,
-        doctorId: form.doctorId,
-        appointmentDateTime: appointmentDateTime,
-        reason: form.reason
-      }
-    ];
+    // Primary payload format
+    const payload = {
+      patientId: patientId,
+      doctorId: form.doctorId,
+      patientName: form.name,
+      age: parseInt(form.age) || 0,
+      department: form.specialty,
+      patientEmail: form.email,
+      appointmentDateTime: appointmentDateTime,
+      duration: 30,
+      reason: form.reason,
+      symptoms: form.reason,
+      additionalNotes: form.notes || "",
+      emergency: form.emergency,
+      phoneNumber: form.phone,
+    };
 
     try {
       setIsSubmitting(true);
-      
-      // Try each payload format
-      for (let i = 0; i < payloadVariations.length; i++) {
-        try {
-          console.log(`🎯 Trying payload format ${i + 1}:`, payloadVariations[i]);
-          const response = await makeRequestWithRetry(payloadVariations[i]);
-          
-          if (response.status === 201 || response.status === 200) {
-            console.log("🎉 Success! Appointment created successfully");
-            toast.success("Appointment booked successfully!", {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored",
-            });
-            setShowConfirmation(true);
-            return;
-          }
-        } catch (formatError) {
-          console.log(`❌ Payload format ${i + 1} failed:`, formatError.message);
-          if (i === payloadVariations.length - 1) {
-            throw formatError; // Throw the last error
-          }
-        }
-      }
+      console.log("🎯 Sending appointment request:", payload);
 
-    } catch (error) {
-      console.log("❌ ALL ATTEMPTS FAILED");
-      console.log("Error object:", error);
-      console.log("Error message:", error.message);
+      const response = await makeRequestWithRetry(payload);
 
-      if (error.response) {
-        console.log("📋 Error response details:", {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
+      if (response.status === 201 || response.status === 200) {
+        console.log("🎉 Success! Appointment created successfully");
+        toast.success("Appointment booked successfully!", {
+          position: "top-center",
+          autoClose: 3000,
+          theme: "colored",
         });
+        setShowConfirmation(true);
+      }
+    } catch (error) {
+      console.log("❌ Request failed:", error);
 
-        if (error.response.status === 404) {
+      // Handle different types of errors
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (status === 409) {
+          // Conflict - Doctor not available
+          const conflictMessage =
+            data?.message || "The selected time slot is not available";
+          toast.error(`⏰ \n\n${conflictMessage}`, {
+            position: "top-center",
+            autoClose: 8000, // Longer display for important scheduling info
+            theme: "colored",
+            style: {
+              fontSize: "14px",
+              lineHeight: "1.4",
+              whiteSpace: "pre-line", // This allows line breaks in the message
+            },
+          });
+        } else if (status === 400) {
+          const errorMessage =
+            data?.message ||
+            "Invalid appointment data. Please check your inputs.";
+          toast.error(errorMessage, {
+            position: "top-center",
+            autoClose: 5000,
+            theme: "colored",
+          });
+        } else if (status === 404) {
           toast.error(
-            "❌ API Endpoint Not Found!\n\nPossible solutions:\n1. Check if the backend server is running\n2. Verify the API endpoint URL\n3. Contact the backend team",
-            {
-              position: "top-center",
-              autoClose: 8000,
-              theme: "colored",
-            }
-          );
-        } else if (error.response.status === 400) {
-          toast.error(
-            error.response.data?.message ||
-              "Invalid appointment data. Please check your inputs.",
+            "❌ Service not available. Please try again later or contact support.",
             {
               position: "top-center",
               autoClose: 5000,
               theme: "colored",
             }
           );
-        } else if (error.response.status === 500) {
+        } else if (status === 500) {
           toast.error("Server error. Please try again later.", {
             position: "top-center",
             autoClose: 3000,
             theme: "colored",
           });
         } else {
-          toast.error(
-            error.response.data?.message ||
-              "Failed to book appointment. Please try again.",
-            {
-              position: "top-center",
-              autoClose: 3000,
-              theme: "colored",
-            }
-          );
+          const errorMessage =
+            data?.message || "Failed to book appointment. Please try again.";
+          toast.error(errorMessage, {
+            position: "top-center",
+            autoClose: 5000,
+            theme: "colored",
+          });
         }
       } else if (error.request) {
-        console.log("📤 Request details:", error.request);
         toast.error(
           "Network error. Please check your internet connection and try again.",
           {
@@ -433,15 +352,31 @@ const AppointmentPage = () => {
           }
         );
       } else {
-        toast.error("An unexpected error occurred. Please try again.", {
-          position: "top-center",
-          autoClose: 3000,
-          theme: "colored",
-        });
+        // This handles the conflict message we throw in makeRequestWithRetry
+        if (error.message.includes("is not available at this time")) {
+          toast.error(`${error.message}`, {
+            position: "top-center",
+            autoClose: 8000,
+            theme: "colored",
+            style: {
+              fontSize: "14px",
+              lineHeight: "1.4",
+              whiteSpace: "pre-line",
+            },
+          });
+        } else {
+          toast.error(
+            error.message || "An unexpected error occurred. Please try again.",
+            {
+              position: "top-center",
+              autoClose: 3000,
+              theme: "colored",
+            }
+          );
+        }
       }
     } finally {
       setIsSubmitting(false);
-      console.log("🔄 Request completed, isSubmitting set to false");
     }
   };
 
@@ -451,12 +386,6 @@ const AppointmentPage = () => {
     navigate("/departments/appointment");
   };
 
-  // Add debug button for testing
-  const handleDebugTest = async () => {
-    console.log("🚀 Running debug test...");
-    await testApiEndpoints();
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-6 mt-12">
       <div className="bg-white max-w-5xl mx-auto shadow-xl rounded-lg p-6 space-y-6">
@@ -464,14 +393,6 @@ const AppointmentPage = () => {
           <h2 className="text-2xl font-semibold pb-4">
             Book Appointment with {form.doctor || "Doctor"}
           </h2>
-          {/* Debug button - remove in production */}
-          <button
-            onClick={handleDebugTest}
-            className="px-3 py-1 bg-red-100 text-red-600 text-sm rounded hover:bg-red-200"
-            type="button"
-          >
-            🐛 Debug API
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -568,6 +489,8 @@ const AppointmentPage = () => {
                 required
                 value={form.time}
                 onChange={handleChange}
+                min="09:00"
+                max="16:30"
                 className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

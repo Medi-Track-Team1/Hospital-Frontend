@@ -34,7 +34,7 @@ function App() {
             />
           }
         />
-        <Route path="/doctor/:id" element={<DoctorPanelPage />} />
+        {/* <Route path="/doctor/:id" element={<DoctorPanelPage />} />
         <Route path="/departments/*" element={<DeptRoute />} />
 
         <Route path="/patient/*" element={<Patient />} />
@@ -50,8 +50,88 @@ function App() {
         />
 
         <Route path="/reception/*" element={<Reception />} />
-        <Route path="/admin/*" element={<Admin />} />
+        <Route p
+        ath="/admin/*" element={<Admin />} /> */}
+        
+  {/* <Route path="/doctor/:id" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
+        <DoctorPanelPage />
+      </ProtectedRoute>
+    } 
+  />
+  
+  <Route path="/departments/*" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN', 'ROLE_RECEPTION']}>
+        <DeptRoute />
+      </ProtectedRoute>
+    } 
+  />
 
+  <Route path="/patient/*" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_PATIENT', 'ROLE_DOCTOR', 'ROLE_ADMIN']}>
+        <Patient />
+      </ProtectedRoute>
+    } 
+  />
+
+  <Route path="/doctor/:doctorId/patient/:patientId/history" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
+        <PatientHistoryPage />
+      </ProtectedRoute>
+    } 
+  />
+
+  <Route path="/patient/:patientId" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_PATIENT', 'ROLE_DOCTOR', 'ROLE_ADMIN']}>
+        <Patient />
+      </ProtectedRoute>
+    } 
+  />
+
+  <Route path="/doctor/:id/patienthistory" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
+        <CompletedTreatments />
+      </ProtectedRoute>
+    } 
+  />
+
+  <Route path="/reception/*" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_RECEPTION', 'ROLE_ADMIN']}>
+        <Reception />
+      </ProtectedRoute>
+    } 
+  />
+
+  <Route path="/admin/*" 
+    element={
+      <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+        <Admin />
+      </ProtectedRoute>
+    } 
+  /> */}
+
+    <Route path="/doctor/:id" element={<DoctorPanelPage />} />
+
+<Route path="/departments/*" element={<DeptRoute />} />
+
+<Route path="/patient/*" element={<Patient />} />
+
+<Route path="/doctor/:doctorId/patient/:patientId/history" element={<PatientHistoryPage />} />
+
+<Route path="/patient/:patientId" element={<Patient />} />
+
+<Route path="/doctor/:id/patienthistory" element={<CompletedTreatments />} />
+
+<Route path="/reception/*" element={<Reception />} />
+
+<Route path="/admin/*" element={<Admin />} />
         {/* Don't touch below code or remove comment */}
         {/* Doctor Routes */}
         {/* <Route path="/doctor-panel" element={
@@ -67,14 +147,14 @@ function App() {
         } /> */}
 
         {/* Patient Routes */}
-        <Route
+        {/* <Route
           path="/patient/:patientId"
           element={
             <ProtectedRoute roles={["ROLE_PATIENT"]}>
               <Patient />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* Reception/Nurse Routes */}
         {/* <Route path="/reception/*" element={
@@ -84,22 +164,22 @@ function App() {
         } /> */}
 
         {/* Admin Routes */}
-        <Route
+        {/* <Route
           path="/admin/*"
           element={
             <ProtectedRoute roles={["ROLE_ADMIN"]}>
               <Admin />
             </ProtectedRoute>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/patient/:patientId/history"
           element={
             <ProtectedRoute roles={["ROLE_PATIENT"]}>
               <PatientHistory />
             </ProtectedRoute>
           }
-        />
+        /> */}
         {/* Department Routes (adjust roles as needed) */}
         {/* <Route path="/departments/*" element={
           <ProtectedRoute roles={['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_NURSE']}>

@@ -22,6 +22,7 @@ import {
   Stethoscope,
   UserCheck,
 } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
 
 const PatientProfile = () => {
   const navigate = useNavigate();
@@ -90,7 +91,8 @@ const PatientProfile = () => {
       })
       .catch((error) => {
         console.error("Fetch error:", error);
-        alert(`Failed to load patient data: ${error.message}`);
+        
+        toast.error(`Failed to load patient data: ${error.message}`);
       });
   }, [patientId]);
 
@@ -393,7 +395,7 @@ const PatientProfile = () => {
         )
       );
 
-      alert(
+      toast.error(
         "Appointment rescheduled successfully! A confirmation email has been sent."
       );
       await fetchAppointments();
@@ -411,7 +413,7 @@ const PatientProfile = () => {
         userMessage = `Failed to reschedule appointment: ${error.message}`;
       }
 
-      alert(userMessage);
+      toast.error(userMessage);
       return;
     }
 
@@ -475,7 +477,7 @@ const PatientProfile = () => {
           prev.filter((a) => a.id !== appointmentId)
         );
 
-        alert(
+        toast.error(
           "Appointment cancelled successfully! A cancellation email has been sent."
         );
         await fetchAppointments();
@@ -515,7 +517,7 @@ const PatientProfile = () => {
         userMessage = `Failed to cancel appointment: ${error.message}`;
       }
 
-      alert(userMessage);
+      toast.error(userMessage);
       return;
     }
 
@@ -578,7 +580,7 @@ const PatientProfile = () => {
       // Update local state with the response from backend
       if (updatedPatient.data) {
         setPatientData(updatedPatient.data);
-        alert("Profile updated successfully!");
+        toast.error("Profile updated successfully!");
         setShowEditModal(false);
       } else {
         throw new Error("Invalid response format from server");
@@ -593,7 +595,7 @@ const PatientProfile = () => {
         userMessage = error.message;
       }
 
-      alert(userMessage);
+      toast.error(userMessage);
     }
   };
 

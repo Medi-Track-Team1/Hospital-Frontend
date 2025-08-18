@@ -4,40 +4,6 @@ import { FileText, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 const SummaryCards = ({ filteredPrescriptions }) => {
   const cards = [
-    {
-      title: "Total Prescriptions",
-      value: filteredPrescriptions.length,
-      icon: FileText,
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      title: "Paid Bills",
-      value: filteredPrescriptions.filter(
-        (p) => p.billing.paymentStatus === "paid"
-      ).length,
-      icon: CheckCircle,
-      bgColor: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      title: "Pending Bills",
-      value: filteredPrescriptions.filter(
-        (p) => p.billing.paymentStatus === "pending"
-      ).length,
-      icon: Clock,
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-600",
-    },
-    {
-      title: "Overdue Bills",
-      value: filteredPrescriptions.filter(
-        (p) => p.billing.paymentStatus === "overdue"
-      ).length,
-      icon: AlertCircle,
-      bgColor: "bg-red-100",
-      iconColor: "text-red-600",
-    },
   ];
 
   return (

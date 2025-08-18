@@ -1,12 +1,10 @@
-// PatientHistory.jsx - Updated with patientId support
+// PatientHistory.jsx - Final Cleaned Up (All Records Only)
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, X, Filter, Calendar, Stethoscope } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import Header from "./Header";
 import SearchAndFilters from "./SearchAndFilters";
-import TabNavigation from "./TabNavigation";
-import SummaryCards from "./SummaryCards";
 import PrescriptionTable from "./PrescriptionTable";
 import PrescriptionModal from "./PrescriptionModal";
 import BillingModal from "./BillingModal";
@@ -17,10 +15,9 @@ import { searchPrescriptions } from "../../Utils/SearchUtils";
 const PatientHistory = () => {
   const navigate = useNavigate();
   const { patientId } = useParams(); // Get patientId from URL parameters
-  
+
   const [prescriptions, setPrescriptions] = useState([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
-  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +32,7 @@ const PatientHistory = () => {
     dateRange: { start: "", end: "" },
   });
 
-  // Load prescriptions
+  // Load prescriptions (all records for patient)
   useEffect(() => {
     const fetchPrescriptions = async () => {
       setIsLoading(true);
@@ -43,12 +40,12 @@ const PatientHistory = () => {
         // TODO: Replace with actual API call using patientId
         // const response = await fetch(`/api/prescriptions/patient/${patientId}`);
         // const data = await response.json();
-        
+
         // For now, using mock data - filter by patientId if needed
-        const patientPrescriptions = mockPrescriptions.filter(p => 
-          p.patientId === patientId || !p.patientId // fallback for mock data
+        const patientPrescriptions = mockPrescriptions.filter(
+          (p) => p.patientId === patientId || !p.patientId // fallback for mock data
         );
-        
+
         setPrescriptions(patientPrescriptions);
         setFilteredPrescriptions(patientPrescriptions);
       } catch (error) {
@@ -63,14 +60,9 @@ const PatientHistory = () => {
     }
   }, [patientId]);
 
-  // Filter prescriptions based on active tab, search query, and filters
+  // Apply search & filters (all records only)
   useEffect(() => {
     let filtered = prescriptions;
-
-    // Filter by status first
-    if (activeTab !== "all") {
-      filtered = filtered.filter((p) => p.status === activeTab);
-    }
 
     // Apply search and advanced filters
     filtered = searchPrescriptions(filtered, searchQuery, filters);
@@ -84,7 +76,7 @@ const PatientHistory = () => {
     }
 
     setFilteredPrescriptions(filtered);
-  }, [prescriptions, activeTab, searchQuery, filters]);
+  }, [prescriptions, searchQuery, filters]);
 
   const handleViewDetails = (prescription) => {
     setSelectedPrescription(prescription);
@@ -117,23 +109,17 @@ const PatientHistory = () => {
       <Header navigate={navigate} />
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Back to Profile Button */}
-        <div className="mb-6">
-          <button
-            onClick={handleBackToProfile}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Profile
-          </button>
-        </div>
+        
 
         {/* Patient History Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical History</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Medical History
+          </h1>
           <p className="text-gray-600">Patient ID: {patientId}</p>
         </div>
 
+        {/* Search + Filters */}
         <SearchAndFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -145,15 +131,14 @@ const PatientHistory = () => {
           setIsFilterPanelOpen={setIsFilterPanelOpen}
         />
 
-        <TabNavigation
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          prescriptions={prescriptions}
-          filteredPrescriptions={filteredPrescriptions}
-        />
+        {/* ✅ All Records Title (below filters, above table) */}
+        <div className="mt-6 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            All Medical Records
+          </h2>
+        </div>
 
-        <SummaryCards filteredPrescriptions={filteredPrescriptions} />
-
+        {/* Prescription Table */}
         <PrescriptionTable
           isLoading={isLoading}
           filteredPrescriptions={filteredPrescriptions}
@@ -174,14 +159,14 @@ const PatientHistory = () => {
           onClose={() => setIsModalOpen(false)}
         />
       )}
-      
+
       {isBillingModalOpen && selectedPrescription && (
         <BillingModal
           prescription={selectedPrescription}
           onClose={() => setIsBillingModalOpen(false)}
         />
       )}
-      
+
       {isFilterPanelOpen && (
         <FilterPanel
           filters={filters}

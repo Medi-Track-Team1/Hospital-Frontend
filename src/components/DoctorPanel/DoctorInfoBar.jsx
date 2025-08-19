@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getDoctorById } from "../../services/DoctorPanel/DoctorService";
 
-
-const DoctorInfoBar = () => {
-  const [doctor, setDoctor] = useState(null);
+const DoctorInfoBar = ({ setDoctor }) => {
+  const [doctor, setLocalDoctor] = useState(null);
   const { id } = useParams();
 
   useEffect(() => {
@@ -12,19 +11,19 @@ const DoctorInfoBar = () => {
   }, [id]);
 
   const getDoctor = async () => {
-  try {
-    const response = await getDoctorById(id);
-    console.log("Doctor API response:", response); // 👈 Add this
-    setDoctor(response.data);
-  } catch (error) {
-    console.error("Doctor fetch error:", error);
-  }
-};
-
+    try {
+      const response = await getDoctorById(id);
+      console.log("Doctor API response:", response);
+      setLocalDoctor(response.data);
+      // Pass doctor data to parent component
+      setDoctor(response.data);
+    } catch (error) {
+      console.error("Doctor fetch error:", error);
+    }
+  };
 
   if (!doctor) return <div className="text-center py-10">Loading...</div>;
-if (doctor === null) return <div>No Doctor found</div>;
-
+  if (doctor === null) return <div>No Doctor found</div>;
 
   return (
     <div className="w-full bg-white shadow-md rounded-xl p-6 md:p-10 max-w-6xl mx-auto mt-8 mb-8">
@@ -44,8 +43,8 @@ if (doctor === null) return <div>No Doctor found</div>;
             <h2 className="text-3xl font-bold text-gray-900">{doctor.doctorName}</h2>
             <p className="text-blue-600 text-lg font-medium">{doctor.specialty}</p>
             <span
-              className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full 
-              ${doctor.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              className={`inline-block mt-1 text-sm font-medium px-3 py-1 rounded-full
+               ${doctor.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
             >
               {doctor.status}
             </span>

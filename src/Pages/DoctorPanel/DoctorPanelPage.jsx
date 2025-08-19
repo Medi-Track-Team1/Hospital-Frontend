@@ -1,11 +1,14 @@
+import React, { useState } from "react";
 import DoctorInfoBar from "../../components/DoctorPanel/DoctorInfoBar";
 import DoctorNavbar from "../../components/DoctorPanel/DoctorNavBar";
 import { MedicalAppointments } from "../../components/DoctorPanel/MedicalAppointments";
 
 const DoctorPanelPage = () => {
+  const [doctor, setDoctor] = useState(null);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <DoctorNavbar />
+      <DoctorNavbar doctor={doctor} />
       
       <div className="py-6">
         <div className="text-center mb-6">
@@ -16,7 +19,7 @@ const DoctorPanelPage = () => {
         </div>
 
         <div className="max-w-6xl mx-auto px-4 space-y-6">
-          <DoctorInfoBar />
+          <DoctorInfoBar setDoctor={setDoctor} />
           <MedicalAppointments />
         </div>
       </div>

@@ -1,5 +1,3 @@
-// First, let's create a proper toast implementation that works without external dependencies
-
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
@@ -30,13 +28,14 @@ import {
   listUpcomingAppointmentsByDoctorId,
   listCompletedAppointmentsByDoctorId,
   createAppointment,
+  rescheduleAppointment,
   cancelAppointmentById,
 } from "../../services/DoctorPanel/AppointmentService";
 import { getPrescriptionByAppointmentId } from "../../services/DoctorPanel/PrescriptionService";
 import PatientHistoryModal from "../../Pages/DoctorPanel/PatientHistoryModal";
 import EditPrescribeModal from "./EditPrescribeModal";
 
-// Custom Toast Component - Self-contained solution
+// Custom Toast Component - Fixed z-index to prevent blurring
 const CustomToast = ({ toast, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, toast.duration || 5000);
@@ -66,7 +65,7 @@ const CustomToast = ({ toast, onClose }) => {
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-50 max-w-sm w-full border rounded-lg shadow-lg p-4 ${getToastStyles(toast.variant)}`}>
+    <div className={`fixed top-4 right-4 z-[9999] max-w-sm w-full border rounded-lg shadow-lg p-4 ${getToastStyles(toast.variant)}`}>
       <div className="flex items-start">
         <div className="flex-1">
           <h4 className="font-semibold text-sm">{toast.title}</h4>
@@ -85,7 +84,7 @@ const CustomToast = ({ toast, onClose }) => {
   );
 };
 
-// Custom useToast hook implementation
+// Custom useToast hook
 const useCustomToast = () => {
   const [toasts, setToasts] = useState([]);
 
@@ -95,7 +94,6 @@ const useCustomToast = () => {
     
     setToasts(prev => [...prev, newToast]);
     
-    // Auto remove after duration
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, duration);
@@ -105,23 +103,18 @@ const useCustomToast = () => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  return {
-    toast,
-    toasts,
-    removeToast
-  };
+  return { toast, toasts, removeToast };
 };
 
 export const MedicalAppointments = ({ onModalToggle }) => {
-  // Replace useToast with our custom implementation
   const { toast, toasts, removeToast } = useCustomToast();
+  const { id: doctorId } = useParams();
 
+  // State variables
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPrescribeModal, setShowPrescribeModal] = useState(false);
   const [showViewPrescriptionModal, setShowViewPrescriptionModal] = useState(false);
   const [viewHistoryPatient, setViewHistoryPatient] = useState(null);
-  const [isCancelling, setIsCancelling] = useState(false);
-
   const [cancelAppointment, setCancelAppointment] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [revisitAppointment, setRevisitAppointment] = useState(null);
@@ -134,10 +127,9 @@ export const MedicalAppointments = ({ onModalToggle }) => {
   const [allAppointments, setAllAppointments] = useState([]);
   const [currentPrescription, setCurrentPrescription] = useState(null);
   const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const { id: doctorId } = useParams();
-
-  // Add useEffect to track modal states and notify parent
+  // Track modal states for parent component
   useEffect(() => {
     const isAnyModalOpen = 
       showPrescribeModal ||
@@ -148,7 +140,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       !!cancelAppointment ||
       !!viewHistoryPatient;
 
-    // Notify parent component about modal state
     if (onModalToggle) {
       onModalToggle(isAnyModalOpen);
     }
@@ -177,7 +168,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     return status === "CANCELED" || status === "CANCELLED";
   };
 
-  // Truncate text function
   const truncateText = (text, maxLength = 50) => {
     if (!text) return "";
     return text.length > maxLength
@@ -185,25 +175,17 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       : text;
   };
 
-  // Simplified showToast function
   const showToast = (title, description, variant = "default") => {
-    console.log("Showing toast:", { title, description, variant });
-    toast({
-      title,
-      description,
-      variant,
-      duration: 5000,
-    });
+    toast({ title, description, variant, duration: 5000 });
   };
 
-  // FIXED: Simplified computed values with better duplicate handling
+  // Computed appointment arrays
   const upcomingAppointments = (() => {
     const upcoming = allAppointments.filter((apt) => {
       const status = apt.status?.toUpperCase();
       return status === "PENDING" || status === "CONFIRMED" || status === "ACCEPTED";
     });
 
-    // Remove duplicates
     const seen = new Set();
     const unique = upcoming.filter(apt => {
       const key = getRowKey(apt);
@@ -212,7 +194,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       return true;
     });
 
-    // Sort by date/time
     return unique.sort((a, b) => {
       const parseDateTime = (appointment) => {
         try {
@@ -223,58 +204,10 @@ export const MedicalAppointments = ({ onModalToggle }) => {
             return isNaN(dateTime.getTime()) ? new Date(0) : dateTime;
           }
         } catch (error) {
-          console.error("Error parsing date for appointment:", appointment, error);
           return new Date(0);
         }
       };
-
       return parseDateTime(a) - parseDateTime(b);
-    });
-  })();
-
-  const completedAppointments = (() => {
-    const completed = allAppointments.filter((apt) => {
-      const status = apt.status?.toUpperCase();
-      return status === "COMPLETED";
-    });
-
-    // Remove duplicates
-    const seen = new Set();
-    const unique = completed.filter(apt => {
-      const key = getRowKey(apt);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Sort by date/time (most recent first)
-    return unique.sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${a.time}`);
-      const bDateTime = new Date(`${b.date} ${b.time}`);
-      return bDateTime - aDateTime;
-    });
-  })();
-
-  const canceledAppointments = (() => {
-    const canceled = allAppointments.filter((apt) => {
-      const status = apt.status?.toUpperCase();
-      return status === "CANCELED" || status === "CANCELLED";
-    });
-
-    // Remove duplicates
-    const seen = new Set();
-    const unique = canceled.filter(apt => {
-      const key = getRowKey(apt);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Sort by date/time (most recent first)
-    return unique.sort((a, b) => {
-      const aDateTime = new Date(`${a.date} ${a.time}`);
-      const bDateTime = new Date(`${b.date} ${b.time}`);
-      return bDateTime - aDateTime;
     });
   })();
 
@@ -284,7 +217,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       return status === "COMPLETED" || status === "CANCELED" || status === "CANCELLED";
     });
 
-    // Remove duplicates
     const seen = new Set();
     const unique = history.filter(apt => {
       const key = getRowKey(apt);
@@ -293,7 +225,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       return true;
     });
 
-    // Sort by date/time (most recent first)
     return unique.sort((a, b) => {
       const aDateTime = new Date(`${a.date} ${a.time}`);
       const bDateTime = new Date(`${b.date} ${b.time}`);
@@ -301,18 +232,25 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     });
   })();
 
+  const completedAppointments = allAppointments.filter((apt) => {
+    const status = apt.status?.toUpperCase();
+    return status === "COMPLETED";
+  });
+
+  const canceledAppointments = allAppointments.filter((apt) => {
+    const status = apt.status?.toUpperCase();
+    return status === "CANCELED" || status === "CANCELLED";
+  });
+
+  // Fetch appointments on component mount
   useEffect(() => {
     if (doctorId) {
       fetchAppointments();
     }
   }, [doctorId]);
 
-  // FIXED: Enhanced fetchAppointments function with proper date validation
   const fetchAppointments = async () => {
     try {
-      console.log("Fetching appointments for doctor:", doctorId);
-      
-      // Fetch from both endpoints
       const [upcomingResponse, completedResponse] = await Promise.allSettled([
         listUpcomingAppointmentsByDoctorId(doctorId),
         listCompletedAppointmentsByDoctorId(doctorId)
@@ -320,73 +258,49 @@ export const MedicalAppointments = ({ onModalToggle }) => {
 
       let allFetchedAppointments = [];
 
-      // Process upcoming appointments
       if (upcomingResponse.status === 'fulfilled') {
         const upcomingData = upcomingResponse.value.data;
         const upcomingAppointments = Array.isArray(upcomingData) 
           ? upcomingData 
           : upcomingData.appointments || [];
-        
-        console.log("Fetched upcoming appointments:", upcomingAppointments.length);
         allFetchedAppointments = [...allFetchedAppointments, ...upcomingAppointments];
-      } else {
-        console.warn("Failed to fetch upcoming appointments:", upcomingResponse.reason);
       }
 
-      // Process completed appointments
       if (completedResponse.status === 'fulfilled') {
         const completedData = completedResponse.value.data;
         const completedAppointments = Array.isArray(completedData) 
           ? completedData 
           : completedData.appointments || [];
-        
-        console.log("Fetched completed appointments:", completedAppointments.length);
         allFetchedAppointments = [...allFetchedAppointments, ...completedAppointments];
-      } else {
-        console.warn("Failed to fetch completed appointments:", completedResponse.reason);
       }
 
-      // Helper function to safely parse dates - FIXED FOR ARRAY FORMAT
       const parseDateTime = (dateTimeValue) => {
         if (!dateTimeValue) return null;
         
         try {
           let parsedDate;
           
-          // Handle array format [year, month, day, hour, minute]
           if (Array.isArray(dateTimeValue) && dateTimeValue.length >= 3) {
             const [year, month, day, hour = 0, minute = 0] = dateTimeValue;
-            // Note: JavaScript Date constructor expects month to be 0-indexed (0-11)
-            // But your data appears to use 1-indexed months (1-12)
             parsedDate = new Date(year, month - 1, day, hour, minute);
-          }
-          // Handle string format
-          else if (typeof dateTimeValue === 'string') {
+          } else if (typeof dateTimeValue === 'string') {
             parsedDate = new Date(dateTimeValue);
-          }
-          // Handle Date object
-          else if (dateTimeValue instanceof Date) {
+          } else if (dateTimeValue instanceof Date) {
             parsedDate = dateTimeValue;
-          }
-          // Try to convert other formats
-          else {
+          } else {
             parsedDate = new Date(dateTimeValue);
           }
           
-          // Validate the parsed date
           if (isNaN(parsedDate.getTime())) {
-            console.warn("Invalid date value:", dateTimeValue);
             return null;
           }
           
           return parsedDate;
         } catch (error) {
-          console.warn("Error parsing date:", dateTimeValue, error);
           return null;
         }
       };
 
-      // Helper function to format time safely
       const formatTime = (dateTime) => {
         if (!dateTime) return "12:00 AM";
         
@@ -397,59 +311,48 @@ export const MedicalAppointments = ({ onModalToggle }) => {
             hour12: true,
           });
         } catch (error) {
-          console.warn("Error formatting time:", dateTime, error);
           return "12:00 AM";
         }
       };
 
-      // Helper function to format date safely
       const formatDate = (dateTime) => {
         if (!dateTime) return new Date().toISOString().split("T")[0];
         
         try {
           return dateTime.toISOString().split("T")[0];
         } catch (error) {
-          console.warn("Error formatting date:", dateTime, error);
           return new Date().toISOString().split("T")[0];
         }
       };
 
-      // Transform all appointments to consistent format with FIXED date handling
-      const transformedAppointments = allFetchedAppointments.map((apt, index) => {
+      const transformedAppointments = allFetchedAppointments.map((apt) => {
         try {
           let appointmentDate = null;
           let appointmentTime = "12:00 AM";
           
-          // Try to parse appointmentDateTime first
           if (apt.appointmentDateTime) {
             const parsedDateTime = parseDateTime(apt.appointmentDateTime);
             if (parsedDateTime) {
               appointmentDate = formatDate(parsedDateTime);
               appointmentTime = formatTime(parsedDateTime);
-              console.log(`Parsed appointment ${apt.appointmentId || apt.id}: ${appointmentDate} ${appointmentTime}`);
             }
           }
           
-          // If no valid appointmentDateTime, try individual date and time fields
           if (!appointmentDate && apt.date) {
             const parsedDate = parseDateTime(apt.date);
             if (parsedDate) {
               appointmentDate = formatDate(parsedDate);
-              // Keep the parsed time from appointmentDateTime or use existing time
               if (appointmentTime === "12:00 AM" && apt.time) {
                 appointmentTime = apt.time;
               }
             }
           }
           
-          // Use existing time if available and we haven't set a proper time yet
           if (apt.time && appointmentTime === "12:00 AM") {
             appointmentTime = apt.time;
           }
           
-          // Fallback to current date if nothing works
           if (!appointmentDate) {
-            console.warn(`No valid date found for appointment ${apt.appointmentId || apt.id || index}, using current date`);
             appointmentDate = new Date().toISOString().split("T")[0];
           }
 
@@ -460,10 +363,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
             status: apt.status?.toLowerCase() || "pending",
           };
         } catch (error) {
-          console.error(`Error transforming appointment ${apt.appointmentId || apt.id || index}:`, error);
-          console.error("Problematic appointment data:", apt);
-          
-          // Return a safe fallback appointment
           return {
             ...apt,
             date: new Date().toISOString().split("T")[0],
@@ -473,21 +372,14 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         }
       });
 
-      // Remove duplicates based on appointment ID
       const seen = new Set();
       const uniqueAppointments = transformedAppointments.filter(apt => {
         const key = getRowKey(apt);
-        if (seen.has(key)) {
-          console.log("Removing duplicate appointment:", key);
-          return false;
-        }
+        if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
 
-      console.log("Final unique appointments:", uniqueAppointments.length);
-      console.log("Sample transformed appointment:", uniqueAppointments[0]);
-      
       setAllAppointments(uniqueAppointments);
 
     } catch (error) {
@@ -501,6 +393,7 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     }
   };
 
+  // Event handlers
   const handleRevisit = (appointment) => {
     setRevisitAppointment(appointment);
     setRevisitDate("");
@@ -524,7 +417,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       const prescription = response.data;
 
       if (prescription) {
-        // Set the prescription data and appointment info for editing
         setEditPrescriptionData({
           prescription: prescription,
           appointmentId: appointmentId,
@@ -541,7 +433,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         );
       }
     } catch (error) {
-      console.error("Error fetching prescription for edit:", error);
       showToast(
         "Error",
         "Failed to fetch prescription for editing. Please try again.",
@@ -550,20 +441,10 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     }
   };
 
-  const handleEditPrescriptionSuccess = async (updatedPrescription) => {
-    console.log("Prescription updated successfully:", updatedPrescription);
-
-    showToast(
-      "Success",
-      "Prescription updated successfully!",
-      "success"
-    );
-
-    // Close modal
+  const handleEditPrescriptionSuccess = async () => {
+    showToast("Success", "Prescription updated successfully!", "success");
     setShowEditPrescriptionModal(false);
     setEditPrescriptionData(null);
-
-    // Add a small delay before refreshing
     setTimeout(async () => {
       await fetchAppointments();
     }, 1000);
@@ -572,104 +453,111 @@ export const MedicalAppointments = ({ onModalToggle }) => {
   const handleViewHistory = (appointment) => {
     const patientId = appointment.patientId || appointment.patient?.id;
     const patientName = appointment.patientName || appointment.patient?.name;
-
     setViewHistoryPatient({ id: patientId, name: patientName });
   };
 
-  const handleRevisitConfirm = async () => {
-    if (!revisitDate || !revisitTime || !revisitReason.trim()) {
-      showToast(
-        "Error",
-        "Please fill in all fields for the revisit appointment.",
-        "destructive"
-      );
-      return;
-    }
+const handleRevisitConfirm = async () => {
+  if (!revisitDate || !revisitTime || !revisitReason.trim()) {
+    showToast(
+      "Error",
+      "Please fill in all fields for the revisit appointment.",
+      "destructive"
+    );
+    return;
+  }
 
-    setIsSubmittingRevisit(true);
+  // Validate business hours (9 AM to 5 PM)
+  const selectedHour = revisitTime.getHours();
+  const selectedMinute = revisitTime.getMinutes();
+  
+  if (selectedHour < 9 || selectedHour > 17 || (selectedHour === 17 && selectedMinute > 0)) {
+    showToast(
+      "Error Creating Revisit",
+      "Appointments must be between 9:00 AM and 5:00 PM",
+      "destructive"
+    );
+    return;
+  }
 
-    try {
-      const randomFourDigits = Math.floor(1000 + Math.random() * 9000);
-      const newAppointmentId = `APP-${randomFourDigits}`;
+  setIsSubmittingRevisit(true);
 
-      const appointmentDateTime = new Date(revisitDate);
-      appointmentDateTime.setHours(revisitTime.getHours());
-      appointmentDateTime.setMinutes(revisitTime.getMinutes());
-      appointmentDateTime.setSeconds(0);
+  try {
+    const appointmentDateTime = new Date(revisitDate);
+    appointmentDateTime.setHours(revisitTime.getHours());
+    appointmentDateTime.setMinutes(revisitTime.getMinutes());
+    appointmentDateTime.setSeconds(0);
+    appointmentDateTime.setMilliseconds(0);
 
-      const { id, _id, ...baseAppointment } = revisitAppointment;
+    // Create local datetime string without timezone conversion
+    const year = appointmentDateTime.getFullYear();
+    const month = String(appointmentDateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(appointmentDateTime.getDate()).padStart(2, '0');
+    const hour = String(appointmentDateTime.getHours()).padStart(2, '0');
+    const minute = String(appointmentDateTime.getMinutes()).padStart(2, '0');
+    const second = String(appointmentDateTime.getSeconds()).padStart(2, '0');
+    
+    const localDateString = `${year}-${month}-${day}`;
+    const localTimeString = `${hour}:${minute}:${second}`;
 
-      const newAppointmentData = {
-        ...baseAppointment,
-        appointmentId: newAppointmentId,
-        appointmentDateTime: appointmentDateTime.toISOString(),
-        date: format(appointmentDateTime, "yyyy-MM-dd"),
-        time: appointmentDateTime.toLocaleTimeString([], {
+    console.log("Local Date String:", localDateString);
+    console.log("Local Time String:", localTimeString);
+
+    // ✅ FIXED: Use the backend revisit endpoint instead of createAppointment
+    // This will send the proper revisit email, not the creation acknowledgment
+    const revisitData = {
+      newDate: localDateString,
+      newTime: localTimeString,
+      reason: revisitReason
+    };
+
+    console.log("Revisit Data being sent:", revisitData);
+
+    // Use the existing appointment ID to create a revisit
+    const appointmentId = revisitAppointment.appointmentId || revisitAppointment.id;
+    await rescheduleAppointment(appointmentId, revisitData);
+    
+    showToast(
+      "Revisit Scheduled Successfully",
+      `Revisit appointment updated for ${
+        revisitAppointment.patientName
+      } on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${
+        appointmentDateTime.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
-        }),
-        reason: revisitReason,
-        notes: `Revisit appointment for previous appointment: ${
-          revisitAppointment.appointmentId || revisitAppointment.id
-        }`,
-        status: "pending",
-      };
+        })
+      }.`,
+      "success"
+    );
 
-      const response = await createAppointment(newAppointmentData);
-      
-      showToast(
-        "Revisit Scheduled Successfully",
-        `New appointment scheduled for ${
-          revisitAppointment.patientName
-        } on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${
-          newAppointmentData.time
-        }.`,
-        "success"
-      );
+    setRevisitAppointment(null);
+    setRevisitDate("");
+    setRevisitTime(null);
+    setRevisitReason("");
 
-      setRevisitAppointment(null);
-      setRevisitDate("");
-      setRevisitTime(null);
-      setRevisitReason("");
+    setTimeout(async () => {
+      await fetchAppointments();
+    }, 1000);
 
-      // Add delay before refreshing
-      setTimeout(async () => {
-        await fetchAppointments();
-      }, 1000);
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to schedule revisit appointment";
+    showToast("Error Creating Revisit", errorMessage, "destructive");
+  } finally {
+    setIsSubmittingRevisit(false);
+  }
+};
 
-    } catch (error) {
-      console.error("Error creating revisit appointment:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create revisit appointment";
-      showToast(
-        "Error Creating Revisit",
-        errorMessage,
-        "destructive"
-      );
-    } finally {
-      setIsSubmittingRevisit(false);
-    }
-  };
-
-  // FIXED: Much simpler prescription success handler
-  const handlePrescriptionSuccess = async (prescription) => {
-    console.log("Prescription created successfully:", prescription);
-
-    // Show success message
+  const handlePrescriptionSuccess = async () => {
     showToast(
       "Success",
       "Prescription created successfully! Appointment moved to history.",
       "success"
     );
-
-    // Close modal
     setShowPrescribeModal(false);
     setSelectedAppointment(null);
-
-    // Add delay before refreshing to ensure backend is updated
     setTimeout(async () => {
       await fetchAppointments();
     }, 1000);
@@ -701,7 +589,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         );
       }
     } catch (error) {
-      console.error("Error fetching prescription:", error);
       showToast(
         "Error",
         "Failed to fetch prescription. Please try again.",
@@ -756,7 +643,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     return variants[status] || variants.pending;
   };
 
-  // UPDATED: handleCancelConfirm function with reason parameter
   const handleCancelConfirm = async () => {
     if (!cancelReason.trim()) {
       showToast(
@@ -770,10 +656,9 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     setIsCancelling(true);
 
     try {
-      // ✅ FIXED: Pass the cancellation reason to the service function
       await cancelAppointmentById(
         cancelAppointment.appointmentId || cancelAppointment.id,
-        cancelReason.trim()  // Pass the reason as second parameter
+        cancelReason.trim()
       );
 
       showToast(
@@ -785,15 +670,11 @@ export const MedicalAppointments = ({ onModalToggle }) => {
       setCancelAppointment(null);
       setCancelReason("");
 
-      // Add delay before refreshing
       setTimeout(async () => {
         await fetchAppointments();
       }, 1000);
 
     } catch (error) {
-      console.error("Error cancelling appointment:", error);
-      
-      // Better error handling
       let errorMessage = "Failed to cancel appointment. Please try again.";
       if (error.response?.status === 400) {
         errorMessage = "Invalid cancellation reason provided.";
@@ -803,11 +684,7 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         errorMessage = error.response.data.message;
       }
       
-      showToast(
-        "Error",
-        errorMessage,
-        "destructive"
-      );
+      showToast("Error", errorMessage, "destructive");
     } finally {
       setIsCancelling(false);
     }
@@ -815,8 +692,8 @@ export const MedicalAppointments = ({ onModalToggle }) => {
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-6">
-      {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+      {/* Toast Container - Fixed z-index to prevent blurring */}
+      <div className="fixed top-4 right-4 z-[9999] space-y-2">
         {toasts.map((toast) => (
           <CustomToast
             key={toast.id}
@@ -1187,7 +1064,7 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         </Tabs>
       </div>
 
-      {/* Modals with Enhanced Backdrop Blur */}
+      {/* Modals */}
       {selectedPatient && (
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
           <PatientDetailsModal
@@ -1240,7 +1117,6 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         </div>
       )}
 
-      {/* Edit Prescription Modal */}
       {showEditPrescriptionModal && editPrescriptionData && (
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
           <EditPrescribeModal
@@ -1259,201 +1135,291 @@ export const MedicalAppointments = ({ onModalToggle }) => {
         </div>
       )}
 
-      {/* Revisit Modal - Enhanced with backdrop blur */}
-      {revisitAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-blue-600">
-              Schedule Revisit
-            </h2>
-            <p className="text-sm text-gray-600">
-              Schedule a follow-up appointment for{" "}
-              <strong>
-                {revisitAppointment.patient?.name ||
-                  revisitAppointment.patientName}
-              </strong>
-              .
-            </p>
+      
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full border rounded p-2 text-sm"
-                  value={revisitDate}
-                  onChange={(e) => setRevisitDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  disabled={isSubmittingRevisit}
-                />
-              </div>
+{revisitAppointment && (
+  <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <h2 className="text-lg font-semibold text-blue-600">
+        Schedule Revisit
+      </h2>
+      <p className="text-sm text-gray-600">
+        Schedule a follow-up appointment for{" "}
+        <strong>
+          {revisitAppointment.patient?.name ||
+            revisitAppointment.patientName}
+        </strong>
+        .
+      </p>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Time
-                </label>
-                <DatePicker
-                  selected={revisitTime}
-                  onChange={(date) => setRevisitTime(date)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="hh:mm aa"
-                  className="w-full border rounded p-2 text-sm"
-                  disabled={isSubmittingRevisit}
-                />
-              </div>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Date
+          </label>
+          <input
+            type="date"
+            className="w-full border rounded p-2 text-sm"
+            value={revisitDate}
+            onChange={(e) => setRevisitDate(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            disabled={isSubmittingRevisit}
+          />
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason for Revisit
-                </label>
-                <textarea
-                  rows={3}
-                  className="w-full border rounded p-2 text-sm"
-                  placeholder="Enter reason for follow-up appointment..."
-                  value={revisitReason}
-                  onChange={(e) => setRevisitReason(e.target.value)}
-                  disabled={isSubmittingRevisit}
-                />
-              </div>
-            </div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Time (9:00 AM - 5:00 PM)
+  </label>
+  <select
+    className="w-full border rounded p-2 text-sm"
+    value={revisitTime ? revisitTime.toTimeString().slice(0, 5) : ""}
+    onChange={(e) => {
+      const [hours, minutes] = e.target.value.split(':');
+      const timeDate = new Date();
+      timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      setRevisitTime(timeDate);
+    }}
+    disabled={isSubmittingRevisit}
+    size="1"
+    style={{ 
+      maxHeight: '120px',
+      overflowY: 'auto'
+    }}
+  >
+    <option value="">Select time...</option>
+    {(() => {
+      const times = [];
+      for (let hour = 9; hour <= 17; hour++) {
+        for (let minute = 0; minute < 60; minute += 60) { // Changed to 60 minutes (hourly slots)
+          if (hour === 17 && minute > 0) break; // Stop at 5:00 PM
+          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          const displayTime = new Date(2000, 0, 1, hour, minute).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          times.push(
+            <option key={timeString} value={timeString}>
+              {displayTime}
+            </option>
+          );
+        }
+      }
+      return times;
+    })()}
+  </select>
+  <p className="text-xs text-gray-500 mt-1">
+    Business hours: 9:00 AM to 5:00 PM (Hourly slots)
+  </p>
+</div>
 
-            <div className="flex justify-end space-x-2">
-              <button
-                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
-                onClick={() => setRevisitAppointment(null)}
-                disabled={isSubmittingRevisit}
-              >
-                Cancel
-              </button>
-              <button
-                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${
-                  !revisitDate ||
-                  !revisitTime ||
-                  !revisitReason.trim() ||
-                  isSubmittingRevisit
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                disabled={
-                  !revisitDate ||
-                  !revisitTime ||
-                  !revisitReason.trim() ||
-                  isSubmittingRevisit
-                }
-                onClick={handleRevisitConfirm}
-              >
-                {isSubmittingRevisit ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
-                  </>
-                ) : (
-                  "Schedule Revisit"
-                )}
-              </button>
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Reason for Revisit
+          </label>
+          <textarea
+            rows={3}
+            className="w-full border rounded p-2 text-sm"
+            placeholder="Enter reason for follow-up appointment..."
+            value={revisitReason}
+            onChange={(e) => setRevisitReason(e.target.value)}
+            disabled={isSubmittingRevisit}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <button
+          className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors"
+          onClick={() => {
+            setRevisitAppointment(null);
+            setRevisitDate("");
+            setRevisitTime(null);
+            setRevisitReason("");
+          }}
+          disabled={isSubmittingRevisit}
+        >
+          Cancel
+        </button>
+        <button
+          className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${
+            !revisitDate ||
+            !revisitTime ||
+            !revisitReason.trim() ||
+            isSubmittingRevisit
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={
+            !revisitDate ||
+            !revisitTime ||
+            !revisitReason.trim() ||
+            isSubmittingRevisit
+          }
+          onClick={handleRevisitConfirm}
+        >
+          {isSubmittingRevisit ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Creating...
+            </>
+          ) : (
+            "Schedule Revisit"
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{cancelAppointment && (
+  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden">
+      {/* Header with gradient */}
+      <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <MdCancel className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-white">Cancel Appointment</h2>
+            <p className="text-red-100 text-sm">This action cannot be undone</p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Cancel Appointment Modal - Enhanced with backdrop blur */}
-      {cancelAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-red-600 text-sm">⚠</span>
-              </div>
-              <h2 className="text-lg font-semibold text-red-600">
-                Cancel Appointment
-              </h2>
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        {/* Patient Info Card */}
+        <div className="bg-gray-50 rounded-lg p-3 border-l-4 border-red-400">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <MdPerson className="h-5 w-5 text-red-600" />
             </div>
-            
-            <p className="text-sm text-gray-600">
-              Please provide a reason for cancelling the appointment with{" "}
-              <strong>{cancelAppointment.patientName}</strong>.
-              <br />
-              <span className="text-xs text-gray-500 mt-1 block">
-                The patient will receive an email with this cancellation reason.
-              </span>
-            </p>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cancellation Reason <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                rows={4}
-                className="w-full border border-gray-300 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                placeholder="Please enter a detailed reason for cancellation (e.g., doctor unavailable due to emergency, facility maintenance, etc.)..."
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                disabled={isCancelling}
-                maxLength={500}
-              />
-              <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-500">
-                  {cancelReason.length}/500 characters
-                </span>
-                {!cancelReason.trim() && (
-                  <span className="text-xs text-red-500">
-                    Reason is required
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3 pt-4">
-              <button
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                onClick={() => {
-                  setCancelAppointment(null);
-                  setCancelReason("");
-                }}
-                disabled={isCancelling}
-              >
-                Keep Appointment
-              </button>
-              <button
-                className={`px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center ${
-                  !cancelReason.trim() || isCancelling ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={!cancelReason.trim() || isCancelling}
-                onClick={handleCancelConfirm}
-              >
-                {isCancelling ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Cancelling...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">📧</span>
-                    Cancel & Send Email
-                  </>
-                )}
-              </button>
-            </div>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-              <div className="flex">
-                <span className="text-yellow-600 mr-2">💡</span>
-                <div>
-                  <p className="text-sm font-medium text-yellow-800">What happens next?</p>
-                  <p className="text-xs text-yellow-700 mt-1">
-                    The patient will receive an email notification with your cancellation reason and can reschedule if needed.
-                  </p>
-                </div>
+              <h3 className="font-semibold text-gray-900 text-sm">
+                {cancelAppointment.patientName}
+              </h3>
+              <div className="text-xs text-gray-600 space-y-0.5">
+                <p className="flex items-center">
+                  <MdCalendarToday className="h-3 w-3 mr-1" />
+                  {cancelAppointment.date} at {cancelAppointment.time}
+                </p>
+                <p className="flex items-center">
+                  <MdDescription className="h-3 w-3 mr-1" />
+                  {cancelAppointment.reason || 'General consultation'}
+                </p>
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Cancellation Form */}
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">
+              Why are you cancelling this appointment?
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            
+            {/* Quick reason buttons */}
+            <div className="grid grid-cols-3 gap-1.5 mb-2">
+              {[
+                'Doctor unavailable',
+                'Emergency situation', 
+                'Facility maintenance',
+                'Personal emergency',
+                'Equipment issue',
+                'Other'
+              ].map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setCancelReason(reason === 'Other' ? '' : reason)}
+                  className={`p-1.5 text-xs rounded border transition-all duration-200 ${
+                    cancelReason === reason
+                      ? 'bg-red-100 border-red-300 text-red-700'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                  }`}
+                  disabled={isCancelling}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              rows={2}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors resize-none"
+              placeholder="Additional details (will be sent to patient via email)..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              disabled={isCancelling}
+              maxLength={200}
+            />
+            
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-gray-500">
+                {cancelReason.length}/200 characters
+              </span>
+              {!cancelReason.trim() && (
+                <span className="text-xs text-red-500 flex items-center">
+                  <span className="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
+                  Reason required
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-blue-600 text-sm">📧</span>
+            <p className="text-xs text-blue-700">
+              Patient will receive email notification and can reschedule through our portal.
+            </p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex space-x-3 pt-1">
+          <button
+            className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+            onClick={() => {
+              setCancelAppointment(null);
+              setCancelReason("");
+            }}
+            disabled={isCancelling}
+          >
+            Keep Appointment
+          </button>
+          
+          <button
+            className={`flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 ${
+              !cancelReason.trim() || isCancelling ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!cancelReason.trim() || isCancelling}
+            onClick={handleCancelConfirm}
+          >
+            {isCancelling ? (
+              <>
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                <span>Cancelling...</span>
+              </>
+            ) : (
+              <>
+                <MdCancel className="h-3 w-3" />
+                <span>Cancel Appointment</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -15,9 +15,12 @@ export const listCompletedAppointmentsByPatientId = (patientId) =>
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/completed`);
 
-// ✅ Create new appointment (for revisits)
+// ✅ Create new appointment
 export const createAppointment = (appointmentData) =>
-  axios.post(`${REST_API_BASE_URL}`, appointmentData);
+  axios.post(`${REST_API_BASE_URL}/create`, appointmentData);
+
+
+
 
 // ✅ Get all appointments by doctor ID (alternative method)
 export const listAllAppointmentsByDoctorId = (id) =>
@@ -62,11 +65,12 @@ export const cancelAppointmentById = async (appointmentId, reason) => {
 };
 
 
-// ✅ Reschedule appointment
-export const rescheduleAppointment = (id, newDateTime) =>
-  axios.put(
-  `${REST_API_BASE_URL}/revisit/${appointmentId}?reason=${reason}&newDate=${newDate}&newTime=${newTime}`
-);
+
+
+// ✅ Reschedule (Revisit) appointment
+export const rescheduleAppointment = (appointmentId, revisitData) =>
+  axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
+
 
 
 // ✅ Confirm appointment

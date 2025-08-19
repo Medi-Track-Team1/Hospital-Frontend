@@ -25,7 +25,7 @@ const getCurrentUser = () => {
       userId: parsed.userId || "",
       username: parsed.username || "",
       name: parsed.name || parsed.username || "",
-      role: parsed.role ? parsed.role.toLowerCase() : "patient"
+      role: parsed.role ? parsed.role : "null"
     };
   } catch (error) {
     // If it's not JSON, treat it as a plain string (ID)
@@ -120,16 +120,16 @@ const departments = [
     if (!currentUser) return;
 
     switch (currentUser.role) {
-      case "role_admin":
-        navigate("/admin/*");
+      case "ROLE_ADMIN":
+        navigate("/admin/");
         break;
-      case "role_doctor":
+      case "ROLE_DOCTOR":
         navigate(`/doctor/${currentUser.userId}`);
         break;
-      case "role_nurse":
+      case "ROLE_NURSE":
         navigate("/reception/");
         break;
-      case "role_patient":
+      case "ROLE_PATIENT":
         navigate(`/patient/${currentUser.userId}`);
         break;
       default:

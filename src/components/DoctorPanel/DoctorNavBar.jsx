@@ -1,8 +1,10 @@
+
+// DoctorNavbar.jsx - Updated to accept doctor prop
 import React, { useState } from "react";
 import { MdAccountCircle } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
-const DoctorNavbar = () => {
+const DoctorNavbar = ({ doctor }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
@@ -24,8 +26,15 @@ const DoctorNavbar = () => {
           MediTrack
         </h1>
 
-        {/* Profile Icon & Dropdown */}
-        <div className="relative">
+        {/* Profile Section with Doctor Name & Dropdown */}
+        <div className="relative flex items-center gap-3">
+          {/* Doctor Name */}
+          {doctor && (
+            <span className="text-sm font-extrabold tracking-tight font-serif">
+              {doctor.doctorName}
+            </span>
+          )}
+          
           <MdAccountCircle
             className="text-3xl cursor-pointer"
             onClick={handleIconClick}

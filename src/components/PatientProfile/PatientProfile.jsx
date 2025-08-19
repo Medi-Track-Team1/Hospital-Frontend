@@ -4,7 +4,6 @@ import Header from "../Home/Header";
 import { useNavigate, useParams } from "react-router-dom";
 import { isPatient } from "../../Pages/Auth/api";
 import LoadingSpinner from "../Admin/LoadingSpinner";
-
 import {
   User,
   Calendar,
@@ -22,10 +21,23 @@ import {
   Stethoscope,
   UserCheck,
 } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
 
 const PatientProfile = () => {
   const navigate = useNavigate();
   const { patientId } = useParams();
+
+  // State variables
+  const [isLoading, setIsLoading] = useState(false);
+  const [patientData, setPatientData] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [appointmentsError, setAppointmentsError] = useState(null);
 
   // Helper function to get current user data
   const getCurrentUser = () => {
@@ -43,17 +55,6 @@ const PatientProfile = () => {
       return null;
     }
   };
-
-  // State variables
-  const [patientData, setPatientData] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
-  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
-  const [appointmentsError, setAppointmentsError] = useState(null);
 
   // Check authorization effect
   // useEffect(() => {
@@ -90,7 +91,7 @@ const PatientProfile = () => {
       })
       .catch((error) => {
         console.error("Fetch error:", error);
-        alert(`Failed to load patient data: ${error.message}`);
+        toast.error(`Failed to load patient data: ${error.message}`);
       });
   }, [patientId]);
 
@@ -307,24 +308,41 @@ const PatientProfile = () => {
     setShowRescheduleModal(true);
   };
 
-  // Handle confirm reschedule
   const handleConfirmReschedule = async (appointmentId, newDate, newTime) => {
     console.log(
       `Attempting to reschedule appointment: ${appointmentId} to ${newDate} ${newTime}`
     );
 
     try {
+      setIsLoading(true);
+
+      // 1. Find the appointment
       const selectedAppointment = upcomingAppointments.find(
         (apt) => apt.id === appointmentId
       );
-      const apiAppointmentId =
-        selectedAppointment?.appointmentId || appointmentId;
 
+      if (!selectedAppointment) {
+        throw new Error("Appointment not found");
+      }
+
+      const apiAppointmentId =
+        selectedAppointment.appointmentId || appointmentId;
       console.log("Using appointment ID for API:", apiAppointmentId);
 
+      // 2. Format the date and time
       const dateTimeString = `${newDate}T${newTime}:00`;
-      console.log("DateTime string:", dateTimeString);
+      const newDateTime = new Date(dateTimeString);
 
+      if (isNaN(newDateTime.getTime())) {
+        throw new Error("Invalid date/time format");
+      }
+
+      // Check if date is in the past
+      if (newDateTime < new Date()) {
+        throw new Error("Cannot reschedule to a past date/time");
+      }
+
+      // 3. Make the API request
       const url = `https://appoitment-backend.onrender.com/api/appointments/${apiAppointmentId}/reschedule?newDateTime=${encodeURIComponent(
         dateTimeString
       )}`;
@@ -334,89 +352,57 @@ const PatientProfile = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        mode: "cors",
       });
 
       console.log("Response status:", response.status);
 
       if (!response.ok) {
+        const errorText = await response.text();
         let errorMessage = `Failed to reschedule appointment (Status: ${response.status})`;
 
         try {
-          const errorText = await response.text();
-          console.log("Error response text:", errorText);
-
-          if (errorText) {
-            try {
-              const errorData = JSON.parse(errorText);
-              errorMessage =
-                errorData.message || errorData.error || errorMessage;
-            } catch (jsonError) {
-              errorMessage = errorText || errorMessage;
-            }
-          }
-        } catch (textError) {
-          console.log("Could not read error response");
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
         }
 
         throw new Error(errorMessage);
       }
 
+      // 4. Handle successful response
       const updatedAppointment = await response.json();
       console.log("Reschedule successful:", updatedAppointment);
 
+      // 5. Update local state
       setUpcomingAppointments((prev) =>
         prev.map((a) =>
           a.id === appointmentId
             ? {
                 ...a,
-                date: Array.isArray(updatedAppointment.appointmentDateTime)
-                  ? formatAppointmentDate(
-                      updatedAppointment.appointmentDateTime
-                    )
-                  : formatAppointmentDate(
-                      updatedAppointment.appointmentDateTime
-                    ),
-                time: Array.isArray(updatedAppointment.appointmentDateTime)
-                  ? formatAppointmentTime(
-                      null,
-                      updatedAppointment.appointmentDateTime
-                    )
-                  : formatAppointmentTime(
-                      updatedAppointment.appointmentDateTime
-                    ),
-                status: updatedAppointment.status || "RESCHEDULED",
+                date: formatAppointmentDate(
+                  updatedAppointment.appointmentDateTime
+                ),
+                time: formatAppointmentTime(
+                  updatedAppointment.appointmentDateTime
+                ),
+                status: "RESCHEDULED",
               }
             : a
         )
       );
 
-      alert(
-        "Appointment rescheduled successfully! A confirmation email has been sent."
-      );
-      await fetchAppointments();
+      toast.success("Appointment rescheduled successfully!");
     } catch (error) {
-      console.error("Full error details:", error);
-
-      let userMessage = "Failed to reschedule appointment";
-
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
-        userMessage =
-          "Network error: Unable to connect to the server. Please check your internet connection and try again.";
-      } else if (error.message.includes("CORS")) {
-        userMessage = "Server configuration error. Please contact support.";
-      } else if (error.message) {
-        userMessage = `Failed to reschedule appointment: ${error.message}`;
-      }
-
-      alert(userMessage);
-      return;
+      console.error("Error rescheduling appointment:", error);
+      toast.error(error.message || "Failed to reschedule appointment");
+    } finally {
+      setIsLoading(false);
+      setShowRescheduleModal(false);
+      setSelectedAppointmentId(null);
     }
-
-    setShowRescheduleModal(false);
-    setSelectedAppointmentId(null);
   };
 
   // Handle cancel appointment
@@ -431,11 +417,15 @@ const PatientProfile = () => {
 
     try {
       const selectedAppointment = upcomingAppointments.find(
-        (apt) => apt.id === appointmentId
+        (apt) => apt.id === appointmentId || apt.appointmentId === appointmentId
       );
-      const apiAppointmentId =
-        selectedAppointment?.appointmentId || appointmentId;
 
+      if (!selectedAppointment) {
+        throw new Error("Appointment not found in your upcoming appointments");
+      }
+
+      const apiAppointmentId =
+        selectedAppointment.appointmentId || appointmentId;
       console.log("Using appointment ID for API:", apiAppointmentId);
 
       const url = `https://appoitment-backend.onrender.com/api/appointments/cancel/${apiAppointmentId}`;
@@ -446,10 +436,10 @@ const PatientProfile = () => {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          cancellationReason: reason || "No reason provided",
-          status: "CANCELLED",
+          reason: reason || "No reason provided",
         }),
         mode: "cors",
       });
@@ -471,11 +461,15 @@ const PatientProfile = () => {
           );
         }
 
+        // Update both id and appointmentId in case either was used
         setUpcomingAppointments((prev) =>
-          prev.filter((a) => a.id !== appointmentId)
+          prev.filter(
+            (a) =>
+              a.id !== appointmentId && a.appointmentId !== apiAppointmentId
+          )
         );
 
-        alert(
+        toast.success(
           "Appointment cancelled successfully! A cancellation email has been sent."
         );
         await fetchAppointments();
@@ -515,7 +509,7 @@ const PatientProfile = () => {
         userMessage = `Failed to cancel appointment: ${error.message}`;
       }
 
-      alert(userMessage);
+      toast.error(userMessage);
       return;
     }
 
@@ -578,7 +572,7 @@ const PatientProfile = () => {
       // Update local state with the response from backend
       if (updatedPatient.data) {
         setPatientData(updatedPatient.data);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         setShowEditModal(false);
       } else {
         throw new Error("Invalid response format from server");
@@ -593,7 +587,7 @@ const PatientProfile = () => {
         userMessage = error.message;
       }
 
-      alert(userMessage);
+      toast.error(userMessage);
     }
   };
 
@@ -707,10 +701,10 @@ const PatientProfile = () => {
                   setNewTime("");
                 }
               }}
-              disabled={!newDate || !newTime}
+              disabled={!newDate || !newTime || isLoading}
               className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 transition-colors"
             >
-              Confirm
+              {isLoading ? "Processing..." : "Confirm"}
             </button>
           </div>
         </div>
@@ -776,9 +770,10 @@ const PatientProfile = () => {
                 );
                 setReason("");
               }}
-              className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              disabled={isLoading}
+              className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-300 transition-colors"
             >
-              Cancel Appointment
+              {isLoading ? "Processing..." : "Cancel Appointment"}
             </button>
           </div>
         </div>
@@ -840,6 +835,7 @@ const PatientProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      <ToastContainer />
       <br />
       <br />
 
@@ -860,7 +856,6 @@ const PatientProfile = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full lg:w-auto">
-              {/* // In PatientProfile.jsx, update the history button: */}
               <button
                 onClick={() => navigate(`/patient/${patientId}/history`)}
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-800 rounded-lg sm:rounded-xl hover:bg-gray-300 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"

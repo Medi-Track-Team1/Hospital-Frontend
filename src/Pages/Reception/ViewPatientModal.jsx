@@ -22,7 +22,7 @@ const ViewPatientModal = ({
           jsPDF = jsPDFModule.default || jsPDFModule;
         } catch (importError) {
           console.error('jsPDF not available:', importError);
-          alert('PDF generation library not available. Please ensure jsPDF is loaded.');
+          toast.error('PDF generation library not available. Please ensure jsPDF is loaded.');
           return false;
         }
       }

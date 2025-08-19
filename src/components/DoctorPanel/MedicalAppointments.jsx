@@ -112,7 +112,7 @@ const useCustomToast = () => {
   };
 };
 
-export const MedicalAppointments = () => {
+export const MedicalAppointments = ({ onModalToggle }) => {
   // Replace useToast with our custom implementation
   const { toast, toasts, removeToast } = useCustomToast();
 
@@ -136,6 +136,32 @@ export const MedicalAppointments = () => {
   const [isSubmittingRevisit, setIsSubmittingRevisit] = useState(false);
 
   const { id: doctorId } = useParams();
+
+  // Add useEffect to track modal states and notify parent
+  useEffect(() => {
+    const isAnyModalOpen = 
+      showPrescribeModal ||
+      showViewPrescriptionModal ||
+      showEditPrescriptionModal ||
+      !!selectedPatient ||
+      !!revisitAppointment ||
+      !!cancelAppointment ||
+      !!viewHistoryPatient;
+
+    // Notify parent component about modal state
+    if (onModalToggle) {
+      onModalToggle(isAnyModalOpen);
+    }
+  }, [
+    showPrescribeModal,
+    showViewPrescriptionModal,
+    showEditPrescriptionModal,
+    selectedPatient,
+    revisitAppointment,
+    cancelAppointment,
+    viewHistoryPatient,
+    onModalToggle
+  ]);
 
   // Helper functions
   const getRowKey = (appointment) => {
@@ -1161,73 +1187,82 @@ export const MedicalAppointments = () => {
         </Tabs>
       </div>
 
-      {/* Modals */}
+      {/* Modals with Enhanced Backdrop Blur */}
       {selectedPatient && (
-        <PatientDetailsModal
-          isOpen={!!selectedPatient}
-          onClose={() => setSelectedPatient(null)}
-          patient={selectedPatient}
-        />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <PatientDetailsModal
+            isOpen={!!selectedPatient}
+            onClose={() => setSelectedPatient(null)}
+            patient={selectedPatient}
+          />
+        </div>
       )}
 
-
       {showPrescribeModal && selectedAppointment && (
-        <PrescribeModal
-          isOpen={showPrescribeModal}
-          appointmentId={getAppointmentIdForPrescription(selectedAppointment)}
-          doctorId={doctorId}
-          patientId={selectedAppointment.patientId}
-          patientName={selectedAppointment.patientName}
-          onClose={() => {
-            setShowPrescribeModal(false);
-            setSelectedAppointment(null);
-          }}
-          onSuccess={handlePrescriptionSuccess}
-        />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <PrescribeModal
+            isOpen={showPrescribeModal}
+            appointmentId={getAppointmentIdForPrescription(selectedAppointment)}
+            doctorId={doctorId}
+            patientId={selectedAppointment.patientId}
+            patientName={selectedAppointment.patientName}
+            onClose={() => {
+              setShowPrescribeModal(false);
+              setSelectedAppointment(null);
+            }}
+            onSuccess={handlePrescriptionSuccess}
+          />
+        </div>
       )}
 
       {showViewPrescriptionModal && currentPrescription && (
-        <ViewPrescriptionModal
-          isOpen={showViewPrescriptionModal}
-          onClose={() => {
-            setShowViewPrescriptionModal(false);
-            setCurrentPrescription(null);
-          }}
-          prescription={currentPrescription}
-        />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <ViewPrescriptionModal
+            isOpen={showViewPrescriptionModal}
+            onClose={() => {
+              setShowViewPrescriptionModal(false);
+              setCurrentPrescription(null);
+            }}
+            prescription={currentPrescription}
+          />
+        </div>
       )}
 
       {viewHistoryPatient && (
-        <PatientHistoryModal
-          isOpen={!!viewHistoryPatient}
-          onClose={() => setViewHistoryPatient(null)}
-          patientId={viewHistoryPatient.id}
-          patientName={viewHistoryPatient.name}
-          doctorId={doctorId}
-        />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <PatientHistoryModal
+            isOpen={!!viewHistoryPatient}
+            onClose={() => setViewHistoryPatient(null)}
+            patientId={viewHistoryPatient.id}
+            patientName={viewHistoryPatient.name}
+            doctorId={doctorId}
+          />
+        </div>
       )}
 
       {/* Edit Prescription Modal */}
       {showEditPrescriptionModal && editPrescriptionData && (
-        <EditPrescribeModal
-          isOpen={showEditPrescriptionModal}
-          appointmentId={editPrescriptionData.appointmentId}
-          doctorId={editPrescriptionData.doctorId}
-          patientId={editPrescriptionData.patientId}
-          patientName={editPrescriptionData.patientName}
-          existingPrescription={editPrescriptionData.prescription}
-          onClose={() => {
-            setShowEditPrescriptionModal(false);
-            setEditPrescriptionData(null);
-          }}
-          onSuccess={handleEditPrescriptionSuccess}
-        />
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <EditPrescribeModal
+            isOpen={showEditPrescriptionModal}
+            appointmentId={editPrescriptionData.appointmentId}
+            doctorId={editPrescriptionData.doctorId}
+            patientId={editPrescriptionData.patientId}
+            patientName={editPrescriptionData.patientName}
+            existingPrescription={editPrescriptionData.prescription}
+            onClose={() => {
+              setShowEditPrescriptionModal(false);
+              setEditPrescriptionData(null);
+            }}
+            onSuccess={handleEditPrescriptionSuccess}
+          />
+        </div>
       )}
 
-      {/* Revisit Modal */}
+      {/* Revisit Modal - Enhanced with backdrop blur */}
       {revisitAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-blue-600">
               Schedule Revisit
             </h2>
@@ -1326,9 +1361,9 @@ export const MedicalAppointments = () => {
         </div>
       )}
 
-      {/* Cancel Appointment Modal */}
+      {/* Cancel Appointment Modal - Enhanced with backdrop blur */}
       {cancelAppointment && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">

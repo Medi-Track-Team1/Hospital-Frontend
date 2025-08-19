@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Calendar, 
@@ -28,7 +25,8 @@ import {
 // API Configuration
 const API_CONFIG = {
   appointments: 'https://appoitment-backend.onrender.com/api/appointments',
-  patients: 'https://patient-service-ntk0.onrender.com/api/patient'
+  patients: 'https://patient-service-ntk0.onrender.com/api/patient',
+  doctors: 'https://doctorpanel-backend.onrender.com/api/doctor'
 };
 
 // API Service Layer
@@ -61,6 +59,10 @@ class ApiService {
 
   static async getAppointments() {
     return this.request(API_CONFIG.appointments);
+  }
+
+  static async getDoctors() {
+    return this.request(API_CONFIG.doctors);
   }
 
   static async createAppointment(appointmentData) {
@@ -215,6 +217,33 @@ const useAppointments = () => {
     cancelAppointment,
     completeAppointment,
     deleteAppointment,
+    clearError: () => setError(null)
+  };
+};
+
+const useDoctors = () => {
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchDoctors = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await ApiService.getDoctors();
+      setDoctors(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    doctors,
+    loading,
+    error,
+    fetchDoctors,
     clearError: () => setError(null)
   };
 };
@@ -481,10 +510,18 @@ const Appointment = () => {
     clearError
   } = useAppointments();
 
+  const {
+    doctors,
+    loading: doctorsLoading,
+    fetchDoctors
+  } = useDoctors();
+
   const [formData, setFormData] = useState({
     patientId: '',
     patientName: '',
+    doctorId: '',
     doctorName: '',
+    departmentId: '',
     departmentName: '',
     date: '',
     time: '',
@@ -495,19 +532,11 @@ const Appointment = () => {
     reason: ''
   });
 
-  const doctors = [
-    { name: 'Dr. Sarah Johnson', department: 'Cardiology' },
-    { name: 'Dr. Michael Brown', department: 'Neurology' },
-    { name: 'Dr. Emily Davis', department: 'Orthopedics' },
-    { name: 'Dr. James Wilson', department: 'Pediatrics' },
-    { name: 'Dr. Lisa Chen', department: 'Dermatology' },
-    { name: 'Dr. Robert Taylor', department: 'Internal Medicine' }
-  ];
-
-  // Fetch appointments on component mount
+  // Fetch appointments and doctors on component mount
   useEffect(() => {
     fetchAppointments();
-  }, [fetchAppointments]);
+    fetchDoctors();
+  }, [fetchAppointments, fetchDoctors]);
 
   // Auto-dismiss notifications
   useEffect(() => {
@@ -575,11 +604,16 @@ const Appointment = () => {
       }
     }
     
-    // Auto-fill department when doctor is selected
-    if (field === 'doctorName') {
-      const selectedDoctor = doctors.find(doc => doc.name === value);
+    // Auto-fill doctor and department when doctor is selected
+    if (field === 'doctorId') {
+      const selectedDoctor = doctors.find(doc => doc.doctorId === value);
       if (selectedDoctor) {
-        setFormData(prev => ({ ...prev, departmentName: selectedDoctor.department }));
+        setFormData(prev => ({ 
+          ...prev, 
+          doctorName: selectedDoctor.doctorName,
+          departmentId: selectedDoctor.departmentId,
+          departmentName: selectedDoctor.specialty
+        }));
       }
     }
   };
@@ -588,7 +622,9 @@ const Appointment = () => {
     setFormData({
       patientId: '',
       patientName: '',
+      doctorId: '',
       doctorName: '',
+      departmentId: '',
       departmentName: '',
       date: '',
       time: '',
@@ -632,7 +668,9 @@ const Appointment = () => {
     setFormData({
       patientId: appointment.patientId || '',
       patientName: appointment.patientName || '',
+      doctorId: appointment.doctorId || '',
       doctorName: appointment.doctorName || '',
+      departmentId: appointment.departmentId || '',
       departmentName: appointment.departmentName || '',
       date: appointmentDate ? appointmentDate.toISOString().split('T')[0] : '',
       time: appointmentDate ? appointmentDate.toTimeString().slice(0, 5) : '',
@@ -820,18 +858,31 @@ const Appointment = () => {
                   onChange={(e) => handleInputChange('age', e.target.value)}
                   className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <select
-                  value={formData.doctorName}
-                  onChange={(e) => handleInputChange('doctorName', e.target.value)}
-                  className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Doctor *</option>
-                  {doctors.map((doctor, index) => (
-                    <option key={index} value={doctor.name}>
-                      {doctor.name} - {doctor.department}
-                    </option>
-                  ))}
-                </select>
+                
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Doctor *
+                  </label>
+                  {doctorsLoading ? (
+                    <div className="p-3 border border-gray-300 rounded-lg bg-gray-100">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> Loading doctors...
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.doctorId}
+                      onChange={(e) => handleInputChange('doctorId', e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Doctor *</option>
+                      {doctors.map((doctor) => (
+                        <option key={doctor.doctorId} value={doctor.doctorId}>
+                          {doctor.doctorName} - {doctor.specialty}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                
                 <input
                   type="text"
                   placeholder="Department"
@@ -839,6 +890,7 @@ const Appointment = () => {
                   readOnly
                   className="p-3 border border-gray-300 rounded-lg bg-gray-100"
                 />
+                
                 <input
                   type="date"
                   value={formData.date}

@@ -27,8 +27,7 @@ import ViewPrescriptionModal from "./ViewPrescriptionModel";
 import {
   listUpcomingAppointmentsByDoctorId,
   listCompletedAppointmentsByDoctorId,
-  createAppointment,
-  rescheduleAppointment,
+  createRevisitAppointment,
   cancelAppointmentById,
 } from "../../services/DoctorPanel/AppointmentService";
 import { getPrescriptionByAppointmentId } from "../../services/DoctorPanel/PrescriptionService";
@@ -456,6 +455,8 @@ export const MedicalAppointments = ({ onModalToggle }) => {
     setViewHistoryPatient({ id: patientId, name: patientName });
   };
 
+// Add this to your MedicalAppointments component to ensure consistent time formatting
+
 const handleRevisitConfirm = async () => {
   if (!revisitDate || !revisitTime || !revisitReason.trim()) {
     showToast(
@@ -482,13 +483,14 @@ const handleRevisitConfirm = async () => {
   setIsSubmittingRevisit(true);
 
   try {
+    // ✅ FIXED: Ensure consistent time formatting for backend
     const appointmentDateTime = new Date(revisitDate);
     appointmentDateTime.setHours(revisitTime.getHours());
     appointmentDateTime.setMinutes(revisitTime.getMinutes());
     appointmentDateTime.setSeconds(0);
     appointmentDateTime.setMilliseconds(0);
 
-    // Create local datetime string without timezone conversion
+    // Create local datetime string in ISO format (backend expects this)
     const year = appointmentDateTime.getFullYear();
     const month = String(appointmentDateTime.getMonth() + 1).padStart(2, '0');
     const day = String(appointmentDateTime.getDate()).padStart(2, '0');
@@ -496,29 +498,30 @@ const handleRevisitConfirm = async () => {
     const minute = String(appointmentDateTime.getMinutes()).padStart(2, '0');
     const second = String(appointmentDateTime.getSeconds()).padStart(2, '0');
     
+    // ✅ Send in ISO format that backend expects
     const localDateString = `${year}-${month}-${day}`;
     const localTimeString = `${hour}:${minute}:${second}`;
 
-    console.log("Local Date String:", localDateString);
-    console.log("Local Time String:", localTimeString);
+    console.log("Sending to backend:", {
+      newDate: localDateString,
+      newTime: localTimeString,
+      reason: revisitReason
+    });
 
-    // ✅ FIXED: Use the backend revisit endpoint instead of createAppointment
-    // This will send the proper revisit email, not the creation acknowledgment
+    // Create revisit appointment data
     const revisitData = {
       newDate: localDateString,
       newTime: localTimeString,
       reason: revisitReason
     };
 
-    console.log("Revisit Data being sent:", revisitData);
-
-    // Use the existing appointment ID to create a revisit
+    // Use the correct revisit method that creates a NEW appointment
     const appointmentId = revisitAppointment.appointmentId || revisitAppointment.id;
-    await rescheduleAppointment(appointmentId, revisitData);
+    await createRevisitAppointment(appointmentId, revisitData);
     
     showToast(
-      "Revisit Scheduled Successfully",
-      `Revisit appointment updated for ${
+      "Revisit Appointment Created Successfully",
+      `New follow-up appointment created for ${
         revisitAppointment.patientName
       } on ${format(appointmentDateTime, "MMM dd, yyyy")} at ${
         appointmentDateTime.toLocaleTimeString([], {
@@ -526,7 +529,7 @@ const handleRevisitConfirm = async () => {
           minute: "2-digit",
           hour12: true,
         })
-      }.`,
+      }. The patient will receive an email confirmation.`,
       "success"
     );
 
@@ -543,7 +546,7 @@ const handleRevisitConfirm = async () => {
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
-      "Failed to schedule revisit appointment";
+      "Failed to create revisit appointment";
     showToast("Error Creating Revisit", errorMessage, "destructive");
   } finally {
     setIsSubmittingRevisit(false);

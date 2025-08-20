@@ -65,7 +65,8 @@ export const cancelAppointmentById = async (appointmentId, reason) => {
 };
 
 
-
+export const createRevisitAppointment = (appointmentId, revisitData) =>
+  axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
 
 // ✅ Reschedule (Revisit) appointment
 export const rescheduleAppointment = (appointmentId, revisitData) =>

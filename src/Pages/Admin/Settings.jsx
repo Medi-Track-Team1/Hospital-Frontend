@@ -26,16 +26,16 @@ const Settings = () => {
     
     if (showPasswordFields) {
       if (formData.newPassword !== formData.confirmPassword) {
-        alert("New passwords don't match!");
+        toast.error("New passwords don't match!");
         return;
       }
       if (formData.newPassword.length < 8) {
-        alert("Password must be at least 8 characters long!");
+        toast.error("Password must be at least 8 characters long!");
         return;
       }
     }
     
-    alert('Settings saved successfully!');
+    toast.error('Settings saved successfully!');
     setShowPasswordFields(false);
   };
 

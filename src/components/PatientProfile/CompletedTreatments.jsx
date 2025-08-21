@@ -12,7 +12,6 @@ import {
 import PatientHistory  from "./PatientHistory";
 
 
-
 const CompletedTreatments = () => {
   const [completedPrescriptions, setCompletedPrescriptions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");

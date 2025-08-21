@@ -15,9 +15,12 @@ export const listCompletedAppointmentsByPatientId = (patientId) =>
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/completed`);
 
-// ✅ Create new appointment (for revisits)
+// ✅ Create new appointment
 export const createAppointment = (appointmentData) =>
-  axios.post(`${REST_API_BASE_URL}`, appointmentData);
+  axios.post(`${REST_API_BASE_URL}/create`, appointmentData);
+
+
+
 
 // ✅ Get all appointments by doctor ID (alternative method)
 export const listAllAppointmentsByDoctorId = (id) =>
@@ -43,32 +46,33 @@ export const markAppointmentCompleted = async (appointmentId) => {
   }
 };
 
-// ✅ FIXED: Cancel appointment with reason (sends reason as query parameter)
+// ✅ Cancel appointment by sending reason in body (matches Spring Boot @RequestBody)
 export const cancelAppointmentById = async (appointmentId, reason) => {
   try {
     console.log(`Cancelling appointment ${appointmentId} with reason: ${reason}`);
-    
-    // Send reason as query parameter to match backend expectation
+
     const response = await axios.put(
-      `${REST_API_BASE_URL}/cancel/${appointmentId}?reason=${encodeURIComponent(reason)}`
+      `${REST_API_BASE_URL}/cancel/${appointmentId}`,
+      { reason }   // <-- send JSON body
     );
-    
+
     console.log('Appointment cancelled successfully:', response.data);
     return response;
   } catch (error) {
     console.error('Error cancelling appointment:', error);
-    if (error.response?.status === 404) {
-      console.error(`Appointment with ID ${appointmentId} not found`);
-    } else if (error.response?.status === 400) {
-      console.error('Bad request - reason may be missing or invalid');
-    }
     throw error;
   }
 };
 
-// ✅ Reschedule appointment
-export const rescheduleAppointment = (id, newDateTime) =>
-  axios.post(`${REST_API_BASE_URL}/${id}/reschedule?newDateTime=${newDateTime}`);
+
+export const createRevisitAppointment = (appointmentId, revisitData) =>
+  axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
+
+// ✅ Reschedule (Revisit) appointment
+export const rescheduleAppointment = (appointmentId, revisitData) =>
+  axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
+
+
 
 // ✅ Confirm appointment
 export const confirmAppointment = (id) =>

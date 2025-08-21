@@ -1,32 +1,29 @@
-// PatientHistory.jsx - Updated with patientId support
+// PatientHistory.jsx - API Integrated Version
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, X, Filter, Calendar, Stethoscope } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import Header from "./Header";
 import SearchAndFilters from "./SearchAndFilters";
-import TabNavigation from "./TabNavigation";
-import SummaryCards from "./SummaryCards";
 import PrescriptionTable from "./PrescriptionTable";
 import PrescriptionModal from "./PrescriptionModal";
 import BillingModal from "./BillingModal";
 import FilterPanel from "./FilterPanel";
-import { mockPrescriptions } from "../../data/mockData";
 import { searchPrescriptions } from "../../Utils/SearchUtils";
 
 const PatientHistory = () => {
   const navigate = useNavigate();
-  const { patientId } = useParams(); // Get patientId from URL parameters
-  
+  const { patientId } = useParams();
+
   const [prescriptions, setPrescriptions] = useState([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
-  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     selectedDate: "",
     selectedDoctor: "",
@@ -35,42 +32,111 @@ const PatientHistory = () => {
     dateRange: { start: "", end: "" },
   });
 
-  // Load prescriptions
+  // API base URLs
+  const APPOINTMENT_API_BASE = "https://appoitment-backend.onrender.com/api";
+  const BILLING_API_BASE = "https://billing-backend-0zk0.onrender.com/api";
+
+  // Fetch prescriptions/appointments from API
   useEffect(() => {
     const fetchPrescriptions = async () => {
+      if (!patientId) return;
+
       setIsLoading(true);
+      setError(null);
+
       try {
-        // TODO: Replace with actual API call using patientId
-        // const response = await fetch(`/api/prescriptions/patient/${patientId}`);
-        // const data = await response.json();
-        
-        // For now, using mock data - filter by patientId if needed
-        const patientPrescriptions = mockPrescriptions.filter(p => 
-          p.patientId === patientId || !p.patientId // fallback for mock data
+        // Fetch patient history from appointments API
+        const appointmentResponse = await fetch(
+          `${APPOINTMENT_API_BASE}/appointments/patient/${patientId}/history`
         );
-        
-        setPrescriptions(patientPrescriptions);
-        setFilteredPrescriptions(patientPrescriptions);
+
+        if (!appointmentResponse.ok) {
+          throw new Error(`Failed to fetch appointments: ${appointmentResponse.status}`);
+        }
+
+        const appointmentData = await appointmentResponse.json();
+        console.log("Appointment data:", appointmentData);
+
+        // Transform the appointment data to match your prescription format
+        const transformedPrescriptions = await Promise.all(
+          appointmentData.map(async (appointment) => {
+            let billingData = null;
+
+            // Fetch billing data for each appointment
+            try {
+              const billingResponse = await fetch(
+                `${BILLING_API_BASE}/billing/by-appointment/${appointment._id || appointment.id}`
+              );
+              
+              if (billingResponse.ok) {
+                billingData = await billingResponse.json();
+              }
+            } catch (billingError) {
+              console.warn(`Failed to fetch billing for appointment ${appointment._id}:`, billingError);
+            }
+
+            // Transform appointment to prescription format
+            return {
+              id: appointment._id || appointment.id,
+              prescriptionNumber: appointment.appointmentNumber || `APP-${appointment._id}`,
+              patientId: patientId,
+              patientName: appointment.patientName || appointment.patient?.name || "Unknown Patient",
+              date: appointment.appointmentDate || appointment.date || appointment.createdAt,
+              doctor: {
+                id: appointment.doctorId || appointment.doctor?._id,
+                name: appointment.doctorName || appointment.doctor?.name || "Unknown Doctor",
+                department: appointment.department || appointment.doctor?.specialization || "General"
+              },
+              medications: appointment.medications || appointment.prescription || [],
+              diagnosis: appointment.diagnosis || appointment.notes || "No diagnosis provided",
+              notes: appointment.notes || appointment.additionalNotes || "",
+              status: appointment.status || "completed",
+              billing: billingData ? {
+                billId: billingData._id || billingData.id,
+                billDate: billingData.createdAt || billingData.billDate || appointment.date,
+                consultationFee: billingData.consultationFee || billingData.amount || 0,
+                medicationTotal: billingData.medicationTotal || 0,
+                subtotal: billingData.subtotal || billingData.amount || 0,
+                discount: billingData.discount || 0,
+                tax: billingData.tax || 0,
+                finalAmount: billingData.finalAmount || billingData.totalAmount || billingData.amount || 0,
+                paymentStatus: billingData.paymentStatus || "pending",
+                paymentDate: billingData.paymentDate,
+                paymentMethod: billingData.paymentMethod || "N/A"
+              } : {
+                // Default billing structure if no billing data found
+                billId: `BILL-${appointment._id}`,
+                billDate: appointment.date,
+                consultationFee: 0,
+                medicationTotal: 0,
+                subtotal: 0,
+                discount: 0,
+                tax: 0,
+                finalAmount: 0,
+                paymentStatus: "pending",
+                paymentDate: null,
+                paymentMethod: "N/A"
+              }
+            };
+          })
+        );
+
+        setPrescriptions(transformedPrescriptions);
+        setFilteredPrescriptions(transformedPrescriptions);
       } catch (error) {
-        console.error("Error fetching prescriptions:", error);
+        console.error("Error fetching patient history:", error);
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (patientId) {
-      fetchPrescriptions();
-    }
+    fetchPrescriptions();
   }, [patientId]);
 
-  // Filter prescriptions based on active tab, search query, and filters
+  // Apply search & filters
   useEffect(() => {
     let filtered = prescriptions;
-
-    // Filter by status first
-    if (activeTab !== "all") {
-      filtered = filtered.filter((p) => p.status === activeTab);
-    }
 
     // Apply search and advanced filters
     filtered = searchPrescriptions(filtered, searchQuery, filters);
@@ -84,7 +150,7 @@ const PatientHistory = () => {
     }
 
     setFilteredPrescriptions(filtered);
-  }, [prescriptions, activeTab, searchQuery, filters]);
+  }, [prescriptions, searchQuery, filters]);
 
   const handleViewDetails = (prescription) => {
     setSelectedPrescription(prescription);
@@ -103,7 +169,6 @@ const PatientHistory = () => {
     }));
   };
 
-  // Handle back navigation to patient profile
   const handleBackToProfile = () => {
     navigate(`/patient/${patientId}`);
   };
@@ -112,28 +177,57 @@ const PatientHistory = () => {
     typeof value === "object" ? value.start || value.end : value
   ).length;
 
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header navigate={navigate} />
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Patient History</h2>
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header navigate={navigate} />
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Back to Profile Button */}
+        {/* Back Button */}
         <div className="mb-6">
           <button
             onClick={handleBackToProfile}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Profile
+            <ArrowLeft size={20} />
+            <span>Back to Patient Profile</span>
           </button>
         </div>
 
         {/* Patient History Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical History</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Medical History
+          </h1>
           <p className="text-gray-600">Patient ID: {patientId}</p>
+          {prescriptions.length > 0 && (
+            <p className="text-sm text-gray-500">
+              {prescriptions.length} record{prescriptions.length !== 1 ? 's' : ''} found
+            </p>
+          )}
         </div>
 
+        {/* Search + Filters */}
         <SearchAndFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -145,15 +239,14 @@ const PatientHistory = () => {
           setIsFilterPanelOpen={setIsFilterPanelOpen}
         />
 
-        <TabNavigation
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          prescriptions={prescriptions}
-          filteredPrescriptions={filteredPrescriptions}
-        />
+        {/* All Records Title */}
+        <div className="mt-6 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            All Medical Records
+          </h2>
+        </div>
 
-        <SummaryCards filteredPrescriptions={filteredPrescriptions} />
-
+        {/* Prescription Table */}
         <PrescriptionTable
           isLoading={isLoading}
           filteredPrescriptions={filteredPrescriptions}
@@ -174,14 +267,14 @@ const PatientHistory = () => {
           onClose={() => setIsModalOpen(false)}
         />
       )}
-      
+
       {isBillingModalOpen && selectedPrescription && (
         <BillingModal
           prescription={selectedPrescription}
           onClose={() => setIsBillingModalOpen(false)}
         />
       )}
-      
+
       {isFilterPanelOpen && (
         <FilterPanel
           filters={filters}

@@ -272,14 +272,8 @@ const Signup = ({ onClose, onLoginClick }) => {
 
     try {
       // Encrypt password before sending
+      
       const encryptedPassword = await encryptPassword(formData.password);
-      const authResponse = await registerUser({
-        username: formData.patientName,
-        email: formData.patientEmail,
-        password: formData.password
-      });
-      console.log('Auth response:', authResponse);
-    
       // Prepare the data according to your backend Patient model
       const patientData = {
         patientName: formData.patientName,
@@ -322,7 +316,14 @@ const Signup = ({ onClose, onLoginClick }) => {
 
       if (response.ok && result.success) {
         
-         localStorage.setItem("id",result.data.patientId );
+      const authResponse = await registerUser({
+        username: result.data.patientName,
+        email: formData.patientEmail,
+        password: formData.password,
+        userId:result.data.patientId
+      });
+      console.log('Auth response:', authResponse);
+         localStorage.setItem("ides",result.data.patientId );
         toast.success(`Patient registered successfully! Patient ID: ${result.data.patientId}`, {
           autoClose: 5000,
         });

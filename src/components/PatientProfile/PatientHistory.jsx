@@ -1,4 +1,4 @@
-// PatientHistory.jsx - Final Cleaned Up (All Records Only)
+// PatientHistory.jsx - API Integrated Version
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -9,12 +9,11 @@ import PrescriptionTable from "./PrescriptionTable";
 import PrescriptionModal from "./PrescriptionModal";
 import BillingModal from "./BillingModal";
 import FilterPanel from "./FilterPanel";
-import { mockPrescriptions } from "../../data/mockData";
 import { searchPrescriptions } from "../../Utils/SearchUtils";
 
 const PatientHistory = () => {
   const navigate = useNavigate();
-  const { patientId } = useParams(); // Get patientId from URL parameters
+  const { patientId } = useParams();
 
   const [prescriptions, setPrescriptions] = useState([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState([]);
@@ -24,6 +23,7 @@ const PatientHistory = () => {
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     selectedDate: "",
     selectedDoctor: "",
@@ -32,35 +32,109 @@ const PatientHistory = () => {
     dateRange: { start: "", end: "" },
   });
 
-  // Load prescriptions (all records for patient)
+  // API base URLs
+  const APPOINTMENT_API_BASE = "https://appoitment-backend.onrender.com/api";
+  const BILLING_API_BASE = "https://billing-backend-0zk0.onrender.com/api";
+
+  // Fetch prescriptions/appointments from API
   useEffect(() => {
     const fetchPrescriptions = async () => {
-      setIsLoading(true);
-      try {
-        // TODO: Replace with actual API call using patientId
-        // const response = await fetch(`/api/prescriptions/patient/${patientId}`);
-        // const data = await response.json();
+      if (!patientId) return;
 
-        // For now, using mock data - filter by patientId if needed
-        const patientPrescriptions = mockPrescriptions.filter(
-          (p) => p.patientId === patientId || !p.patientId // fallback for mock data
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Fetch patient history from appointments API
+        const appointmentResponse = await fetch(
+          `${APPOINTMENT_API_BASE}/appointments/patient/${patientId}/history`
         );
 
-        setPrescriptions(patientPrescriptions);
-        setFilteredPrescriptions(patientPrescriptions);
+        if (!appointmentResponse.ok) {
+          throw new Error(`Failed to fetch appointments: ${appointmentResponse.status}`);
+        }
+
+        const appointmentData = await appointmentResponse.json();
+        console.log("Appointment data:", appointmentData);
+
+        // Transform the appointment data to match your prescription format
+        const transformedPrescriptions = await Promise.all(
+          appointmentData.map(async (appointment) => {
+            let billingData = null;
+
+            // Fetch billing data for each appointment
+            try {
+              const billingResponse = await fetch(
+                `${BILLING_API_BASE}/billing/by-appointment/${appointment._id || appointment.id}`
+              );
+              
+              if (billingResponse.ok) {
+                billingData = await billingResponse.json();
+              }
+            } catch (billingError) {
+              console.warn(`Failed to fetch billing for appointment ${appointment._id}:`, billingError);
+            }
+
+            // Transform appointment to prescription format
+            return {
+              id: appointment._id || appointment.id,
+              prescriptionNumber: appointment.appointmentNumber || `APP-${appointment._id}`,
+              patientId: patientId,
+              patientName: appointment.patientName || appointment.patient?.name || "Unknown Patient",
+              date: appointment.appointmentDate || appointment.date || appointment.createdAt,
+              doctor: {
+                id: appointment.doctorId || appointment.doctor?._id,
+                name: appointment.doctorName || appointment.doctor?.name || "Unknown Doctor",
+                department: appointment.department || appointment.doctor?.specialization || "General"
+              },
+              medications: appointment.medications || appointment.prescription || [],
+              diagnosis: appointment.diagnosis || appointment.notes || "No diagnosis provided",
+              notes: appointment.notes || appointment.additionalNotes || "",
+              status: appointment.status || "completed",
+              billing: billingData ? {
+                billId: billingData._id || billingData.id,
+                billDate: billingData.createdAt || billingData.billDate || appointment.date,
+                consultationFee: billingData.consultationFee || billingData.amount || 0,
+                medicationTotal: billingData.medicationTotal || 0,
+                subtotal: billingData.subtotal || billingData.amount || 0,
+                discount: billingData.discount || 0,
+                tax: billingData.tax || 0,
+                finalAmount: billingData.finalAmount || billingData.totalAmount || billingData.amount || 0,
+                paymentStatus: billingData.paymentStatus || "pending",
+                paymentDate: billingData.paymentDate,
+                paymentMethod: billingData.paymentMethod || "N/A"
+              } : {
+                // Default billing structure if no billing data found
+                billId: `BILL-${appointment._id}`,
+                billDate: appointment.date,
+                consultationFee: 0,
+                medicationTotal: 0,
+                subtotal: 0,
+                discount: 0,
+                tax: 0,
+                finalAmount: 0,
+                paymentStatus: "pending",
+                paymentDate: null,
+                paymentMethod: "N/A"
+              }
+            };
+          })
+        );
+
+        setPrescriptions(transformedPrescriptions);
+        setFilteredPrescriptions(transformedPrescriptions);
       } catch (error) {
-        console.error("Error fetching prescriptions:", error);
+        console.error("Error fetching patient history:", error);
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (patientId) {
-      fetchPrescriptions();
-    }
+    fetchPrescriptions();
   }, [patientId]);
 
-  // Apply search & filters (all records only)
+  // Apply search & filters
   useEffect(() => {
     let filtered = prescriptions;
 
@@ -95,7 +169,6 @@ const PatientHistory = () => {
     }));
   };
 
-  // Handle back navigation to patient profile
   const handleBackToProfile = () => {
     navigate(`/patient/${patientId}`);
   };
@@ -104,12 +177,42 @@ const PatientHistory = () => {
     typeof value === "object" ? value.start || value.end : value
   ).length;
 
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header navigate={navigate} />
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Patient History</h2>
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header navigate={navigate} />
 
       <div className="max-w-7xl mx-auto p-6">
-        
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            onClick={handleBackToProfile}
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            <span>Back to Patient Profile</span>
+          </button>
+        </div>
 
         {/* Patient History Header */}
         <div className="mb-6">
@@ -117,6 +220,11 @@ const PatientHistory = () => {
             Medical History
           </h1>
           <p className="text-gray-600">Patient ID: {patientId}</p>
+          {prescriptions.length > 0 && (
+            <p className="text-sm text-gray-500">
+              {prescriptions.length} record{prescriptions.length !== 1 ? 's' : ''} found
+            </p>
+          )}
         </div>
 
         {/* Search + Filters */}
@@ -131,7 +239,7 @@ const PatientHistory = () => {
           setIsFilterPanelOpen={setIsFilterPanelOpen}
         />
 
-        {/* ✅ All Records Title (below filters, above table) */}
+        {/* All Records Title */}
         <div className="mt-6 mb-4">
           <h2 className="text-lg font-semibold text-gray-800">
             All Medical Records

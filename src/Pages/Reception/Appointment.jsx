@@ -30,33 +30,89 @@ const API_CONFIG = {
 };
 
 // API Service Layer
+// Updated API Service with better error handling and logging
 class ApiService {
   static async request(url, options = {}) {
     const config = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
     };
 
+    // Add logging to debug the request
+    console.log("API Request:", {
+      url,
+      method: config.method || "GET",
+      headers: config.headers,
+      body: config.body ? JSON.parse(config.body) : undefined,
+    });
+
     try {
       const response = await fetch(url, config);
-      
+
+      console.log("API Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+      });
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+
+        throw new Error(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
-      
-      return await response.json();
+
+      const responseData = await response.json();
+      console.log("API Success Response:", responseData);
+      return responseData;
     } catch (error) {
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Network error - please check your connection');
+      console.error("API Request Error:", error);
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        throw new Error("Network error - please check your connection");
       }
       throw error;
     }
   }
 
+  static async createAppointment(appointmentData) {
+    const formattedData = {
+      patientId: appointmentData.patientId,
+      patientName: appointmentData.patientName,
+      doctorId: appointmentData.doctorId,
+      doctorName: appointmentData.doctorName,
+      departmentId: appointmentData.departmentId,
+      departmentName: appointmentData.departmentName,
+      appointmentDateTime: appointmentData.appointmentDateTime,
+      phone: appointmentData.phone,
+      patientEmail: appointmentData.patientEmail,
+      age: parseInt(appointmentData.age) || 0,
+      symptoms: appointmentData.symptoms,
+      reason: appointmentData.reason,
+      duration: parseInt(appointmentData.duration) || 30, // 🔹 FIX added default
+      status: appointmentData.status || "PENDING",
+    };
+
+    console.log("Creating appointment with data:", formattedData);
+
+    return this.request(`${API_CONFIG.appointments}/create`, {
+      method: "POST",
+      body: JSON.stringify(formattedData),
+    });
+  }
+
+  // Rest of your methods remain the same...
   static async getAppointments() {
     return this.request(API_CONFIG.appointments);
   }
@@ -65,42 +121,38 @@ class ApiService {
     return this.request(API_CONFIG.doctors);
   }
 
-  static async createAppointment(appointmentData) {
-    return this.request(`${API_CONFIG.appointments}/create`, {
-      method: 'POST',
-      body: JSON.stringify(appointmentData),
-    });
-  }
-
   static async updateAppointment(appointmentId, appointmentData) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(appointmentData),
     });
   }
 
   static async confirmAppointment(appointmentId) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}/confirm`, {
-      method: 'PUT',
+      method: "PUT",
     });
   }
 
   static async cancelAppointment(appointmentId, reason) {
     return this.request(`${API_CONFIG.appointments}/cancel/${appointmentId}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify({ reason }),
     });
   }
 
   static async completeAppointment(appointmentId) {
-    return this.request(`${API_CONFIG.appointments}/${appointmentId}/complete`, {
-      method: 'PUT',
-    });
+    return this.request(
+      `${API_CONFIG.appointments}/${appointmentId}/complete`,
+      {
+        method: "PUT",
+      }
+    );
   }
 
   static async deleteAppointment(appointmentId) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -108,7 +160,6 @@ class ApiService {
     return this.request(`${API_CONFIG.patients}/${patientId}`);
   }
 }
-
 // Custom Hooks
 const useAppointments = () => {
   const [appointments, setAppointments] = useState([]);

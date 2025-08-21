@@ -102,7 +102,7 @@ const PatientProfile = () => {
     }
   }, [activeTab, patientId]);
 
-  // Helper function to format date from backend
+  // Helper function to format date from backendnpm
   const formatAppointmentDate = (dateInput) => {
     if (!dateInput) return "TBD";
 

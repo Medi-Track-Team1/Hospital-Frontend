@@ -19,140 +19,85 @@ import {
   Trash2,
   Check,
   Ban,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 // API Configuration
 const API_CONFIG = {
   appointments: 'https://appoitment-backend.onrender.com/api/appointments',
-  patients: 'https://patient-service-ntk0.onrender.com/api/patient',
-  doctors: 'https://doctorpanel-backend.onrender.com/api/doctor'
+  patients: 'https://patient-service-ntk0.onrender.com/api/patient'
 };
 
 // API Service Layer
-// Updated API Service with better error handling and logging
 class ApiService {
   static async request(url, options = {}) {
     const config = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
     };
 
-    // Add logging to debug the request
-    console.log("API Request:", {
-      url,
-      method: config.method || "GET",
-      headers: config.headers,
-      body: config.body ? JSON.parse(config.body) : undefined,
-    });
-
     try {
       const response = await fetch(url, config);
-
-      console.log("API Response:", {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url,
-      });
-
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error Response:", errorText);
-
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText };
-        }
-
-        throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
-
-      const responseData = await response.json();
-      console.log("API Success Response:", responseData);
-      return responseData;
+      
+      return await response.json();
     } catch (error) {
-      console.error("API Request Error:", error);
-      if (error.name === "TypeError" && error.message.includes("fetch")) {
-        throw new Error("Network error - please check your connection");
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Network error - please check your connection');
       }
       throw error;
     }
   }
 
-  static async createAppointment(appointmentData) {
-    const formattedData = {
-      patientId: appointmentData.patientId,
-      patientName: appointmentData.patientName,
-      doctorId: appointmentData.doctorId,
-      doctorName: appointmentData.doctorName,
-      departmentId: appointmentData.departmentId,
-      departmentName: appointmentData.departmentName,
-      appointmentDateTime: appointmentData.appointmentDateTime,
-      phone: appointmentData.phone,
-      patientEmail: appointmentData.patientEmail,
-      age: parseInt(appointmentData.age) || 0,
-      symptoms: appointmentData.symptoms,
-      reason: appointmentData.reason,
-      duration: parseInt(appointmentData.duration) || 30, // 🔹 FIX added default
-      status: appointmentData.status || "PENDING",
-    };
-
-    console.log("Creating appointment with data:", formattedData);
-
-    return this.request(`${API_CONFIG.appointments}/create`, {
-      method: "POST",
-      body: JSON.stringify(formattedData),
-    });
-  }
-
-  // Rest of your methods remain the same...
   static async getAppointments() {
     return this.request(API_CONFIG.appointments);
   }
 
-  static async getDoctors() {
-    return this.request(API_CONFIG.doctors);
+  static async createAppointment(appointmentData) {
+    return this.request(`${API_CONFIG.appointments}/create`, {
+      method: 'POST',
+      body: JSON.stringify(appointmentData),
+    });
   }
 
   static async updateAppointment(appointmentId, appointmentData) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(appointmentData),
     });
   }
 
   static async confirmAppointment(appointmentId) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}/confirm`, {
-      method: "PUT",
+      method: 'PUT',
     });
   }
 
   static async cancelAppointment(appointmentId, reason) {
     return this.request(`${API_CONFIG.appointments}/cancel/${appointmentId}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify({ reason }),
     });
   }
 
   static async completeAppointment(appointmentId) {
-    return this.request(
-      `${API_CONFIG.appointments}/${appointmentId}/complete`,
-      {
-        method: "PUT",
-      }
-    );
+    return this.request(`${API_CONFIG.appointments}/${appointmentId}/complete`, {
+      method: 'PUT',
+    });
   }
 
   static async deleteAppointment(appointmentId) {
     return this.request(`${API_CONFIG.appointments}/${appointmentId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   }
 
@@ -160,6 +105,7 @@ class ApiService {
     return this.request(`${API_CONFIG.patients}/${patientId}`);
   }
 }
+
 // Custom Hooks
 const useAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -268,33 +214,6 @@ const useAppointments = () => {
     cancelAppointment,
     completeAppointment,
     deleteAppointment,
-    clearError: () => setError(null)
-  };
-};
-
-const useDoctors = () => {
-  const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchDoctors = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await ApiService.getDoctors();
-      setDoctors(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    doctors,
-    loading,
-    error,
-    fetchDoctors,
     clearError: () => setError(null)
   };
 };
@@ -427,6 +346,78 @@ const SearchFilters = ({ searchTerm, setSearchTerm, selectedStatus, setSelectedS
   );
 };
 
+// Pagination Component
+const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  if (totalItems === 0) return null;
+
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+      <div className="flex items-center gap-2 text-sm text-gray-700">
+        <span>Showing</span>
+        <span className="font-medium">{startItem}</span>
+        <span>to</span>
+        <span className="font-medium">{endItem}</span>
+        <span>of</span>
+        <span className="font-medium">{totalItems}</span>
+        <span>appointments</span>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+        
+        <div className="flex items-center gap-1">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNumber;
+            if (totalPages <= 5) {
+              pageNumber = i + 1;
+            } else if (currentPage <= 3) {
+              pageNumber = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNumber = totalPages - 4 + i;
+            } else {
+              pageNumber = currentPage - 2 + i;
+            }
+
+            return (
+              <button
+                key={pageNumber}
+                onClick={() => onPageChange(pageNumber)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                  currentPage === pageNumber
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {pageNumber}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Appointment Card Component
 const AppointmentCard = ({ appointment, onConfirm, onCancel, onComplete, onDelete, onEdit, onView }) => {
   const formatDateTime = (dateTimeString) => {
@@ -547,6 +538,10 @@ const Appointment = () => {
   const [patientData, setPatientData] = useState(null);
   const [fetchingPatient, setFetchingPatient] = useState(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const {
     appointments,
     loading,
@@ -561,18 +556,10 @@ const Appointment = () => {
     clearError
   } = useAppointments();
 
-  const {
-    doctors,
-    loading: doctorsLoading,
-    fetchDoctors
-  } = useDoctors();
-
   const [formData, setFormData] = useState({
     patientId: '',
     patientName: '',
-    doctorId: '',
     doctorName: '',
-    departmentId: '',
     departmentName: '',
     date: '',
     time: '',
@@ -583,11 +570,24 @@ const Appointment = () => {
     reason: ''
   });
 
-  // Fetch appointments and doctors on component mount
+  const doctors = [
+    { name: 'Dr. Sarah Johnson', department: 'Cardiology' },
+    { name: 'Dr. Michael Brown', department: 'Neurology' },
+    { name: 'Dr. Emily Davis', department: 'Orthopedics' },
+    { name: 'Dr. James Wilson', department: 'Pediatrics' },
+    { name: 'Dr. Lisa Chen', department: 'Dermatology' },
+    { name: 'Dr. Robert Taylor', department: 'Internal Medicine' }
+  ];
+
+  // Fetch appointments on component mount
   useEffect(() => {
     fetchAppointments();
-    fetchDoctors();
-  }, [fetchAppointments, fetchDoctors]);
+  }, [fetchAppointments]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedStatus, selectedDate]);
 
   // Auto-dismiss notifications
   useEffect(() => {
@@ -643,6 +643,13 @@ const Appointment = () => {
     });
   }, [appointments, searchTerm, selectedStatus, selectedDate]);
 
+  // Paginated appointments
+  const paginatedAppointments = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAppointments.slice(startIndex, endIndex);
+  }, [filteredAppointments, currentPage, itemsPerPage]);
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -655,16 +662,11 @@ const Appointment = () => {
       }
     }
     
-    // Auto-fill doctor and department when doctor is selected
-    if (field === 'doctorId') {
-      const selectedDoctor = doctors.find(doc => doc.doctorId === value);
+    // Auto-fill department when doctor is selected
+    if (field === 'doctorName') {
+      const selectedDoctor = doctors.find(doc => doc.name === value);
       if (selectedDoctor) {
-        setFormData(prev => ({ 
-          ...prev, 
-          doctorName: selectedDoctor.doctorName,
-          departmentId: selectedDoctor.departmentId,
-          departmentName: selectedDoctor.specialty
-        }));
+        setFormData(prev => ({ ...prev, departmentName: selectedDoctor.department }));
       }
     }
   };
@@ -673,9 +675,7 @@ const Appointment = () => {
     setFormData({
       patientId: '',
       patientName: '',
-      doctorId: '',
       doctorName: '',
-      departmentId: '',
       departmentName: '',
       date: '',
       time: '',
@@ -719,9 +719,7 @@ const Appointment = () => {
     setFormData({
       patientId: appointment.patientId || '',
       patientName: appointment.patientName || '',
-      doctorId: appointment.doctorId || '',
       doctorName: appointment.doctorName || '',
-      departmentId: appointment.departmentId || '',
       departmentName: appointment.departmentName || '',
       date: appointmentDate ? appointmentDate.toISOString().split('T')[0] : '',
       time: appointmentDate ? appointmentDate.toTimeString().slice(0, 5) : '',
@@ -769,6 +767,10 @@ const Appointment = () => {
     } catch (error) {
       setNotification({ message: error.message, type: 'error' });
     }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -824,7 +826,7 @@ const Appointment = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredAppointments.map((appointment) => (
+                {paginatedAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.appointmentId}
                     appointment={appointment}
@@ -839,6 +841,16 @@ const Appointment = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {filteredAppointments.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredAppointments.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </div>
 
@@ -909,31 +921,18 @@ const Appointment = () => {
                   onChange={(e) => handleInputChange('age', e.target.value)}
                   className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Doctor *
-                  </label>
-                  {doctorsLoading ? (
-                    <div className="p-3 border border-gray-300 rounded-lg bg-gray-100">
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> Loading doctors...
-                    </div>
-                  ) : (
-                    <select
-                      value={formData.doctorId}
-                      onChange={(e) => handleInputChange('doctorId', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Doctor *</option>
-                      {doctors.map((doctor) => (
-                        <option key={doctor.doctorId} value={doctor.doctorId}>
-                          {doctor.doctorName} - {doctor.specialty}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-                
+                <select
+                  value={formData.doctorName}
+                  onChange={(e) => handleInputChange('doctorName', e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Doctor *</option>
+                  {doctors.map((doctor, index) => (
+                    <option key={index} value={doctor.name}>
+                      {doctor.name} - {doctor.department}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   placeholder="Department"
@@ -941,7 +940,6 @@ const Appointment = () => {
                   readOnly
                   className="p-3 border border-gray-300 rounded-lg bg-gray-100"
                 />
-                
                 <input
                   type="date"
                   value={formData.date}

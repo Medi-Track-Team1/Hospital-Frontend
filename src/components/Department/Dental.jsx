@@ -3,7 +3,7 @@ import { Smile, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import dcare from "../../assets/dcare.jpeg";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -38,20 +38,21 @@ const Dental = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await getDoctorsBySpecialty("Dental");
-        setDoctors(Array.isArray(res) ? res : []);
-      } catch (err) {
-        console.error("Error fetching dentists:", err);
-        setDoctors([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+ useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Dental");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching dentists:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDoctors();
+}, []);
+
 
   const handleBookClick = (doctor) => {
     navigate("/departments/appointment", { state: { doctor } });

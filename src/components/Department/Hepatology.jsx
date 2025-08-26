@@ -3,7 +3,7 @@ import { Droplet, Phone, Mail } from "lucide-react";
 import hepatology from "../../assets/hepatology.jpeg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -45,20 +45,21 @@ const Hepatology = () => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await getDoctorsBySpecialty("Hepatology");
-        setDoctors(res || []);
-      } catch (err) {
-        console.error("Error fetching hepatologists:", err);
-        setDoctors([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Hepatology");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching hepatologists:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDoctors();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">

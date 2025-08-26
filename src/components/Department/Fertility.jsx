@@ -3,7 +3,7 @@ import { Baby, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import fertilityImage from "../../assets/fertility.jpeg";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -44,19 +44,21 @@ const Fertility = () => {
     navigate("/departments/appointment", { state: { doctor } });
   };
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await getDoctorsBySpecialty("Fertility");
-        setDoctors(res);
-      } catch (err) {
-        console.error("Error fetching fertility doctors:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Fertility");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching fertility doctors:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDoctors();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">

@@ -1,36 +1,28 @@
 import axios from 'axios';
 
-// ✅ Base URL for appointment endpoints
 const REST_API_BASE_URL = 'https://appoitment-backend.onrender.com/api/appointments';
 
-// ✅ Get upcoming appointments by doctor ID
+// Get upcoming appointments by doctor ID (used in Medical Appointments)
 export const listUpcomingAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/upcoming`);
 
-// Add this to your AppointmentService.js
-export const listCompletedAppointmentsByPatientId = (patientId) =>
-  axios.get(`${REST_API_BASE_URL}/patient/${patientId}/completed`);
-
-// ✅ Get completed appointments by doctor ID  
+// Get completed appointments by doctor ID (used in Medical Appointments)
 export const listCompletedAppointmentsByDoctorId = (id) =>
   axios.get(`${REST_API_BASE_URL}/doctor/${id}/completed`);
 
-// ✅ Create new appointment
+// Get completed appointments by patient ID (used for patient history)
+export const listCompletedAppointmentsByPatientId = (patientId) =>
+  axios.get(`${REST_API_BASE_URL}/patient/${patientId}/completed`);
+
+// Create new appointment (used for scheduling)
 export const createAppointment = (appointmentData) =>
   axios.post(`${REST_API_BASE_URL}/create`, appointmentData);
 
-
-
-
-// ✅ Get all appointments by doctor ID (alternative method)
-export const listAllAppointmentsByDoctorId = (id) =>
-  axios.get(`${REST_API_BASE_URL}/doctor/${id}/upcoming`);
-
-// ✅ Update appointment status
+// Update appointment status (used for general status updates)
 export const updateAppointmentStatus = (id, status) =>
   axios.put(`${REST_API_BASE_URL}/${id}`, { status });
 
-// ✅ FIXED: Mark appointment as completed
+// Mark appointment as completed (used in PrescriptionForm)
 export const markAppointmentCompleted = async (appointmentId) => {
   try {
     console.log(`Marking appointment ${appointmentId} as completed`);
@@ -46,16 +38,16 @@ export const markAppointmentCompleted = async (appointmentId) => {
   }
 };
 
-// ✅ Cancel appointment by sending reason in body (matches Spring Boot @RequestBody)
+// Cancel appointment (used for appointment cancellation)
 export const cancelAppointmentById = async (appointmentId, reason) => {
   try {
     console.log(`Cancelling appointment ${appointmentId} with reason: ${reason}`);
-
+    
     const response = await axios.put(
       `${REST_API_BASE_URL}/cancel/${appointmentId}`,
-      { reason }   // <-- send JSON body
+      { reason }
     );
-
+    
     console.log('Appointment cancelled successfully:', response.data);
     return response;
   } catch (error) {
@@ -64,16 +56,10 @@ export const cancelAppointmentById = async (appointmentId, reason) => {
   }
 };
 
-
+// Create revisit appointment (used for follow-up appointments)
 export const createRevisitAppointment = (appointmentId, revisitData) =>
   axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
 
-// ✅ Reschedule (Revisit) appointment
-export const rescheduleAppointment = (appointmentId, revisitData) =>
-  axios.post(`${REST_API_BASE_URL}/revisit/${appointmentId}`, revisitData);
-
-
-
-// ✅ Confirm appointment
+// Confirm appointment (used for appointment confirmation)
 export const confirmAppointment = (id) =>
   axios.put(`${REST_API_BASE_URL}/${id}/confirm`);

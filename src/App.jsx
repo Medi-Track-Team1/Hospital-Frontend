@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
 import UnauthorizedPage from "./components/UnauthroizedPage";
 // Routes and Components
 import HomeRoutes from "./components/Home/HomeRoutes";
@@ -14,9 +13,9 @@ import DoctorPanelPage from "./Pages/DoctorPanel/DoctorPanelPage";
 import Login from "./Pages/Auth/Login";
 import Signup from "./Pages/Auth/Signup";
 import CompletedTreatments from "./components/PatientProfile/CompletedTreatments";
-import PatientHistoryPage from "./Pages/DoctorPanel/PatientHistoryPage";
 
-import PatientHistory from "./components/PatientProfile/PatientHistory";
+
+
 
 function App() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
@@ -34,88 +33,7 @@ function App() {
             />
           }
         />
-        {/* <Route path="/doctor/:id" element={<DoctorPanelPage />} />
-        <Route path="/departments/*" element={<DeptRoute />} />
-
-        <Route path="/patient/*" element={<Patient />} />
-        <Route
-          path="/doctor/:doctorId/patient/:patientId/history"
-          element={<PatientHistoryPage />}
-        />
-
-        <Route path="/patient/:patientId" element={<Patient />} />
-        <Route
-          path="/doctor/:id/patienthistory"
-          element={<CompletedTreatments />}
-        />
-
-        <Route path="/reception/*" element={<Reception />} />
-        <Route p
-        ath="/admin/*" element={<Admin />} /> */}
-        
-  {/* <Route path="/doctor/:id" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
-        <DoctorPanelPage />
-      </ProtectedRoute>
-    } 
-  />
-  
-  <Route path="/departments/*" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN', 'ROLE_RECEPTION']}>
-        <DeptRoute />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/patient/*" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_PATIENT', 'ROLE_DOCTOR', 'ROLE_ADMIN']}>
-        <Patient />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/doctor/:doctorId/patient/:patientId/history" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
-        <PatientHistoryPage />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/patient/:patientId" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_PATIENT', 'ROLE_DOCTOR', 'ROLE_ADMIN']}>
-        <Patient />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/doctor/:id/patienthistory" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_DOCTOR', 'ROLE_ADMIN']}>
-        <CompletedTreatments />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/reception/*" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_RECEPTION', 'ROLE_ADMIN']}>
-        <Reception />
-      </ProtectedRoute>
-    } 
-  />
-
-  <Route path="/admin/*" 
-    element={
-      <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
-        <Admin />
-      </ProtectedRoute>
-    } 
-  /> */}
+       
 
     <Route path="/doctor/:id" element={<DoctorPanelPage />} />
 
@@ -123,7 +41,7 @@ function App() {
 
 <Route path="/patient/*" element={<Patient />} />
 
-<Route path="/doctor/:doctorId/patient/:patientId/history" element={<PatientHistoryPage />} />
+
 
 <Route path="/patient/:patientId" element={<Patient />} />
 

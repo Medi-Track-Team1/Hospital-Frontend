@@ -3,7 +3,7 @@ import { Brain, Phone, Mail } from "lucide-react";
 import psychology from "../../assets/psychology.jpg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -69,18 +69,21 @@ const Psychology = () => {
   };
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await getDoctorsBySpecialty("Psychology");
-        setDoctors(res);
-      } catch (err) {
-        console.error("Error fetching psychology doctors:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Psychology");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching psychology doctors:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDoctors();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">

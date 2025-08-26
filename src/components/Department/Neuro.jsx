@@ -3,7 +3,7 @@ import { Brain, Phone, Mail } from "lucide-react";
 import neurology from "../../assets/neuro.jpg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -53,18 +53,20 @@ const Neuro = () => {
   };
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await getDoctorsBySpecialty("Neurology");
-        setDoctors(res);
-      } catch (err) {
-        console.error("Error fetching neurologists:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Neurology");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching neurologists:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDoctors();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-blue-100 pt-28 px-4 sm:px-6 flex flex-col items-center relative">

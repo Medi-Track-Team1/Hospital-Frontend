@@ -3,7 +3,7 @@ import { Droplet, Phone, Mail } from "lucide-react";
 import Pedia from "../../assets/Pedia.png";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -37,20 +37,22 @@ const Pediatrics = () => {
     return status === "Active" ? "Book Appointment" : "Doctor on Leave";
   };
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        setLoading(true);
-        const res = await getDoctorsBySpecialty("Pediatrics");
-        setDoctors(res);
-      } catch (err) {
-        console.error("Error fetching pediatricians:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
+useEffect(() => {
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      const res = await getDoctorsBySpecialty("Pediatrics");
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching pediatricians:", err);
+      setDoctors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDoctors();
+}, []);
+
 
   const SkeletonCard = () => (
     <div className="animate-pulse bg-white p-4 rounded-xl shadow-md w-full sm:w-[450px] h-auto flex flex-col items-center">

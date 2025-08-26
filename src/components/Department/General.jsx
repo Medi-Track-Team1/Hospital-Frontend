@@ -5,7 +5,7 @@ import { Stethoscope, Phone, Mail } from "lucide-react";
 import generalImg from "../../assets/general.jpg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -70,7 +70,8 @@ const General = () => {
     const fetchDoctors = async () => {
       try {
         const res = await getDoctorsBySpecialty("General");
-        setDoctors(Array.isArray(res) ? res : []);
+
+        setDoctors(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error fetching general doctors:", err);
         setDoctors([]);

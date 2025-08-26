@@ -3,7 +3,7 @@ import { Eye, Phone, Mail } from "lucide-react";
 import eyeImage from "../../assets/EyeCare.jpeg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getDoctorsBySpecialty } from "../../services/DoctorPanel/GetDoctorsBySpecialty";
+import { getDoctorsBySpecialty } from "../../services/DoctorPanel/DoctorService";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -19,17 +19,18 @@ const EyeCare = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const data = await getDoctorsBySpecialty("Eye Care");
-        console.log("Fetched doctors:", data);
-        setDoctors(data || []);
-      } catch (err) {
-        console.error("Failed to fetch doctors:", err);
-      }
-    };
-    fetchDoctors();
-  }, []);
+  const fetchDoctors = async () => {
+    try {
+      const res = await getDoctorsBySpecialty("Eye Care");
+      console.log("Fetched doctors:", res.data);
+      setDoctors(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch doctors:", err);
+      setDoctors([]);
+    }
+  };
+  fetchDoctors();
+}, []);
 
   const handleBookClick = (doctor) => {
     navigate("/departments/appointment", { state: { doctor } });

@@ -1,39 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { markAppointmentCompleted } from '../../services/DoctorPanel/AppointmentService';
 
-const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,onSuccess }) => {
+const PrescriptionForm = ({ appointmentId, doctorId, patientId, patientName, onClose, onSuccess }) => {
+  // Medicine search and management
   const [search, setSearch] = useState("");
   const [selectedMeds, setSelectedMeds] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Injection search and management
   const [injections, setInjections] = useState([]);
   const [injectionSearch, setInjectionSearch] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [showInjectionSuggestions, setShowInjectionSuggestions] = useState(false);
+  
+  // Additional prescription data
   const [dietPlan, setDietPlan] = useState("");
   const [recommendedTests, setRecommendedTests] = useState([]);
+  
+  // UI state
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  const [allMedicines, setAllMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Medicine data
+  const [allMedicines, setAllMedicines] = useState([]);
 
   const testOptions = [
-    "Blood Test",
-    "ECG", 
-    "Chest X-Ray",
-    "Urine Test",
-    "MRI Scan",
-    "CT Scan",
-    "Complete Blood Count",
-    "Lipid Profile",
-    "Liver Function Test",
-    "Kidney Function Test"
+    "Blood Test", "ECG", "Chest X-Ray", "Urine Test", "MRI Scan", 
+    "CT Scan", "Complete Blood Count", "Lipid Profile", 
+    "Liver Function Test", "Kidney Function Test"
   ];
 
-  // Debug log to verify the correct appointmentId is being received
+  // Debug logs
   useEffect(() => {
-    console.log("PrescriptionForm received appointmentId:", appointmentId);
-    console.log("PrescriptionForm received doctorId:", doctorId);
-  }, [appointmentId, doctorId]);
+    console.log("PrescriptionForm props:", { appointmentId, doctorId, patientId, patientName });
+  }, [appointmentId, doctorId, patientId, patientName]);
 
   // Fetch medicines from backend
   useEffect(() => {
@@ -73,128 +74,128 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
+    setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3000);
   };
 
-  // ✅ UPDATED: Enhanced prescription saving with better success handling
+  const validatePrescriptionData = () => {
+    if (!patientId || !patientName) {
+      showToast("Patient information is missing. Please close and retry.", "error");
+      return false;
+    }
+
+    if (!appointmentId || !doctorId) {
+      showToast("Appointment or doctor information is missing.", "error");
+      return false;
+    }
+
+    if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
+      showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
+      return false;
+    }
+
+    return true;
+  };
+
+  const preparePrescriptionData = () => ({
+    appointmentId,
+    doctorId,
+    patientId,
+    patientName,
+    medicines: selectedMeds.map(med => ({
+      name: med.name,
+      batch: med.batch,
+      dosage: med.dosage || "",
+      quantity: med.quantity || "",
+      duration: med.duration || "",
+      timing: med.timing || []
+    })),
+    injections: injections.map(inj => ({
+      name: inj.name,
+      batch: inj.batch,
+      dosage: inj.dosage || "",
+      quantity: inj.quantity || "",
+      schedule: inj.schedule || "",
+      notes: inj.notes || ""
+    })),
+    dietPlan,
+    recommendedTests
+  });
+
+  const savePrescription = async (prescriptionData) => {
+    const response = await fetch('https://doctorpanel-backend.onrender.com/api/prescriptions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(prescriptionData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.message) errorMessage = errorData.message;
+      } catch (e) {
+        errorMessage = errorText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  };
+
+  const completeAppointment = async () => {
+    try {
+      const completionResult = await markAppointmentCompleted(appointmentId);
+      console.log('Appointment marked as completed:', completionResult.data);
+      return true;
+    } catch (completionError) {
+      console.warn('Error marking appointment as completed:', completionError);
+      
+      if (completionError.response?.status === 404) {
+        console.warn(`Appointment ${appointmentId} not found in appointment service`);
+        showToast("Prescription saved successfully! (Appointment status update may require manual refresh)");
+      } else {
+        showToast("Prescription saved successfully!");
+      }
+      return false;
+    }
+  };
+
   const handleSavePrescription = async () => {
+    if (!validatePrescriptionData()) return;
+
     try {
       setSubmitting(true);
+      console.log("Creating prescription...");
 
-      // Validate that we have at least some prescription data
-      if (selectedMeds.length === 0 && injections.length === 0 && !dietPlan.trim() && recommendedTests.length === 0) {
-        showToast("Please add at least one medicine, injection, diet plan, or test recommendation", "error");
-        return;
-      }
-
-      console.log("Creating prescription with appointmentId:", appointmentId, "doctorId:", doctorId,"PatientId:", patientId,"PatientName:", patientName);
-
-      // Validate patient data exists
-      if (!patientId || !patientName) {
-        console.error("Missing patient data:", { patientId, patientName });
-        showToast("Cannot save prescription: Patient information is missing. Please close and retry.", "error");
-        return;
-      }
-
-      // Validate appointment data exists  
-      if (!appointmentId || !doctorId) {
-        console.error("Missing appointment/doctor data:", { appointmentId, doctorId });
-        showToast("Cannot save prescription: Appointment or doctor information is missing.", "error");
-        return;
-      }
-
-      // Prepare prescription data
-      const prescriptionData = {
-        appointmentId: appointmentId,
-        doctorId: doctorId,
-        patientId: patientId,
-        patientName: patientName,
-        medicines: selectedMeds.map(med => ({
-          name: med.name,
-          batch: med.batch,
-          dosage: med.dosage || "",
-          quantity: med.quantity || "",
-          duration: med.duration || "",
-          timing: med.timing || []
-        })),
-        injections: injections.map(inj => ({
-          name: inj.name,
-          batch: inj.batch,
-          dosage: inj.dosage || "",
-          quantity: inj.quantity || "",
-          schedule: inj.schedule || "",
-          notes: inj.notes || ""
-        })),
-        dietPlan: dietPlan,
-        recommendedTests: recommendedTests
-      };
-
+      const prescriptionData = preparePrescriptionData();
       console.log('Sending prescription data:', JSON.stringify(prescriptionData, null, 2));
 
-      // Step 1: Save prescription
-      const prescriptionResponse = await fetch('https://doctorpanel-backend.onrender.com/api/prescriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(prescriptionData)
-      });
-
-      console.log('Prescription response status:', prescriptionResponse.status);
-
-      if (!prescriptionResponse.ok) {
-        const errorText = await prescriptionResponse.text();
-        let errorMessage = `HTTP ${prescriptionResponse.status}: ${prescriptionResponse.statusText}`;
-        
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          }
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      const prescriptionResult = await prescriptionResponse.json();
+      // Save prescription
+      const prescriptionResult = await savePrescription(prescriptionData);
       console.log('Prescription saved successfully:', prescriptionResult);
       
-      // Step 2: Mark appointment as completed using AppointmentService
-      try {
-        console.log('Marking appointment as completed using AppointmentService:', appointmentId);
-        const completionResult = await markAppointmentCompleted(appointmentId);
-        console.log('Appointment marked as completed:', completionResult.data);
+      // Complete appointment
+      const appointmentCompleted = await completeAppointment();
+      
+      if (appointmentCompleted) {
         showToast("Prescription saved and appointment completed successfully!");
-      } catch (completionError) {
-        console.warn('Error marking appointment as completed:', completionError);
-        // Check if it's a 404 error (appointment not found)
-        if (completionError.response?.status === 404) {
-          console.warn(`Appointment ${appointmentId} not found in appointment service, but prescription was saved`);
-          showToast("Prescription saved successfully! (Appointment status update may require manual refresh)");
-        } else {
-          console.warn('Failed to mark appointment as completed, but prescription was saved');
-          showToast("Prescription saved successfully!");
-        }
       }
       
-      // ✅ CRITICAL: Call success callback with prescription data immediately
+      // Call success callback
       if (onSuccess) {
-        console.log("Calling onSuccess callback with prescription result:", prescriptionResult);
+        console.log("Calling onSuccess callback");
         onSuccess(prescriptionResult);
       }
-      
-      // ✅ REMOVED: Don't automatically close modal - let parent handle it
-      // The parent component (MedicalAppointments) will close the modal after handling success
 
     } catch (error) {
       console.error('Error saving prescription:', error);
       
-      // More detailed error messages
       let errorMessage = error.message;
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -211,18 +212,17 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
     }
   };
 
-  const filteredSuggestions = medicines.filter((med) =>
+  // Medicine search and management functions
+  const filteredSuggestions = medicines.filter(med =>
     med.name.toLowerCase().includes(search.trim().toLowerCase())
   );
 
-  const filteredInjectionSuggestions = availableInjections.filter((inj) =>
+  const filteredInjectionSuggestions = availableInjections.filter(inj =>
     inj.name.toLowerCase().includes(injectionSearch.trim().toLowerCase())
   );
 
   const handleAddMedicine = (med) => {
-    const exists = selectedMeds.find(
-      (m) => m.name.toLowerCase() === med.name.toLowerCase()
-    );
+    const exists = selectedMeds.find(m => m.name.toLowerCase() === med.name.toLowerCase());
     if (!exists) {
       setSelectedMeds([
         ...selectedMeds,
@@ -256,22 +256,20 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
   };
 
   const handleRemoveMedicine = (indexToRemove) => {
-    const updated = selectedMeds.filter((_, idx) => idx !== indexToRemove);
-    setSelectedMeds(updated);
+    setSelectedMeds(selectedMeds.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleRemoveInjection = (indexToRemove) => {
-    const updated = injections.filter((_, idx) => idx !== indexToRemove);
-    setInjections(updated);
+    setInjections(injections.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleTimingChange = (index, time) => {
     const updated = [...selectedMeds];
     const current = updated[index].timing;
     if (current.includes(time)) {
-      updated[index].timing = current.filter((t) => t !== time);
+      updated[index].timing = current.filter(t => t !== time);
     } else {
-      updated[index].timing.push(time);
+      updated[index].timing = [...current, time];
     }
     setSelectedMeds(updated);
   };
@@ -289,11 +287,39 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
   };
 
   const handleTestToggle = (testName) => {
-    setRecommendedTests((prev) =>
+    setRecommendedTests(prev =>
       prev.includes(testName)
-        ? prev.filter((t) => t !== testName)
+        ? prev.filter(t => t !== testName)
         : [...prev, testName]
     );
+  };
+
+  const clearSearch = (type) => {
+    if (type === 'medicine') {
+      setSearch("");
+      setShowSuggestions(false);
+    } else {
+      setInjectionSearch("");
+      setShowInjectionSuggestions(false);
+    }
+  };
+
+  const handleSearchAdd = (type) => {
+    if (type === 'medicine') {
+      const found = medicines.find(m => m.name.toLowerCase() === search.trim().toLowerCase());
+      if (found) {
+        handleAddMedicine(found);
+      } else {
+        showToast("Medicine not found", "error");
+      }
+    } else {
+      const found = availableInjections.find(inj => inj.name.toLowerCase() === injectionSearch.trim().toLowerCase());
+      if (found) {
+        handleAddInjectionFromSearch(found);
+      } else {
+        showToast("Injection not found", "error");
+      }
+    }
   };
 
   if (loading) {
@@ -305,7 +331,7 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
           </div>
           <div className="p-8 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600">Loading....</span>
+            <span className="ml-4 text-gray-600">Loading...</span>
           </div>
         </div>
       </div>
@@ -315,6 +341,7 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div className="w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        
         {/* Toast Notification */}
         {toast.show && (
           <div className={`fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 ${
@@ -349,15 +376,13 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
 
         {/* Form Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6">
-          <div>
-            <h2 className="text-2xl font-bold">Create Prescription</h2>
-            <p className="text-blue-100 text-sm mt-1">
-              Appointment ID: {appointmentId} • Doctor ID: {doctorId}
-            </p>
-            <p className="text-blue-100 text-sm">
-              {medicines.length} medicines • {availableInjections.length} injections available
-            </p>
-          </div>
+          <h2 className="text-2xl font-bold">Create Prescription</h2>
+          <p className="text-blue-100 text-sm mt-1">
+            Appointment ID: {appointmentId} • Doctor ID: {doctorId}
+          </p>
+          <p className="text-blue-100 text-sm">
+            {medicines.length} medicines • {availableInjections.length} injections available
+          </p>
         </div>
 
         {/* Form Content */}
@@ -366,135 +391,114 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
 
             {/* Search Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
               {/* Medicine Search */}
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Add Medicines (Batch: B*)
-                  </h3>
-                  <div className="relative">
-                    <div className="flex gap-3">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="Search medicine..."
-                          value={search}
-                          onChange={(e) => {
-                            setSearch(e.target.value);
-                            setShowSuggestions(true);
-                          }}
-                          className="border-2 border-gray-200 px-4 py-3 pr-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        />
-                        {search && (
-                          <button
-                            onClick={() => {
-                              setSearch("");
-                              setShowSuggestions(false);
-                            }}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          const found = medicines.find(
-                            (m) => m.name.toLowerCase() === search.trim().toLowerCase()
-                          );
-                          if (found) handleAddMedicine(found);
-                          else showToast("❌ Medicine not found", "error");
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  Add Medicines (Batch: B*)
+                </h3>
+                <div className="relative">
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Search medicine..."
+                        value={search}
+                        onChange={(e) => {
+                          setSearch(e.target.value);
+                          setShowSuggestions(true);
                         }}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
-                      >
-                        Add
-                      </button>
+                        className="border-2 border-gray-200 px-4 py-3 pr-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      />
+                      {search && (
+                        <button
+                          onClick={() => clearSearch('medicine')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
-
-                    {showSuggestions && search.trim() && filteredSuggestions.length > 0 && (
-                      <ul className="absolute bg-white border-2 border-gray-100 rounded-lg mt-2 shadow-xl z-50 max-h-40 overflow-auto w-full">
-                        {filteredSuggestions.map((med, idx) => (
-                          <li
-                            key={idx}
-                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
-                            onClick={() => handleAddMedicine(med)}
-                          >
-                            <div className="font-semibold text-gray-800">{med.name}</div>
-                            <div className="text-sm text-gray-500">
-                              {med.type || 'Medicine'} • Batch: {med.batch} • {med.dosage || 'No dosage specified'}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <button
+                      onClick={() => handleSearchAdd('medicine')}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
+                    >
+                      Add
+                    </button>
                   </div>
+
+                  {showSuggestions && search.trim() && filteredSuggestions.length > 0 && (
+                    <ul className="absolute bg-white border-2 border-gray-100 rounded-lg mt-2 shadow-xl z-50 max-h-40 overflow-auto w-full">
+                      {filteredSuggestions.map((med, idx) => (
+                        <li
+                          key={idx}
+                          className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+                          onClick={() => handleAddMedicine(med)}
+                        >
+                          <div className="font-semibold text-gray-800">{med.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {med.type || 'Medicine'} • Batch: {med.batch} • {med.dosage || 'No dosage specified'}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
 
               {/* Injection Search */}
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Add Injections (Batch: I*)
-                  </h3>
-                  <div className="relative">
-                    <div className="flex gap-3">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="Search injection..."
-                          value={injectionSearch}
-                          onChange={(e) => {
-                            setInjectionSearch(e.target.value);
-                            setShowInjectionSuggestions(true);
-                          }}
-                          className="border-2 border-gray-200 px-4 py-3 pr-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        />
-                        {injectionSearch && (
-                          <button
-                            onClick={() => {
-                              setInjectionSearch("");
-                              setShowInjectionSuggestions(false);
-                            }}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          const found = availableInjections.find(
-                            (inj) => inj.name.toLowerCase() === injectionSearch.trim().toLowerCase()
-                          );
-                          if (found) handleAddInjectionFromSearch(found);
-                          else showToast("❌ Injection not found", "error");
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  Add Injections (Batch: I*)
+                </h3>
+                <div className="relative">
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Search injection..."
+                        value={injectionSearch}
+                        onChange={(e) => {
+                          setInjectionSearch(e.target.value);
+                          setShowInjectionSuggestions(true);
                         }}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
-                      >
-                        Add
-                      </button>
+                        className="border-2 border-gray-200 px-4 py-3 pr-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      />
+                      {injectionSearch && (
+                        <button
+                          onClick={() => clearSearch('injection')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
-
-                    {showInjectionSuggestions && injectionSearch.trim() && filteredInjectionSuggestions.length > 0 && (
-                      <ul className="absolute bg-white border-2 border-gray-100 rounded-lg mt-2 shadow-xl z-50 max-h-40 overflow-auto w-full">
-                        {filteredInjectionSuggestions.map((inj, idx) => (
-                          <li
-                            key={idx}
-                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
-                            onClick={() => handleAddInjectionFromSearch(inj)}
-                          >
-                            <div className="font-semibold text-gray-800">{inj.name}</div>
-                            <div className="text-sm text-gray-500">
-                              Injection • Batch: {inj.batch} • {inj.dosage || 'No dosage specified'}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <button
+                      onClick={() => handleSearchAdd('injection')}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors duration-200"
+                    >
+                      Add
+                    </button>
                   </div>
+
+                  {showInjectionSuggestions && injectionSearch.trim() && filteredInjectionSuggestions.length > 0 && (
+                    <ul className="absolute bg-white border-2 border-gray-100 rounded-lg mt-2 shadow-xl z-50 max-h-40 overflow-auto w-full">
+                      {filteredInjectionSuggestions.map((inj, idx) => (
+                        <li
+                          key={idx}
+                          className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors duration-150"
+                          onClick={() => handleAddInjectionFromSearch(inj)}
+                        >
+                          <div className="font-semibold text-gray-800">{inj.name}</div>
+                          <div className="text-sm text-gray-500">
+                            Injection • Batch: {inj.batch} • {inj.dosage || 'No dosage specified'}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
@@ -521,6 +525,8 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
+                      
+                      {/* Medicine Rows */}
                       {selectedMeds.map((med, index) => (
                         <tr key={`med-${index}`} className="hover:bg-blue-50 transition-colors">
                           <td className="px-4 py-3">
@@ -595,6 +601,8 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
                           </td>
                         </tr>
                       ))}
+                      
+                      {/* Injection Rows */}
                       {injections.map((inj, index) => (
                         <tr key={`inj-${index}`} className="hover:bg-blue-50 transition-colors">
                           <td className="px-4 py-3">
@@ -633,7 +641,6 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
                               min="1"
                             />
                           </td>
-
                           <td className="px-4 py-3">
                             <input
                               type="text"
@@ -671,6 +678,7 @@ const PrescriptionForm = ({appointmentId,doctorId,patientId,patientName,onClose,
 
             {/* Diet Plan and Tests */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
               {/* Diet Plan */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
